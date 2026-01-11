@@ -48,16 +48,18 @@ class PhotoCard extends StatelessWidget {
               ),
           ],
         ),
-        SizedBox(height: 8.h),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+        SizedBox(height: 10.h),
+        Flexible(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 14.sp.clamp(14,15),
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+            maxLines: 1, // Allow up to 2 lines instead of 1
+            overflow: TextOverflow.ellipsis,
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

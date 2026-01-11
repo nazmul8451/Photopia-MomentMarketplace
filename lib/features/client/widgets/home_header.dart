@@ -17,7 +17,7 @@ class HomeHeader extends StatelessWidget {
               Text(
                 'Photopia',
                 style: TextStyle(
-                  fontSize: 28.sp,
+                  fontSize: 20.sp.clamp(20, 22),
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                   letterSpacing: -0.5,
@@ -30,7 +30,7 @@ class HomeHeader extends StatelessWidget {
                   Text(
                     'Barcelona, Spain',
                     style: TextStyle(
-                      fontSize: 14.sp,
+                      fontSize: 12.sp.clamp(12, 15),
                       color: Colors.grey,
                       fontWeight: FontWeight.w500,
                     ),
@@ -41,14 +41,7 @@ class HomeHeader extends StatelessWidget {
           ),
           Stack(
             children: [
-              Container(
-                padding: EdgeInsets.all(8.w),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                ),
-                child: Icon(Icons.notifications_none, size: 24.sp, color: Colors.black),
-              ),
+              IconButton(onPressed: (){}, icon: Icon(Icons.notifications_none, size: 18.sp, color: Colors.black)),
               Positioned(
                 right: 5.w,
                 top: 5.h,

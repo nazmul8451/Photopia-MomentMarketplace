@@ -59,13 +59,13 @@ class MyHomePage extends StatelessWidget {
                     sliver: SliverGrid(
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        mainAxisSpacing: 15.h,
+                        mainAxisSpacing: 10.h,
                         crossAxisSpacing: 15.w,
-                        childAspectRatio: 0.8,
+                        childAspectRatio: 0.80,
                       ),
                       delegate: SliverChildListDelegate([
                         const PhotoCard(
-                          title: 'Interior Photography',
+                          title: 'Interior Photography for your home',
                           imageUrl:
                               'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=500',
                         ),

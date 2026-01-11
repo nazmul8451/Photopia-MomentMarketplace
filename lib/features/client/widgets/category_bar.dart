@@ -21,7 +21,7 @@ class _CategoryBarState extends State<CategoryBar> {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 35.h,
+      height: 35.h.clamp(35, 45),
       child: ListView.separated(
         padding: EdgeInsets.symmetric(horizontal: 20.w),
         scrollDirection: Axis.horizontal,
@@ -51,7 +51,7 @@ class _CategoryBarState extends State<CategoryBar> {
                   Text(
                     _categories[index]['title'],
                     style: TextStyle(
-                      fontSize: 14.sp,
+                      fontSize: 14.sp.clamp(14, 15),
                       fontWeight: FontWeight.w600,
                       color: isSelected ? Colors.white : Colors.black,
                     ),
