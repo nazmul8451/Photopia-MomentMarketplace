@@ -40,10 +40,10 @@ class SearchHeader extends StatelessWidget {
                       hintText: 'Search photographers, services...',
                       hintStyle: TextStyle(
                         color: Colors.grey.withOpacity(0.6),
-                        fontSize: 12.sp.clamp(12,13),
+                        fontSize: 12.sp.clamp(12, 13),
                       ),
                       prefixIcon: Padding(
-                        padding: EdgeInsets.only(left: 12.w, right: 8.w),
+                        padding: EdgeInsets.only(left: 12.w, right: 4.w),
                         child: Icon(
                           Icons.search,
                           color: Colors.grey,
@@ -51,14 +51,12 @@ class SearchHeader extends StatelessWidget {
                         ),
                       ),
                       prefixIconConstraints: BoxConstraints(
-                        minWidth: 40.w,
+                        minWidth: 35.w,
                         minHeight: 40.h,
                       ),
                       border: InputBorder.none,
                       isDense: true,
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 10.h,
-                      ),
+                      contentPadding: EdgeInsets.zero,
                     ),
                   ),
                 ),
@@ -102,7 +100,7 @@ class SearchHeader extends StatelessWidget {
   Widget _buildHashTag(String tag) {
     return Container(
       margin: EdgeInsets.only(right: 8.w),
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 5.h),
       decoration: BoxDecoration(
         color: Colors.grey.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20).r,
@@ -113,7 +111,7 @@ class SearchHeader extends StatelessWidget {
           style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.w600,
-            fontSize: 12.sp,
+            fontSize: 12.sp.clamp(12, 14),
           ),
         ),
       ),
