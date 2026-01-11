@@ -15,6 +15,7 @@ class Photopia extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp(
+          debugShowCheckedModeBanner: false,
           useInheritedMediaQuery: true,
           // locale: DevicePreview.locale(context),
           // builder: DevicePreview.appBuilder,
