@@ -12,24 +12,39 @@ class BottomNavigationScreen extends StatefulWidget {
 class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
   int _selectedIndex = 0;
 
-  static final List<Widget> _pages = <Widget>[
-    const MyHomePage(),
-    const Center(child: Text('Messages')),
-    const Center(child: Text('Search')),
-    const Center(child: Text('Favorites')),
-    const Center(child: Text('Profile')),
+  // Use keys for each navigator to maintain state and allow internal navigation
+  final List<GlobalKey<NavigatorState>> _navigatorKeys = [
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
   ];
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (_selectedIndex == index) {
+      // If tapping the already selected tab, pop to the first route
+      _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
+    } else {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pages.elementAt(_selectedIndex),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          _buildTabNavigator(0, const MyHomePage()),
+          _buildTabNavigator(1, const Center(child: Text('Messages'))),
+          _buildTabNavigator(2, const Center(child: Text('Search'))),
+          _buildTabNavigator(3, const Center(child: Text('Favorites'))),
+          _buildTabNavigator(4, const Center(child: Text('Profile'))),
+        ],
+      ),
       bottomNavigationBar: Container(
         height: 70,
         clipBehavior: Clip.none,
@@ -47,13 +62,26 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
         child: Row(
           children: [
             Expanded(child: _buildNavItem(0, Icons.home_outlined, 'Home')),
-            Expanded(child: _buildNavItem(1, Icons.chat_bubble_outline, 'Messages')),
+            Expanded(
+                child: _buildNavItem(1, Icons.chat_bubble_outline, 'Messages')),
             Expanded(child: _buildSearchButton()),
-            Expanded(child: _buildNavItem(3, Icons.favorite_border, 'Favorites')),
+            Expanded(
+                child: _buildNavItem(3, Icons.favorite_border, 'Favorites')),
             Expanded(child: _buildNavItem(4, Icons.person_outline, 'Profile')),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTabNavigator(int index, Widget rootPage) {
+    return Navigator(
+      key: _navigatorKeys[index],
+      onGenerateRoute: (routeSettings) {
+        return MaterialPageRoute(
+          builder: (context) => rootPage,
+        );
+      },
     );
   }
 
@@ -70,13 +98,6 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
             color: const Color(0xFF1A1A1A),
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white, width: 4),
-            // boxShadow: [
-            //   BoxShadow(
-            //     color: Colors.black.withOpacity(0.15),
-            //     blurRadius: 10,
-            //     offset: const Offset(0, 5),
-            //   ),
-            // ],
           ),
           child: const Icon(
             Icons.search,
@@ -90,7 +111,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
 
   Widget _buildNavItem(int index, IconData icon, String label) {
     bool isSelected = _selectedIndex == index;
-    
+
     return GestureDetector(
       onTap: () => _onItemTapped(index),
       child: Column(

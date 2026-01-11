@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/features/client/category_details_screen.dart';
 
 class CategoryBar extends StatefulWidget {
   const CategoryBar({super.key});
@@ -30,7 +31,9 @@ class _CategoryBarState extends State<CategoryBar> {
         itemBuilder: (context, index) {
           bool isSelected = _selectedIndex == index;
           return GestureDetector(
-            onTap: () => setState(() => _selectedIndex = index),
+            onTap: () {
+              setState(() => _selectedIndex = index);
+            },
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
               decoration: BoxDecoration(
