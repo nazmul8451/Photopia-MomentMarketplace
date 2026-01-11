@@ -1,20 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 
 class PhotoCard extends StatelessWidget {
   final String title;
   final String imageUrl;
   final bool hasBadges;
+  final bool isLoading;
 
   const PhotoCard({
     super.key,
-    required this.title,
-    required this.imageUrl,
+    this.title = '',
+    this.imageUrl = '',
     this.hasBadges = false,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return ShimmerSkeleton(
+        width: double.infinity,
+        height: 180.h,
+        borderRadius: BorderRadius.circular(16).r,
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

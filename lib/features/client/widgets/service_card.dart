@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 
 class ServiceCard extends StatelessWidget {
   final String title;
@@ -10,21 +11,26 @@ class ServiceCard extends StatelessWidget {
   final String priceRange;
   final List<String> tags;
   final bool isPremium;
+  final bool isLoading;
 
   const ServiceCard({
     super.key,
-    required this.title,
-    required this.subtitle,
-    required this.imageUrl,
-    this.rating = 4.9,
+    this.title = '',
+    this.subtitle = '',
+    this.imageUrl = '',
+    this.rating = 0.0,
     this.reviews = 0,
-    required this.priceRange,
-    required this.tags,
+    this.priceRange = '',
+    this.tags = const [],
     this.isPremium = false,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const ServiceCardSkeleton();
+    }
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,

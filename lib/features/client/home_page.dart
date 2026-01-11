@@ -7,10 +7,32 @@ import 'package:photopia/features/client/category_details_screen.dart';
 
 import 'package:flutter/services.dart';
 
-class MyHomePage extends StatelessWidget {
+import 'dart:async';
+import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
+
+class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
   static const String name = "home-page";
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    });
+  }
 
   void _navigateToDetails(BuildContext context) {
     Navigator.of(context).push(
@@ -49,12 +71,12 @@ class MyHomePage extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Column(
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  HomeHeader(),
-                  CategoryBar(),
-                  SizedBox(height: 15),
+                  const HomeHeader(),
+                  CategoryBar(isLoading: _isLoading),
+                  const SizedBox(height: 15),
                 ],
               ),
             ),
@@ -72,57 +94,56 @@ class MyHomePage extends StatelessWidget {
                         crossAxisSpacing: 15.w,
                         childAspectRatio: 0.80,
                       ),
-                      delegate: SliverChildListDelegate([
-                        GestureDetector(
-                          onTap: () => _navigateToDetails(context),
-                          child: const PhotoCard(
-                            title: 'Interior Photography for your home',
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=500',
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => _navigateToDetails(context),
-                          child: const PhotoCard(
-                            title: 'Portrait Photography',
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=500',
-                            hasBadges: true,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => _navigateToDetails(context),
-                          child: const PhotoCard(
-                            title: 'Home Decor Shoots',
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=500',
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => _navigateToDetails(context),
-                          child: const PhotoCard(
-                            title: 'Product Photography',
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=500',
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => _navigateToDetails(context),
-                          child: const PhotoCard(
-                            title: 'Outdoor Photography',
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=500',
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => _navigateToDetails(context),
-                          child: const PhotoCard(
-                            title: 'Fashion Photography',
-                            imageUrl:
-                                'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=500',
-                          ),
-                        ),
-                      ]),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          if (_isLoading) {
+                            return const PhotoCard(isLoading: true);
+                          }
+                          final List<Map<String, dynamic>> photos = [
+                            {
+                              'title': 'Interior Photography for your home',
+                              'imageUrl':
+                                  'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=500',
+                            },
+                            {
+                              'title': 'Portrait Photography',
+                              'imageUrl':
+                                  'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=500',
+                              'hasBadges': true,
+                            },
+                            {
+                              'title': 'Home Decor Shoots',
+                              'imageUrl':
+                                  'https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=500',
+                            },
+                            {
+                              'title': 'Product Photography',
+                              'imageUrl':
+                                  'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=500',
+                            },
+                            {
+                              'title': 'Outdoor Photography',
+                              'imageUrl':
+                                  'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=500',
+                            },
+                            {
+                              'title': 'Fashion Photography',
+                              'imageUrl':
+                                  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=500',
+                            },
+                          ];
+                          final photo = photos[index % photos.length];
+                          return GestureDetector(
+                            onTap: () => _navigateToDetails(context),
+                            child: PhotoCard(
+                              title: photo['title'],
+                              imageUrl: photo['imageUrl'],
+                              hasBadges: photo['hasBadges'] ?? false,
+                            ),
+                          );
+                        },
+                        childCount: _isLoading ? 6 : 10,
+                      ),
                     ),
                   ),
                 ],

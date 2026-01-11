@@ -11,7 +11,8 @@
         "device_preview",
         "flutter",
         "flutter_screenutil",
-        "provider"
+        "provider",
+        "shimmer"
       ],
       "devDependencies": [
         "flutter_lints",
@@ -41,6 +42,13 @@
         "stream_channel",
         "test_api",
         "vector_math"
+      ]
+    },
+    {
+      "name": "shimmer",
+      "version": "3.0.0",
+      "dependencies": [
+        "flutter"
       ]
     },
     {
