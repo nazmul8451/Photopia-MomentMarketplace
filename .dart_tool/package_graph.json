@@ -1,10 +1,10 @@
 {
   "roots": [
-    "untitled1"
+    "photopia"
   ],
   "packages": [
     {
-      "name": "untitled1",
+      "name": "photopia",
       "version": "1.0.0+1",
       "dependencies": [
         "cupertino_icons",

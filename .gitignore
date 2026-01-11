@@ -1,29 +1,38 @@
-### IntelliJ IDEA ###
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+# Flutter/Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
 
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+# Android
+android/.gradle/
+android/build/
+android/local.properties
+android/key.properties
+*.jks
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+# iOS
+ios/Flutter/flutter_export_environment.sh
+ios/Pods/
+ios/.symlinks/
 
-### VS Code ###
+# Web
+.web_manifest
+
+# IDE
 .vscode/
+.idea/
+*.iml
+*.swp
+*.swo
 
-### Mac OS ###
+# OS
 .DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
