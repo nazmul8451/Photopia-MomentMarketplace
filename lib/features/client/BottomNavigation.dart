@@ -81,7 +81,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
           ),
           child: const Icon(
             Icons.search,
-            color: Colors.white,
+            color: Colors.grey,
             size: 28,
           ),
         ),
