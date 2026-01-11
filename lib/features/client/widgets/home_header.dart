@@ -39,22 +39,33 @@ class HomeHeader extends StatelessWidget {
               ),
             ],
           ),
-          Stack(
-            children: [
-              IconButton(onPressed: (){}, icon: Icon(Icons.notifications_none, size: 18.sp, color: Colors.black)),
-              Positioned(
-                right: 5.w,
-                top: 5.h,
-                child: Container(
-                  width: 10.w,
-                  height: 10.w,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
+          IconButton(
+            onPressed: () {},
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(
+                  Icons.notifications_none,
+                  size: 20.sp.clamp(20, 22),
+                  color: Colors.black,
+                ),
+                Positioned(
+                  right: -2.w,
+                  top: -2.h,
+                  child: Container(
+                    width: 8.w,
+                    height: 8.w,
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 1.5),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
