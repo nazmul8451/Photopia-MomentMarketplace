@@ -45,13 +45,12 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
           ],
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(0, Icons.home_outlined, 'Home'),
-            _buildNavItem(1, Icons.chat_bubble_outline, 'Messages'),
-            _buildSearchButton(),
-            _buildNavItem(3, Icons.favorite_border, 'Favorites'),
-            _buildNavItem(4, Icons.person_outline, 'Profile'),
+            Expanded(child: _buildNavItem(0, Icons.home_outlined, 'Home')),
+            Expanded(child: _buildNavItem(1, Icons.chat_bubble_outline, 'Messages')),
+            Expanded(child: _buildSearchButton()),
+            Expanded(child: _buildNavItem(3, Icons.favorite_border, 'Favorites')),
+            Expanded(child: _buildNavItem(4, Icons.person_outline, 'Profile')),
           ],
         ),
       ),
