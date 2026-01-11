@@ -34,7 +34,11 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Detect if keyboard is visible
+    bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
+
     return Scaffold(
+      resizeToAvoidBottomInset: false, // Prevent push up
       body: IndexedStack(
         index: _selectedIndex,
         children: [
@@ -45,32 +49,38 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
           _buildTabNavigator(4, const Center(child: Text('Profile'))),
         ],
       ),
-      bottomNavigationBar: Container(
-        height: 70,
-        clipBehavior: Clip.none,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
-              blurRadius: 10,
-              spreadRadius: 1,
-              offset: const Offset(0, -2),
+      bottomNavigationBar: isKeyboardVisible
+          ? const SizedBox.shrink() // Completely hide when keyboard is open
+          : Container(
+              height: 70,
+              clipBehavior: Clip.none,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.3),
+                    blurRadius: 10,
+                    spreadRadius: 1,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(child: _buildNavItem(0, Icons.home_outlined, 'Home')),
+                  Expanded(
+                      child: _buildNavItem(
+                          1, Icons.chat_bubble_outline, 'Messages')),
+                  Expanded(child: _buildSearchButton()),
+                  Expanded(
+                      child:
+                          _buildNavItem(3, Icons.favorite_border, 'Favorites')),
+                  Expanded(
+                      child:
+                          _buildNavItem(4, Icons.person_outline, 'Profile')),
+                ],
+              ),
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(child: _buildNavItem(0, Icons.home_outlined, 'Home')),
-            Expanded(
-                child: _buildNavItem(1, Icons.chat_bubble_outline, 'Messages')),
-            Expanded(child: _buildSearchButton()),
-            Expanded(
-                child: _buildNavItem(3, Icons.favorite_border, 'Favorites')),
-            Expanded(child: _buildNavItem(4, Icons.person_outline, 'Profile')),
-          ],
-        ),
-      ),
     );
   }
 

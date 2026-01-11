@@ -53,7 +53,7 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                         crossAxisCount: 2,
                         mainAxisSpacing: 15.h,
                         crossAxisSpacing: 15.w,
-                        childAspectRatio: 0.6, // Taller for more info
+                        childAspectRatio: 0.55, // Increased height for iPhone/Small screens
                       ),
                       delegate: SliverChildListDelegate([
                         const ServiceCard(

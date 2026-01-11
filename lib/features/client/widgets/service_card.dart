@@ -114,7 +114,7 @@ class ServiceCard extends StatelessWidget {
                       Text(
                         title,
                         style: TextStyle(
-                          fontSize: 13.sp,
+                          fontSize: 13.sp.clamp(13, 14),
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
@@ -124,7 +124,7 @@ class ServiceCard extends StatelessWidget {
                       Text(
                         subtitle,
                         style: TextStyle(
-                          fontSize: 11.sp,
+                          fontSize: 11.sp.clamp(11, 12),
                           color: Colors.grey,
                         ),
                         maxLines: 1,
@@ -139,24 +139,28 @@ class ServiceCard extends StatelessWidget {
                       Text(
                         rating.toString(),
                         style: TextStyle(
-                          fontSize: 11.sp,
+                          fontSize: 11.sp.clamp(11, 12),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Text(
-                        ' ($reviews)',
-                        style: TextStyle(
-                          fontSize: 11.sp,
-                          color: Colors.grey,
+                      Flexible(
+                        child: Text(
+                          ' ($reviews)',
+                          style: TextStyle(
+                            fontSize: 11.sp.clamp(11, 12),
+                            color: Colors.grey,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                  Row(
+                  Wrap(
+                    spacing: 4.w,
+                    runSpacing: 4.h,
                     children: tags
                         .take(2)
                         .map((tag) => Container(
-                              margin: EdgeInsets.only(right: 4.w),
                               padding: EdgeInsets.symmetric(
                                   horizontal: 4.w, vertical: 2.h),
                               decoration: BoxDecoration(
@@ -166,7 +170,7 @@ class ServiceCard extends StatelessWidget {
                               child: Text(
                                 '#$tag',
                                 style: TextStyle(
-                                  fontSize: 9.sp,
+                                  fontSize: 9.sp.clamp(9, 10),
                                   color: Colors.grey[700],
                                 ),
                               ),
@@ -176,7 +180,7 @@ class ServiceCard extends StatelessWidget {
                   Text(
                     priceRange,
                     style: TextStyle(
-                      fontSize: 12.sp,
+                      fontSize: 12.sp.clamp(12, 13),
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),

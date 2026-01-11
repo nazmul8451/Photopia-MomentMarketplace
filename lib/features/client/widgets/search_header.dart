@@ -13,11 +13,12 @@ class SearchHeader extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 20.w),
           child: Text(
             'Search',
-            style: TextStyle(
-              fontSize: 24.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+           style: TextStyle(
+                  fontSize: 20.sp.clamp(20, 22),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                  letterSpacing: -0.5,
+                ),
           ),
         ),
         SizedBox(height: 15.h),
@@ -39,14 +40,14 @@ class SearchHeader extends StatelessWidget {
                       hintText: 'Search photographers, services...',
                       hintStyle: TextStyle(
                         color: Colors.grey.withOpacity(0.6),
-                        fontSize: 14.sp,
+                        fontSize: 12.sp.clamp(12,13),
                       ),
                       prefixIcon: Padding(
                         padding: EdgeInsets.only(left: 12.w, right: 8.w),
                         child: Icon(
                           Icons.search,
                           color: Colors.grey,
-                          size: 20.sp,
+                          size: 20.sp.clamp(20, 22),
                         ),
                       ),
                       prefixIconConstraints: BoxConstraints(
@@ -73,7 +74,7 @@ class SearchHeader extends StatelessWidget {
                 ),
                 child: IconButton(
                   onPressed: () {},
-                  icon: Icon(Icons.tune, color: Colors.black, size: 22.sp),
+                  icon: Icon(Icons.tune, color: Colors.black, size: 22.sp.clamp(22, 24)),
                 ),
               ),
             ],
