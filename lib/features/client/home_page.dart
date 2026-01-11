@@ -12,12 +12,7 @@ class MyHomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Photopia'),
       ),
-      body: Center(
-        child: Text(
-          'Responsive Text',
-          style: TextStyle(fontSize: 24.sp),
-        ),
-      ),
+
     );
   }
 }

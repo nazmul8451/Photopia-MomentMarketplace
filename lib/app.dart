@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/home_page.dart';
+import 'package:photopia/features/client/BottomNavigation.dart';
 
 
 class Photopia extends StatelessWidget {
@@ -21,7 +22,7 @@ class Photopia extends StatelessWidget {
             primaryColor: Colors.blue,
             useMaterial3: true,
           ),
-          home: const MyHomePage(), // Replace with your home widget
+          home:  BottomNavigationScreen(), 
         );
       },
     );
