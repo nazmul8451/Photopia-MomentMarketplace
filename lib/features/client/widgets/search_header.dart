@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/features/client/search_filter_screen.dart';
 
 class SearchHeader extends StatelessWidget {
-  const SearchHeader({super.key});
+  final Function(Map<String, dynamic>)? onFilterApplied;
+  const SearchHeader({super.key, this.onFilterApplied});
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +73,18 @@ class SearchHeader extends StatelessWidget {
                   border: Border.all(color: Colors.black54.withOpacity(0.3)),
                 ),
                 child: IconButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    // Navigate to filter screen and wait for result
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SearchFilterScreen(),
+                      ),
+                    );
+                    if (result != null && onFilterApplied != null) {
+                      onFilterApplied!(result);
+                    }
+                  },
                   icon: Icon(Icons.tune, color: Colors.black, size: 22.sp.clamp(22, 24)),
                 ),
               ),

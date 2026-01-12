@@ -22,6 +22,10 @@ class Photopia extends StatelessWidget {
           theme: ThemeData(
             primaryColor: Colors.blue,
             useMaterial3: true,
+
+            textSelectionTheme: const TextSelectionThemeData(
+              cursorColor: Colors.black54,
+            ),
           ),
           home:  BottomNavigationScreen(), 
         );

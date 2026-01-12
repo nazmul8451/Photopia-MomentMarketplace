@@ -62,7 +62,23 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SearchHeader(),
+                  SearchHeader(
+                    onFilterApplied: (filters) {
+                      // Handle filtering logic here
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      // Simulate fetching filtered data
+                      Timer(const Duration(seconds: 1), () {
+                        if (mounted) {
+                          setState(() {
+                            _isLoading = false;
+                            // In a real app, you'd update your data list based on 'filters'
+                          });
+                        }
+                      });
+                    },
+                  ),
               
                   SizedBox(height: 5.h),
                 ],
