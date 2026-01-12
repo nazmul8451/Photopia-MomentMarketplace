@@ -41,7 +41,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
         title: Text(
           'Search Filter',
           style: TextStyle(
-            color: const Color(0xFF4CB5F5), // Light blue color from image
+            color:  Colors.black, // Light blue color from image
             fontSize: 18.sp.clamp(18, 20),
             fontWeight: FontWeight.bold,
           ),
@@ -181,7 +181,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                     ),
                     child: Text(
                       'Clear All',
-                      style: TextStyle(color: Colors.black87, fontSize: 16.sp, fontWeight: FontWeight.w600),
+                      style: TextStyle(color: Colors.black87, fontSize: 16.sp.clamp(16, 18), fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
@@ -208,7 +208,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                     ),
                     child: Text(
                       'Apply Filters',
-                      style: TextStyle(color: Colors.white, fontSize: 16.sp, fontWeight: FontWeight.w600),
+                      style: TextStyle(color: Colors.white, fontSize: 16.sp.clamp(16, 18), fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
@@ -271,7 +271,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
       checkmarkColor: Colors.white,
       labelStyle: TextStyle(
         color: isSelected ? Colors.white : Colors.black87,
-        fontSize: 13.sp,
+        fontSize: 13.sp.clamp(13, 15),
         fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
       ),
       shape: RoundedRectangleBorder(
