@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/book_now_SelectPackage_screen.dart';
+import 'package:photopia/features/client/provider_profile_screen.dart';
 
 class ServiceDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> service;
@@ -226,69 +227,84 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
   }
 
   Widget _buildProviderCard() {
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 25.r,
-          backgroundImage: const NetworkImage('https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200'),
-        ),
-        SizedBox(width: 12.w),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    widget.service['subtitle'] ?? 'Emma Wilson',
-                    style: TextStyle(
-                      fontSize: 15.sp.clamp(15, 16),
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                  SizedBox(width: 8.w),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(20).r,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.stars, color: Colors.orange, size: 10.sp),
-                        SizedBox(width: 4.w),
-                        Text(
-                          'Premium',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10.sp.clamp(10, 11),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Icon(Icons.star, color: Colors.orange, size: 14.sp),
-                  SizedBox(width: 4.w),
-                  Text(
-                    '${widget.service['rating'] ?? 4.9} (${widget.service['reviews'] ?? 127} reviews)',
-                    style: TextStyle(
-                      fontSize: 12.sp.clamp(12, 13),
-                      color: Colors.grey,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProviderProfileScreen(
+              provider: {
+                'name': widget.service['subtitle'] ?? 'Emma Wilson',
+                'avatar': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
+              },
+            ),
           ),
-        ),
-      ],
+        );
+      },
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 25.r,
+            backgroundImage: const NetworkImage('https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200'),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      widget.service['subtitle'] ?? 'Emma Wilson',
+                      style: TextStyle(
+                        fontSize: 15.sp.clamp(15, 16),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(20).r,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.stars, color: Colors.orange, size: 10.sp),
+                          SizedBox(width: 4.w),
+                          Text(
+                            'Premium',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10.sp.clamp(10, 11),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Icon(Icons.star, color: Colors.orange, size: 14.sp),
+                    SizedBox(width: 4.w),
+                    Text(
+                      '${widget.service['rating'] ?? 4.9} (${widget.service['reviews'] ?? 127} reviews)',
+                      style: TextStyle(
+                        fontSize: 12.sp.clamp(12, 13),
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
