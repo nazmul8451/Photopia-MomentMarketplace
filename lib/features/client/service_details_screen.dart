@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/features/client/book_now_SelectPackage_screen.dart';
 
 class ServiceDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> service;
@@ -455,19 +456,29 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
           ),
           SizedBox(width: 15.w),
           Expanded(
-            child: Container(
-              height: 50.h,
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(12).r,
-              ),
-              child: Center(
-                child: Text(
-                  'Book Now',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14.sp.clamp(14.sp, 18.sp),
-                    fontWeight: FontWeight.bold,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SelectPackageScreen(),
+                  ),
+                );
+              },
+              child: Container(
+                height: 50.h,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(12).r,
+                ),
+                child: Center(
+                  child: Text(
+                    'Book Now',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp.clamp(14.sp, 18.sp),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
