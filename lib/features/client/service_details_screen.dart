@@ -263,7 +263,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                           'Premium',
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 10.sp,
+                            fontSize: 10.sp.clamp(10, 11),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -279,7 +279,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                   Text(
                     '${widget.service['rating'] ?? 4.9} (${widget.service['reviews'] ?? 127} reviews)',
                     style: TextStyle(
-                      fontSize: 12.sp,
+                      fontSize: 12.sp.clamp(12, 13),
                       color: Colors.grey,
                     ),
                   ),
@@ -320,7 +320,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
           Text(
             label,
             style: TextStyle(
-              fontSize: 11.sp,
+              fontSize: 11.sp.clamp(11, 12),
               color: Colors.grey,
             ),
           ),
@@ -328,7 +328,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
           Text(
             value,
             style: TextStyle(
-              fontSize: 14.sp,
+              fontSize: 14.sp.clamp(14, 16),
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
@@ -342,7 +342,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
     return Text(
       title,
       style: TextStyle(
-        fontSize: 16.sp,
+        fontSize: 16.sp.clamp(16, 18),
         fontWeight: FontWeight.bold,
         color: Colors.black,
       ),
@@ -363,7 +363,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
         child: Text(
           tag,
           style: TextStyle(
-            fontSize: 11.sp,
+            fontSize: 11.sp.clamp(11, 12),
             color: Colors.black87,
             fontWeight: FontWeight.w500,
           ),
@@ -422,7 +422,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
         child: Text(
           tag.startsWith('#') ? tag : '#$tag',
           style: TextStyle(
-            fontSize: 12.sp,
+            fontSize: 12.sp.clamp(12, 13),
             color: Colors.black87,
             fontWeight: FontWeight.w600,
           ),
@@ -476,7 +476,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                     'Book Now',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 14.sp.clamp(14.sp, 18.sp),
+                      fontSize: 14.sp.clamp(14, 16),
                       fontWeight: FontWeight.bold,
                     ),
                   ),

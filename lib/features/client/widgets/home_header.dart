@@ -26,12 +26,12 @@ class HomeHeader extends StatelessWidget {
               ),
               Row(
                 children: [
-                  Icon(Icons.location_on, size: 14.sp, color: Colors.grey),
+                  Icon(Icons.location_on, size: 14.sp.clamp(14, 16), color: Colors.grey),
                   SizedBox(width: 4.w),
                   Text(
                     'Barcelona, Spain',
                     style: TextStyle(
-                      fontSize: 12.sp.clamp(12, 15),
+                      fontSize: 12.sp.clamp(12, 14),
                       color: Colors.grey,
                       fontWeight: FontWeight.w500,
                     ),

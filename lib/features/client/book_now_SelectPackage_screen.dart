@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/features/client/book_now_confirmation_screen.dart';
 
 class SelectPackageScreen extends StatefulWidget {
   const SelectPackageScreen({super.key});
@@ -76,32 +77,27 @@ class _SelectPackageScreenState extends State<SelectPackageScreen> {
           ),
         ),
       ),
-      body: Stack(
+      body: ListView(
+        physics: const BouncingScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, 20.h),
         children: [
-          ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, 120.h),
-            itemCount: _packages.length,
-            itemBuilder: (context, index) {
-              final package = _packages[index];
-              final isSelected = _selectedPackageIndex == index;
+          ..._packages.asMap().entries.map((entry) {
+            final index = entry.key;
+            final package = entry.value;
+            final isSelected = _selectedPackageIndex == index;
 
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedPackageIndex = index;
-                  });
-                },
-                child: _buildPackageCard(package, isSelected),
-              );
-            },
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _buildBottomBar(),
-          ),
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedPackageIndex = index;
+                });
+              },
+              child: _buildPackageCard(package, isSelected),
+            );
+          }).toList(),
+          SizedBox(height: 10.h),
+          _buildBottomBar(),
+          SizedBox(height: 20.h),
         ],
       ),
     );
@@ -193,30 +189,27 @@ class _SelectPackageScreenState extends State<SelectPackageScreen> {
   }
 
   Widget _buildBottomBar() {
-    return Container(
-      padding: EdgeInsets.fromLTRB(20.w, 15.h, 20.w, 20.h),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
+    return Row(
+      children: [
+        Container(
+          padding: EdgeInsets.all(12.w),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(12).r,
           ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(12).r,
-            ),
-            child: Icon(Icons.chat_bubble_outline, size: 24.sp, color: Colors.black),
-          ),
-          SizedBox(width: 15.w),
-          Expanded(
+          child: Icon(Icons.chat_bubble_outline, size: 24.sp, color: Colors.black),
+        ),
+        SizedBox(width: 15.w),
+        Expanded(
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const BookingConfirmationScreen(),
+                ),
+              );
+            },
             child: Container(
               height: 50.h,
               decoration: BoxDecoration(
@@ -228,15 +221,15 @@ class _SelectPackageScreenState extends State<SelectPackageScreen> {
                   'Book Now',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14.sp.clamp(14, 18),
+                    fontSize: 14.sp.clamp(14, 16),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

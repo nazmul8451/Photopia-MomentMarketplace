@@ -56,7 +56,7 @@ class _CategoryBarState extends State<CategoryBar> {
                 children: [
                   Icon(
                     categories[index]['icon'],
-                    size: 18.sp,
+                    size: 18.sp.clamp(18, 20),
                     color: isSelected ? Colors.white : Colors.black,
                   ),
                   SizedBox(width: 8.w),

@@ -76,7 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   const HomeHeader(),
                   CategoryBar(isLoading: _isLoading),
-                  const SizedBox(height: 15),
+                  SizedBox(height: 15.h),
                 ],
               ),
             ),

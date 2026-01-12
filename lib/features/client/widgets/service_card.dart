@@ -101,7 +101,7 @@ class ServiceCard extends StatelessWidget {
                             'Premium',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 9.sp,
+                              fontSize: 9.sp.clamp(9, 10),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -121,7 +121,7 @@ class ServiceCard extends StatelessWidget {
                     child: Icon(
                       Icons.favorite_border,
                       color: Colors.red,
-                      size: 16.sp,
+                      size: 16.sp.clamp(16, 18),
                     ),
                   ),
                 ),
@@ -161,7 +161,7 @@ class ServiceCard extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        Icon(Icons.star, color: Colors.orange, size: 12.sp),
+                        Icon(Icons.star, color: Colors.orange, size: 12.sp.clamp(12, 13)),
                         SizedBox(width: 4.w),
                         Text(
                           rating.toString(),

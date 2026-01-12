@@ -103,7 +103,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                 ),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 10.w),
-                  child: Text('-', style: TextStyle(fontSize: 18.sp, color: Colors.grey)),
+                  child: Text('-', style: TextStyle(fontSize: 18.sp.clamp(18, 20), color: Colors.grey)),
                 ),
                 Expanded(
                   child: _buildTextField(
@@ -227,7 +227,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
     return Text(
       title,
       style: TextStyle(
-        fontSize: 15.sp,
+        fontSize: 15.sp.clamp(15, 17),
         fontWeight: FontWeight.w600,
         color: Colors.black87,
       ),
