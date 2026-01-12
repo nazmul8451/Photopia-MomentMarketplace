@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/home_page.dart';
+import 'package:photopia/features/client/user_profile_screen.dart';
 
 class BottomNavigationScreen extends StatefulWidget {
   const BottomNavigationScreen({super.key});
@@ -48,7 +49,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
           _buildTabNavigator(1, const Center(child: Text('Messages'))),
           _buildTabNavigator(2, const Center(child: Text('Search'))),
           _buildTabNavigator(3, const Center(child: Text('Favorites'))),
-          _buildTabNavigator(4, const Center(child: Text('Profile'))),
+          _buildTabNavigator(4, const UserProfileScreen()),
         ],
       ),
       bottomNavigationBar: isKeyboardVisible
