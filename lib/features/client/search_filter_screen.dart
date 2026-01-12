@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class SearchFilterScreen extends StatefulWidget {
   const SearchFilterScreen({super.key});
+  static const String name = "search-filter";
 
   @override
   State<SearchFilterScreen> createState() => _SearchFilterScreenState();
@@ -32,6 +33,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(

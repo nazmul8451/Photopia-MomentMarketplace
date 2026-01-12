@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
+  static const String name = "notification";
 
   @override
   State<NotificationScreen> createState() => _NotificationScreenState();
@@ -66,79 +67,106 @@ class _NotificationScreenState extends State<NotificationScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+        toolbarHeight: 60.h,
+        leading: Padding(
+          padding: EdgeInsets.only(top: 10.h),
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
-        title: Text(
-          'Notifications',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 22.sp.clamp(22, 24),
-            fontWeight: FontWeight.bold,
+        title: Padding(
+          padding: EdgeInsets.only(top: 10.h),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Notifications',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18.sp.clamp(18, 20),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '${_notifications.where((n) => n['isUnread']).length} unread',
+                style: TextStyle(
+                  color: const Color(0xFF8E949A),
+                  fontSize: 14.sp.clamp(14, 16),
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+            ],
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              setState(() {
-                for (var n in _notifications) {
-                  n['isUnread'] = false;
-                }
-              });
-            },
-            child: Text(
-              'Mark all as read',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 14.sp.clamp(14, 16),
-                fontWeight: FontWeight.w500,
+          Padding(
+            padding: EdgeInsets.only(top: 15.h, right: 8.w),
+            child: TextButton(
+              onPressed: () {
+                setState(() {
+                  for (var n in _notifications) {
+                    n['isUnread'] = false;
+                  }
+                });
+              },
+              child: Text(
+                'Mark all as read',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 14.sp.clamp(14, 16),
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),
-          SizedBox(width: 10.w),
+          SizedBox(width: 5.w),
         ],
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(60.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                child: Text(
-                  '${_notifications.where((n) => n['isUnread']).length} unread',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14.sp.clamp(14, 16),
-                  ),
+          preferredSize: Size.fromHeight(50.h),
+          child: Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: Colors.grey.withOpacity(0.1),
+                  width: 1,
                 ),
               ),
-              SizedBox(height: 10.h),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                child: IntrinsicWidth(
+            ),
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                IntrinsicWidth(
                   child: Column(
                     children: [
-                      Text(
-                        'All (${_notifications.length})',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 14.sp.clamp(14, 16),
-                          fontWeight: FontWeight.bold,
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4.w),
+                        child: Text(
+                          'All (${_notifications.length})',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 14.sp.clamp(14, 16),
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      SizedBox(height: 8.h),
+                      SizedBox(height: 12.h),
                       Container(
                         height: 2.h,
+                        width: double.infinity,
                         color: Colors.black,
                       ),
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

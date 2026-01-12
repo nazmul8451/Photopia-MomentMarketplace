@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 
 class CategoryDetailsScreen extends StatefulWidget {
   const CategoryDetailsScreen({super.key});
+  static const String name = "category-details";
 
   @override
   State<CategoryDetailsScreen> createState() => _CategoryDetailsScreenState();

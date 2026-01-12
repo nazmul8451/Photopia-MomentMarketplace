@@ -5,6 +5,7 @@ import 'package:photopia/features/client/home_page.dart';
 
 class BottomNavigationScreen extends StatefulWidget {
   const BottomNavigationScreen({super.key});
+  static const String name = "bottom-navigation";
 
   @override
   State<BottomNavigationScreen> createState() => _BottomNavigationScreenState();
