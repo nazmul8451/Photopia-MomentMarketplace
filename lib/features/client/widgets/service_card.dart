@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:photopia/features/client/service_details_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/controller/client/favorites_controller.dart';
 
 class ServiceCard extends StatelessWidget {
   final String title;
@@ -112,17 +114,36 @@ class ServiceCard extends StatelessWidget {
                 Positioned(
                   top: 8.h,
                   right: 8.w,
-                  child: Container(
-                    padding: EdgeInsets.all(4.w),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.favorite_border,
-                      color: Colors.red,
-                      size: 16.sp.clamp(16, 18),
-                    ),
+                  child: Consumer<FavoritesController>(
+                    builder: (context, controller, child) {
+                      bool isFavorite = controller.isPostFavorite(title);
+                      return GestureDetector(
+                        onTap: () {
+                          controller.toggleFavoritePost({
+                            'title': title,
+                            'subtitle': subtitle,
+                            'imageUrl': imageUrl,
+                            'rating': rating,
+                            'reviews': reviews,
+                            'priceRange': priceRange,
+                            'tags': tags,
+                            'isPremium': isPremium,
+                          });
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(4.w),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: Colors.red,
+                            size: 16.sp.clamp(16, 18),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],

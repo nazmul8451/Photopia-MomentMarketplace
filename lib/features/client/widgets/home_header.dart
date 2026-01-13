@@ -18,7 +18,7 @@ class HomeHeader extends StatelessWidget {
               Text(
                 'Photopia',
                 style: TextStyle(
-                  fontSize: 20.sp.clamp(20, 22),
+                  fontSize: 24.sp.clamp(24, 26),
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                   letterSpacing: -0.5,

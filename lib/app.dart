@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/home_page.dart';
 import 'package:photopia/features/client/BottomNavigation.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/controller/client/favorites_controller.dart';
 
 
 class Photopia extends StatelessWidget {
@@ -14,20 +16,25 @@ class Photopia extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          useInheritedMediaQuery: true,
-          // locale: DevicePreview.locale(context),
-          // builder: DevicePreview.appBuilder,
-          theme: ThemeData(
-            primaryColor: Colors.blue,
-            useMaterial3: true,
-
-            textSelectionTheme: const TextSelectionThemeData(
-              cursorColor: Colors.black54,
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => FavoritesController()),
+          ],
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            useInheritedMediaQuery: true,
+            // locale: DevicePreview.locale(context),
+            // builder: DevicePreview.appBuilder,
+            theme: ThemeData(
+              primaryColor: Colors.blue,
+              useMaterial3: true,
+  
+              textSelectionTheme: const TextSelectionThemeData(
+                cursorColor: Colors.black54,
+              ),
             ),
+            home:  BottomNavigationScreen(), 
           ),
-          home:  BottomNavigationScreen(), 
         );
       },
     );

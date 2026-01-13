@@ -3,6 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:ui';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/client/widgets/service_card.dart';
+import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/controller/client/favorites_controller.dart';
 
 class ProviderProfileScreen extends StatefulWidget {
   final Map<String, dynamic> provider;
@@ -15,6 +18,7 @@ class ProviderProfileScreen extends StatefulWidget {
 
 class _ProviderProfileScreenState extends State<ProviderProfileScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -22,6 +26,14 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> with Sing
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       setState(() {});
+    });
+    // Simulate loading data
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     });
   }
 
@@ -60,7 +72,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> with Sing
                   flexibleSpace: FlexibleSpaceBar(
                     background: Padding(
                       padding: EdgeInsets.only(top: 80.h),
-                      child: _buildProfileInfo(),
+                      child: _isLoading ? ProfileHeaderSkeleton() : _buildProfileInfo(),
                     ),
                   ),
                   leading: IconButton(
@@ -75,16 +87,27 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> with Sing
                     onPressed: () => Navigator.pop(context),
                   ),
                   actions: [
-                    IconButton(
-                      icon: Container(
-                        padding: EdgeInsets.all(8.w),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.bookmark, color: Colors.black, size: 20.sp),
-                      ),
-                      onPressed: () {},
+                    Consumer<FavoritesController>(
+                      builder: (context, controller, child) {
+                        bool isFavorite = controller.isProviderFavorite(widget.provider['name'] ?? '');
+                        return IconButton(
+                          icon: Container(
+                            padding: EdgeInsets.all(8.w),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isFavorite ? Icons.bookmark : Icons.bookmark_outline,
+                              color: isFavorite ? Colors.black : Colors.black,
+                              size: 20.sp,
+                            ),
+                          ),
+                          onPressed: () {
+                            controller.toggleFavoriteProvider(widget.provider);
+                          },
+                        );
+                      },
                     ),
                     IconButton(
                       icon: Container(
@@ -376,8 +399,9 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> with Sing
             crossAxisSpacing: 15.w,
             childAspectRatio: 0.55,
           ),
-          itemCount: 3,
+          itemCount: _isLoading ? 2 : 3,
           itemBuilder: (context, index) {
+            if (_isLoading) return ServiceCardSkeleton();
             return ServiceCard(
               title: 'Romantic Wedding Photography',
               subtitle: 'Emma Wilson',

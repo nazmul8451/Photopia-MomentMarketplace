@@ -17,7 +17,7 @@ class UserProfileScreen extends StatelessWidget {
           'Profile',
           style: TextStyle(
             color: Colors.black,
-            fontSize: AppTypography.h1,
+            fontSize: 20.sp.clamp(20, 22),
             fontWeight: FontWeight.bold,
           ),
         ),

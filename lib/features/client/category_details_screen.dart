@@ -45,7 +45,7 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
           children: [
             Container(
               padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top + 10.h),
+                  top: MediaQuery.of(context).padding.top),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(
