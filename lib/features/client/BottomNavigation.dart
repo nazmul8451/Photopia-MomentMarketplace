@@ -8,7 +8,7 @@ import 'package:photopia/features/client/messages_screen.dart';
 
 class BottomNavigationScreen extends StatefulWidget {
   const BottomNavigationScreen({super.key});
-  static const String name = "bottom-navigation";
+  static const String name = "/bottom-navigation";
 
   @override
   State<BottomNavigationScreen> createState() => _BottomNavigationScreenState();

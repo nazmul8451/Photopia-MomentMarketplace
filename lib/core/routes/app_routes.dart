@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:photopia/features/client/home_page.dart';
 import 'package:photopia/features/client/category_details_screen.dart';
 import 'package:photopia/features/client/search_filter_screen.dart';

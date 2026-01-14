@@ -120,7 +120,11 @@ class _LogInScreenState extends State<LogInScreen> {
                 // Login Button
                 GestureDetector(
                   onTap: () {
-                    // TODO: Implement login logic
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/bottom-navigation',
+                      (route) => false,
+                    );
                   },
                   child: Container(
                     width: double.infinity,

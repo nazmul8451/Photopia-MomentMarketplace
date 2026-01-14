@@ -13,7 +13,7 @@ import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
-  static const String name = "home-page";
+  static const String name = "/home-page";
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
