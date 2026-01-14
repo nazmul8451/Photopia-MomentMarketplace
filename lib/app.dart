@@ -5,6 +5,7 @@ import 'package:photopia/features/client/BottomNavigation.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
 
+import 'package:photopia/features/onboarding/get_started.dart';
 
 class Photopia extends StatelessWidget {
   const Photopia({super.key});
@@ -33,7 +34,7 @@ class Photopia extends StatelessWidget {
                 cursorColor: Colors.black54,
               ),
             ),
-            home:  BottomNavigationScreen(), 
+            home: const GetStartedScreen(), 
           ),
         );
       },

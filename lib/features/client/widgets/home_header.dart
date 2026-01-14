@@ -15,14 +15,10 @@ class HomeHeader extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Photopia',
-                style: TextStyle(
-                  fontSize: 24.sp.clamp(24, 26),
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  letterSpacing: -0.5,
-                ),
+              Image.asset(
+                'assets/images/app_name.png',
+                height: 24.h,
+                fit: BoxFit.contain,
               ),
               Row(
                 children: [

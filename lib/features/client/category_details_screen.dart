@@ -98,7 +98,7 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                         mainAxisSpacing: 15.h,
                         crossAxisSpacing: 15.w,
                         childAspectRatio:
-                            0.55, // Increased height for iPhone/Small screens
+                            0.52, // Safe height for all screen sizes
                       ),
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {

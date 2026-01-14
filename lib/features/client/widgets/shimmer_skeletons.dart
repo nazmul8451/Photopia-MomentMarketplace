@@ -54,29 +54,37 @@ class ServiceCardSkeleton extends StatelessWidget {
               borderRadius: BorderRadius.vertical(top: Radius.circular(16).r),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.all(12.h),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title skeleton
-                ShimmerSkeleton(width: 100.w, height: 14.h),
-                SizedBox(height: 8.h),
-                // Subtitle skeleton
-                ShimmerSkeleton(width: 80.w, height: 12.h),
-                SizedBox(height: 12.h),
-                // Rating skeleton
-                Row(
-                  children: [
-                    ShimmerSkeleton(width: 40.w, height: 12.h),
-                    SizedBox(width: 8.w),
-                    ShimmerSkeleton(width: 30.w, height: 12.h),
-                  ],
-                ),
-                SizedBox(height: 12.h),
-                // Price skeleton
-                ShimmerSkeleton(width: 60.w, height: 14.h),
-              ],
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(8.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title skeleton
+                      ShimmerSkeleton(width: 100.w, height: 12.h),
+                      SizedBox(height: 4.h),
+                      // Subtitle skeleton
+                      ShimmerSkeleton(width: 80.w, height: 10.h),
+                    ],
+                  ),
+                  SizedBox(height: 8.h),
+                  // Rating skeleton
+                  Row(
+                    children: [
+                      ShimmerSkeleton(width: 30.w, height: 10.h),
+                      SizedBox(width: 8.w),
+                      ShimmerSkeleton(width: 20.w, height: 10.h),
+                    ],
+                  ),
+                  SizedBox(height: 8.h),
+                  // Price skeleton
+                  ShimmerSkeleton(width: 60.w, height: 12.h),
+                ],
+              ),
             ),
           ),
         ],
