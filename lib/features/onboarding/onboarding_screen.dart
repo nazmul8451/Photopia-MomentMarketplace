@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:photopia/features/client/BottomNavigation.dart';
+import 'package:photopia/features/client/authentication/log_in_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -95,7 +95,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const BottomNavigationScreen(),
+                            builder: (context) => const LogInScreen(),
                           ),
                           (route) => false,
                         );
