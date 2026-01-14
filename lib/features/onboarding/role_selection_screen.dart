@@ -124,7 +124,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(20.w),
+        padding: EdgeInsets.all(10.w),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16).r,

@@ -15,14 +15,13 @@ class GetStartedScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Spacer(flex: 2),
               // Logo
               Image.asset(
                 'assets/images/app_name.png',
                 height: 50.h,
                 fit: BoxFit.contain,
               ),
-              const Spacer(flex: 1),
+              SizedBox(height: 50.h,),              // Button
               // Subtitle
               Text(
                 'Connect with the world\'s best\nphotography & video professionals',
@@ -34,8 +33,7 @@ class GetStartedScreen extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const Spacer(flex: 2),
-              // Button
+              SizedBox(height: 50.h,),              // Button
               GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -47,7 +45,7 @@ class GetStartedScreen extends StatelessWidget {
                 },
                 child: Container(
                   width: double.infinity,
-                  height: 56.h,
+                  height: 50.h.clamp(50, 50),
                   decoration: BoxDecoration(
                     color: const Color(0xFF1A1A1A),
                     borderRadius: BorderRadius.circular(28).r,
@@ -64,7 +62,7 @@ class GetStartedScreen extends StatelessWidget {
                     'Get Started',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 16.sp,
+                      fontSize: 15.sp.clamp(15, 16),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
