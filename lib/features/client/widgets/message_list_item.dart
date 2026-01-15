@@ -29,7 +29,7 @@ class MessageListItem extends StatelessWidget {
             Stack(
               children: [
                 CircleAvatar(
-                  radius: 28.r,
+                  radius: 28.r.clamp(24, 34),
                   backgroundImage: NetworkImage(conversation.avatarUrl),
                 ),
                 if (conversation.isOnline)
@@ -37,8 +37,8 @@ class MessageListItem extends StatelessWidget {
                     right: 0,
                     bottom: 0,
                     child: Container(
-                      width: 14.r,
-                      height: 14.r,
+                      width: 14.r.clamp(12, 16),
+                      height: 14.r.clamp(12, 16),
                       decoration: BoxDecoration(
                         color: const Color(0xFF2ECC71),
                         shape: BoxShape.circle,
@@ -67,7 +67,7 @@ class MessageListItem extends StatelessWidget {
                       Text(
                         _formatTime(conversation.lastMessageTime),
                         style: TextStyle(
-                          fontSize: 11.sp,
+                          fontSize: 11.sp.clamp(10, 13),
                           color: Colors.grey,
                         ),
                       ),
@@ -95,7 +95,7 @@ class MessageListItem extends StatelessWidget {
                       if (conversation.unreadCount > 0)
                         Container(
                           margin: EdgeInsets.only(left: 8.w),
-                          padding: EdgeInsets.all(6.r),
+                          padding: EdgeInsets.all(6.r.clamp(4, 8)),
                           decoration: const BoxDecoration(
                             color: Color(0xFF1A1A1A),
                             shape: BoxShape.circle,
@@ -104,7 +104,7 @@ class MessageListItem extends StatelessWidget {
                             conversation.unreadCount.toString(),
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 10.sp,
+                              fontSize: 10.sp.clamp(10, 12),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -125,11 +125,11 @@ class MessageListItem extends StatelessWidget {
   Widget _buildStatusIcon(MessageStatus status) {
     switch (status) {
       case MessageStatus.sent:
-        return Icon(Icons.check, size: 16.sp, color: Colors.grey);
+        return Icon(Icons.check, size: 16.sp.clamp(14, 20), color: Colors.grey);
       case MessageStatus.delivered:
-        return Icon(Icons.done_all, size: 16.sp, color: Colors.grey);
+        return Icon(Icons.done_all, size: 16.sp.clamp(14, 20), color: Colors.grey);
       case MessageStatus.read:
-        return Icon(Icons.done_all, size: 16.sp, color: const Color(0xFF3498DB));
+        return Icon(Icons.done_all, size: 16.sp.clamp(14, 20), color: const Color(0xFF3498DB));
     }
   }
 

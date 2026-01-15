@@ -123,7 +123,7 @@ class _ChatScreenState extends State<ChatScreen> {
           Stack(
             children: [
               CircleAvatar(
-                radius: 20.r,
+                radius: 20.r.clamp(16, 24),
                 backgroundImage: NetworkImage(widget.conversation.avatarUrl),
               ),
               if (widget.conversation.isOnline)
@@ -131,8 +131,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   right: 0,
                   bottom: 0,
                   child: Container(
-                    width: 10.r,
-                    height: 10.r,
+                    width: 10.r.clamp(8, 12),
+                    height: 10.r.clamp(8, 12),
                     decoration: BoxDecoration(
                       color: const Color(0xFF2ECC71),
                       shape: BoxShape.circle,
@@ -150,7 +150,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 widget.conversation.name,
                 style: TextStyle(
                   color: Colors.black,
-                  fontSize: 15.sp,
+                  fontSize: 15.sp.clamp(14, 18),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -158,7 +158,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 widget.conversation.isOnline ? 'Online' : 'Offline',
                 style: TextStyle(
                   color: Colors.grey,
-                  fontSize: 11.sp,
+                  fontSize: 11.sp.clamp(10, 13),
                 ),
               ),
             ],
@@ -181,7 +181,7 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           Container(
             constraints: BoxConstraints(maxWidth: 0.75.sw),
-            padding: EdgeInsets.all(16.r),
+            padding: EdgeInsets.all(16.r.clamp(12, 20)),
             decoration: BoxDecoration(
               color: message.isMe ? const Color(0xFF1A1A1A) : const Color(0xFFF1F3F5),
               borderRadius: BorderRadius.only(
@@ -196,7 +196,7 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 if (message.type == ChatMessageType.file)
                   Container(
-                    padding: EdgeInsets.all(12.r),
+                    padding: EdgeInsets.all(12.r.clamp(10, 16)),
                     margin: EdgeInsets.only(bottom: 8.h),
                     decoration: BoxDecoration(
                       color: message.isMe ? Colors.white.withOpacity(0.1) : Colors.white,
@@ -208,7 +208,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         Icon(
                           Icons.attach_file,
                           color: message.isMe ? Colors.white : Colors.black,
-                          size: 20.sp,
+                          size: 20.sp.clamp(18, 24),
                         ),
                         SizedBox(width: 8.w),
                         Flexible(
@@ -219,7 +219,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 message.fileName ?? 'File',
                                 style: TextStyle(
                                   color: message.isMe ? Colors.white : Colors.black,
-                                  fontSize: 13.sp,
+                                  fontSize: 13.sp.clamp(12, 16),
                                   fontWeight: FontWeight.w500,
                                 ),
                                 maxLines: 1,
@@ -231,7 +231,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   color: message.isMe
                                       ? Colors.white.withOpacity(0.7)
                                       : Colors.grey,
-                                  fontSize: 11.sp,
+                                  fontSize: 11.sp.clamp(10, 14),
                                 ),
                               ),
                             ],
@@ -244,7 +244,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   message.text,
                   style: TextStyle(
                     color: message.isMe ? Colors.white : Colors.black,
-                    fontSize: 14.sp,
+                    fontSize: 14.sp.clamp(13, 18),
                     height: 1.4,
                   ),
                 ),
@@ -256,7 +256,7 @@ class _ChatScreenState extends State<ChatScreen> {
             DateFormat('hh:mm a').format(message.time),
             style: TextStyle(
               color: Colors.grey,
-              fontSize: 10.sp,
+              fontSize: 10.sp.clamp(10, 13),
             ),
           ),
         ],
@@ -274,12 +274,12 @@ class _ChatScreenState extends State<ChatScreen> {
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.attach_file, color: Colors.grey, size: 24.sp),
+            icon: Icon(Icons.attach_file, color: Colors.grey, size: 24.sp.clamp(20, 28)),
             onPressed: () {},
           ),
           Expanded(
             child: Container(
-              height: 48.h,
+              height: 48.h.clamp(40, 56),
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -290,7 +290,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 controller: _messageController,
                 decoration: InputDecoration(
                   hintText: 'Type a message...',
-                  hintStyle: TextStyle(color: Colors.grey, fontSize: 14.sp),
+                  hintStyle: TextStyle(color: Colors.grey, fontSize: 14.sp.clamp(13, 16)),
                   border: InputBorder.none,
                 ),
                 onSubmitted: (_) => _sendMessage(),
@@ -301,13 +301,13 @@ class _ChatScreenState extends State<ChatScreen> {
           GestureDetector(
             onTap: _sendMessage,
             child: Container(
-              width: 48.r,
-              height: 48.r,
+              width: 48.r.clamp(40, 56),
+              height: 48.r.clamp(40, 56),
               decoration: const BoxDecoration(
                 color: Color(0xFF1A1A1A),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.send_rounded, color: Colors.white, size: 22.sp),
+              child: Icon(Icons.send_rounded, color: Colors.white, size: 22.sp.clamp(18, 26)),
             ),
           ),
         ],

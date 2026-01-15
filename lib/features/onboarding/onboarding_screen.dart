@@ -36,7 +36,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       'title': 'Secure & Transparent Payments',
       'description': 'All payments are protected with bank-level security. No unexpected fees, no hidden charges',
-      'image': 'assets/images/page.png',
+      'image': 'assets/images/pageview_img4.png',
       'icon': 'security',
     },
     {
@@ -103,7 +103,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     },
                     child: Container(
                       width: double.infinity,
-                      height: 56.h,
+                      height:  50.h.clamp(50, 50),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1E1E1E),
                         borderRadius: BorderRadius.circular(28).r,
@@ -125,7 +125,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               : 'Next',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 16.sp,
+                              fontSize: 16.sp.clamp(16,17),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
