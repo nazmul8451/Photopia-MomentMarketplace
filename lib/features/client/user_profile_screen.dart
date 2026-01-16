@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
+import 'package:photopia/features/common/mode_transition_screen.dart';
+import 'package:photopia/core/routes/app_routes.dart';
 
 class UserProfileScreen extends StatelessWidget {
   const UserProfileScreen({super.key});
@@ -38,7 +40,7 @@ class UserProfileScreen extends StatelessWidget {
             SizedBox(height: 20.h),
             _buildMenuSection(),
             SizedBox(height: 30.h),
-            _buildActionButtons(),
+            _buildActionButtons(context),
             SizedBox(height: 100.h), // Spacing for bottom nav
           ],
         ),
@@ -304,32 +306,45 @@ class UserProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       child: Column(
         children: [
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 15.h),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A1A1A),
-              borderRadius: BorderRadius.circular(15).r,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.camera_alt_outlined, color: Colors.white, size: 20.sp),
-                SizedBox(width: 10.w),
-                Text(
-                  'Switch to Professional',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: AppTypography.bodyLarge,
-                    fontWeight: FontWeight.bold,
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ModeTransitionScreen(
+                    targetRole: 'provider',
+                    targetRoute: AppRoutes.provider_bottom_navigation,
                   ),
                 ),
-              ],
+              );
+            },
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(vertical: 15.h),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1A1A),
+                borderRadius: BorderRadius.circular(15).r,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.camera_alt_outlined, color: Colors.white, size: 20.sp),
+                  SizedBox(width: 10.w),
+                  Text(
+                    'Switch to Professional',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: AppTypography.bodyLarge,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           SizedBox(height: 15.h),

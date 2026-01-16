@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/features/common/mode_transition_screen.dart';
+import 'package:photopia/core/routes/app_routes.dart';
 
 class ProviderMenuScreen extends StatelessWidget {
   const ProviderMenuScreen({super.key});
@@ -65,7 +67,7 @@ class ProviderMenuScreen extends StatelessWidget {
                 SizedBox(height: 24.h.clamp(20, 28)),
                 
                 // Switch to Client Button
-                _buildSwitchButton(),
+                _buildSwitchButton(context),
                 SizedBox(height: 12.h.clamp(8, 16)),
                 
                 // Sign Out Button
@@ -445,12 +447,22 @@ class ProviderMenuScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSwitchButton() {
+  Widget _buildSwitchButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       height: 48.h.clamp(44, 52),
       child: ElevatedButton.icon(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ModeTransitionScreen(
+                targetRole: 'client',
+                targetRoute: AppRoutes.bottom_navigation,
+              ),
+            ),
+          );
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.black,
           shape: RoundedRectangleBorder(
