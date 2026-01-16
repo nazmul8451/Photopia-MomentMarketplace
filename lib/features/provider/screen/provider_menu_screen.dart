@@ -453,8 +453,7 @@ class ProviderMenuScreen extends StatelessWidget {
       height: 48.h.clamp(44, 52),
       child: ElevatedButton.icon(
         onPressed: () {
-          Navigator.push(
-            context,
+          Navigator.of(context, rootNavigator: true).push(
             MaterialPageRoute(
               builder: (context) => const ModeTransitionScreen(
                 targetRole: 'client',
