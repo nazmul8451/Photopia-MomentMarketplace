@@ -4,7 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/authentication/log_in_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key});
+  final String userRole; // 'client' or 'provider'
+  
+  const OnboardingScreen({super.key, this.userRole = 'client'});
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -95,7 +97,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const LogInScreen(),
+                            builder: (context) => LogInScreen(userRole: widget.userRole),
                           ),
                           (route) => false,
                         );

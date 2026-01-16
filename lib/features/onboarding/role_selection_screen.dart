@@ -12,21 +12,7 @@ class RoleSelectionScreen extends StatefulWidget {
 class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   String _selectedRole = 'client';
 
-  void _showWorkInProgress() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Work on Progress'),
-        content: const Text('The professional section is currently under development. Please check back later!'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK', style: TextStyle(color: Colors.black)),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -82,11 +68,11 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                 isSelected: _selectedRole == 'client',
                 onTap: () {
                   setState(() => _selectedRole = 'client');
-                  // Navigate to Onboarding
+                  // Navigate to Onboarding with client role
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const OnboardingScreen(),
+                      builder: (context) => const OnboardingScreen(userRole: 'client'),
                     ),
                   );
                 },
@@ -103,7 +89,13 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                 isSelected: _selectedRole == 'professional',
                 onTap: () {
                   setState(() => _selectedRole = 'professional');
-                  _showWorkInProgress();
+                  // Navigate to Onboarding with provider role
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const OnboardingScreen(userRole: 'provider'),
+                    ),
+                  );
                 },
               ),
             ],

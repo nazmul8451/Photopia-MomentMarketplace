@@ -9,6 +9,7 @@ import 'package:photopia/features/client/authentication/sign_up_screen.dart';
 import 'package:photopia/features/client/authentication/forgot_password_screen.dart';
 import 'package:photopia/features/client/authentication/otp_verification_screen.dart';
 import 'package:photopia/features/client/authentication/new_password_screen.dart';
+import 'package:photopia/features/provider/screen/BottomNavigationBar/bottom_navigation_screen.dart';
 
 class AppRoutes {
   static const String home_page = MyHomePage.name;
@@ -21,6 +22,7 @@ class AppRoutes {
   static const String forgot_password = ForgotPasswordScreen.name;
   static const String otp_verification = OtpVerificationScreen.name;
   static const String new_password = NewPasswordScreen.name;
+  static const String provider_bottom_navigation = ProviderBottomNavigationScreen.name;
 
   static final routes = {
     home_page: (context) => const MyHomePage(),
@@ -36,5 +38,6 @@ class AppRoutes {
       return OtpVerificationScreen(email: email);
     },
     new_password: (context) => const NewPasswordScreen(),
+    provider_bottom_navigation: (context) => const ProviderBottomNavigationScreen(),
   };
 }

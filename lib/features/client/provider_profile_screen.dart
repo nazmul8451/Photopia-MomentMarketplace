@@ -47,104 +47,128 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> with Sing
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          // Background Header Image
-          Container(
-            height: 250.h,
-            width: double.infinity,
-            child: Image.network(
-              'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1000',
-              fit: BoxFit.cover,
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          // Top App Bar with Image and Profile Info
+          SliverAppBar(
+            expandedHeight: 400.h.clamp(380, 420),
+            backgroundColor: Colors.white,
+            elevation: 0,
+            pinned: true,
+            stretch: true,
+            leading: IconButton(
+              icon: Container(
+                padding: EdgeInsets.all(8.w),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.arrow_back, color: Colors.black, size: 20.sp),
+              ),
+              onPressed: () => Navigator.pop(context),
             ),
-          ),
-          // Scrollable Content
-          SafeArea(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: [
-                // Top App Bar
-                SliverAppBar(
-                  expandedHeight: 320.h,
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  pinned: false,
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: Padding(
-                      padding: EdgeInsets.only(top: 80.h),
-                      child: _isLoading ? ProfileHeaderSkeleton() : _buildProfileInfo(),
-                    ),
-                  ),
-                  leading: IconButton(
+            actions: [
+              Consumer<FavoritesController>(
+                builder: (context, controller, child) {
+                  bool isFavorite = controller
+                      .isProviderFavorite(widget.provider['name'] ?? '');
+                  return IconButton(
                     icon: Container(
                       padding: EdgeInsets.all(8.w),
                       decoration: const BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.arrow_back, color: Colors.black, size: 20.sp),
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  actions: [
-                    Consumer<FavoritesController>(
-                      builder: (context, controller, child) {
-                        bool isFavorite = controller.isProviderFavorite(widget.provider['name'] ?? '');
-                        return IconButton(
-                          icon: Container(
-                            padding: EdgeInsets.all(8.w),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              isFavorite ? Icons.bookmark : Icons.bookmark_outline,
-                              color: isFavorite ? Colors.black : Colors.black,
-                              size: 20.sp,
-                            ),
-                          ),
-                          onPressed: () {
-                            controller.toggleFavoriteProvider(widget.provider);
-                          },
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: Container(
-                        padding: EdgeInsets.all(8.w),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(Icons.flag, color: Colors.red, size: 20.sp),
-                      ),
-                      onPressed: () {},
-                    ),
-                    SizedBox(width: 10.w),
-                  ],
-                ),
-                // Profile Header Card
-                SliverToBoxAdapter(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.w),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildStatsRow(),
-                          _buildTabBar(),
-                          SizedBox(height: 20.h),
-                          _buildTabContent(),
-                          SizedBox(height: 100.h), // Bottom nav padding
-                        ],
+                      child: Icon(
+                        isFavorite ? Icons.bookmark : Icons.bookmark_outline,
+                        color: isFavorite ? Colors.black : Colors.black,
+                        size: 20.sp,
                       ),
                     ),
+                    onPressed: () {
+                      controller.toggleFavoriteProvider(widget.provider);
+                    },
+                  );
+                },
+              ),
+              IconButton(
+                icon: Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
                   ),
+                  child: Icon(Icons.flag, color: Colors.red, size: 20.sp),
                 ),
+                onPressed: () {},
+              ),
+              SizedBox(width: 10.w),
+            ],
+            flexibleSpace: FlexibleSpaceBar(
+              stretchModes: const [
+                StretchMode.zoomBackground,
+                StretchMode.blurBackground
               ],
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1000',
+                    fit: BoxFit.cover,
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.8),
+                        ],
+                        stops: const [0.6, 1.0],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 60.h, // Leave space for the floating stats
+                    left: 0,
+                    right: 0,
+                    child: _isLoading
+                        ? const ProfileHeaderSkeleton()
+                        : _buildProfileInfo(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          // Profile Content
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildStatsRow(),
+                        SizedBox(height: 10.h),
+                        _buildTabBar(),
+                        SizedBox(height: 20.h),
+                        _buildTabContent(),
+                        SizedBox(height: 100.h), // Bottom nav padding
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -155,96 +179,91 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> with Sing
   Widget _buildProfileInfo() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
         Padding(
-          padding: EdgeInsets.only(left: 20.w, top: 10.h),
-          child: Text(
-            'Profile',
-            style: TextStyle(
-              fontSize: 22.sp.clamp(22, 24),
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        SizedBox(height: 15.h),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10.w),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20).r,
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                padding: EdgeInsets.all(20.w),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20).r,
-                  border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 80.w,
-                      height: 80.w,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white.withOpacity(0.5), width: 3),
-                        image: DecorationImage(
-                          image: NetworkImage(widget.provider['avatar'] ?? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200'),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 15.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.provider['name'] ?? 'Emma Wilson',
-                            style: TextStyle(
-                              fontSize: AppTypography.h1,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            'Wedding & Event Photography',
-                            style: TextStyle(
-                              fontSize: AppTypography.bodySmall,
-                              color: Colors.white.withOpacity(0.9),
-                            ),
-                          ),
-                          SizedBox(height: 10.h),
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 5.h),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.8),
-                              borderRadius: BorderRadius.circular(20).r,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.stars, color: Colors.orange, size: 12.sp),
-                                SizedBox(width: 4.w),
-                                Text(
-                                  'Premium',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10.sp.clamp(10, 11),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Profile',
+                style: TextStyle(
+                  fontSize: 22.sp.clamp(20, 24),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
-            ),
+              SizedBox(height: 20.h),
+              Row(
+                children: [
+                  Container(
+                    width: 70.r.clamp(60, 80),
+                    height: 70.r.clamp(60, 80),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                      image: DecorationImage(
+                        image: NetworkImage(widget.provider['avatar'] ??
+                            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 15.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.provider['name'] ?? 'Emma Wilson',
+                          style: TextStyle(
+                            fontSize: 20.sp.clamp(18, 22),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          'Wedding & Event Photography',
+                          style: TextStyle(
+                            fontSize: 13.sp.clamp(12, 14),
+                            color: Colors.white.withOpacity(0.9),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 10.w, vertical: 4.h),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.6),
+                            borderRadius: BorderRadius.circular(20).r,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.stars,
+                                  color: Colors.white, size: 10.sp),
+                              SizedBox(width: 4.w),
+                              Text(
+                                'Premium',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10.sp.clamp(10, 11),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10.h),
+            ],
           ),
         ),
       ],
@@ -253,7 +272,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> with Sing
 
   Widget _buildStatsRow() {
     return Transform.translate(
-      offset: Offset(0, -30.h),
+      offset: Offset(0, -50.h.clamp(-60, -40).toDouble()),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -268,45 +287,44 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> with Sing
 
   Widget _buildStatItem(IconData icon, String value, String label) {
     return Container(
-      width: 75.w,
-      height: 85.h,
-      padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 4.w),
+      width: 78.w.clamp(70, 90),
+      height: 90.h.clamp(85, 100),
+      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15).r,
-        border: Border.all(color: Colors.grey.shade100),
+        borderRadius: BorderRadius.circular(16).r,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+            spreadRadius: 1,
           ),
         ],
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Icon(icon, size: 18.sp, color: Colors.black54),
-          SizedBox(height: 4.h),
+          Icon(icon, size: 22.sp.clamp(20, 24), color: Colors.black87),
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
               value,
               style: TextStyle(
-                fontSize: AppTypography.bodyLarge,
+                fontSize: 18.sp.clamp(16, 20),
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
             ),
           ),
-          SizedBox(height: 2.h),
           Text(
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 10.sp.clamp(10, 11),
-              color: Colors.grey,
-              height: 1.1,
+              fontSize: 11.sp.clamp(10, 12),
+              color: Colors.grey[600],
+              height: 1,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],

@@ -4,8 +4,9 @@ import 'package:photopia/core/constants/app_typography.dart';
 
 class LogInScreen extends StatefulWidget {
   static const String name = '/log_in';
+  final String userRole; // 'client' or 'provider'
   
-  const LogInScreen({super.key});
+  const LogInScreen({super.key, this.userRole = 'client'});
 
   @override
   State<LogInScreen> createState() => _LogInScreenState();
@@ -120,11 +121,20 @@ class _LogInScreenState extends State<LogInScreen> {
                 // Login Button
                 GestureDetector(
                   onTap: () {
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/bottom-navigation',
-                      (route) => false,
-                    );
+                    // Navigate based on user role
+                    if (widget.userRole == 'provider') {
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/provider-bottom-navigation',
+                        (route) => false,
+                      );
+                    } else {
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/bottom-navigation',
+                        (route) => false,
+                      );
+                    }
                   },
                   child: Container(
                     width: double.infinity,
@@ -199,7 +209,7 @@ class _LogInScreenState extends State<LogInScreen> {
                 Center(
                   child: GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(context, '/sign_up');
+                      Navigator.pushNamed(context, '/sign_up', arguments: widget.userRole);
                     },
                     child: RichText(
                       text: TextSpan(
