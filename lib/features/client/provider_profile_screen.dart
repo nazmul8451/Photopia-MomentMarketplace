@@ -102,7 +102,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                 ),
                 // Gradient Overlay for better contrast
                 Container(
-                  height: 300.h,
+                  height: 200.h,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
@@ -117,8 +117,8 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                 // Floating Glassmorphism Profile Card
                 Positioned(
                   bottom: -5.h,
-                  left: 15.w,
-                  right: 15.w,
+                  left: 6.w,
+                  right: 6.w,
                   child: _buildProfileInfo(),
                 ),
                 
@@ -136,7 +136,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
             ),
             
             // Padding for the overlapping stats cards
-            SizedBox(height: 80.h),
+            SizedBox(height: 100.h),
             
             // TabBar and Content
             Padding(
@@ -157,103 +157,100 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
   }
 
   Widget _buildProfileInfo() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 10.w),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10.r),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            padding: EdgeInsets.all(25.w),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Profile',
-                  style: TextStyle(
-                    fontSize: 18.sp.clamp(16, 20),
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 1,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10.r),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 22.w, vertical: 16.h),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.01),
+            borderRadius: BorderRadius.circular(10.r),
+            border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Profile',
+                style: TextStyle(
+                  fontSize: 18.sp.clamp(16, 20),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 1,
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 75.r.clamp(65, 85),
+                    height: 75.r.clamp(65, 85),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2.5.w),
+                      image: DecorationImage(
+                        image: NetworkImage(widget.provider['avatar'] ??
+                            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
-                ),
-                SizedBox(height: 10.h),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 80.r.clamp(70, 90),
-                      height: 80.r.clamp(70, 90),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3.w),
-                        image: DecorationImage(
-                          image: NetworkImage(widget.provider['avatar'] ??
-                              'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200'),
-                          fit: BoxFit.cover,
+                  SizedBox(width: 18.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.provider['name'] ?? 'Emma Wilson',
+                          style: TextStyle(
+                            fontSize: 19.sp.clamp(17, 21),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                    ),
-                    SizedBox(width: 20.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.provider['name'] ?? 'Emma Wilson',
-                            style: TextStyle(
-                              fontSize: 20.sp.clamp(18, 22),
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                        SizedBox(height: 2.h),
+                        Text(
+                          'Wedding & Event Photography',
+                          style: TextStyle(
+                            fontSize: 13.sp.clamp(12, 14),
+                            color: Colors.white.withOpacity(0.9),
+                            fontWeight: FontWeight.w400,
                           ),
-                          SizedBox(height: 5.h),
-                          Text(
-                            'Wedding & Event Photography',
-                            style: TextStyle(
-                              fontSize: 14.sp.clamp(12, 14),
-                              color: Colors.white.withOpacity(0.9),
-                              fontWeight: FontWeight.w400,
-                            ),
+                        ),
+                        SizedBox(height: 6.h),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 14.w, vertical: 5.h),
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(30).r,
                           ),
-                          SizedBox(height: 8.h),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 15.w, vertical: 6.h),
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(30).r,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.stars,
-                                    color: Colors.white, size: 12.sp),
-                                SizedBox(width: 8.w),
-                                Text(
-                                  'Premium',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11.sp.clamp(10, 12),
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.stars,
+                                  color: Colors.white, size: 12.sp),
+                              SizedBox(width: 6.w),
+                              Text(
+                                'Premium',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10.5.sp.clamp(10, 12),
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
