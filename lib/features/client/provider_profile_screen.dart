@@ -16,7 +16,8 @@ class ProviderProfileScreen extends StatefulWidget {
   State<ProviderProfileScreen> createState() => _ProviderProfileScreenState();
 }
 
-class _ProviderProfileScreenState extends State<ProviderProfileScreen> with SingleTickerProviderStateMixin {
+class _ProviderProfileScreenState extends State<ProviderProfileScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isLoading = true;
 
@@ -47,241 +48,227 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> with Sing
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // Top App Bar with Image and Profile Info
-          SliverAppBar(
-            expandedHeight: 400.h.clamp(380, 420),
-            backgroundColor: Colors.white,
-            elevation: 0,
-            pinned: true,
-            stretch: true,
-            leading: IconButton(
-              icon: Container(
-                padding: EdgeInsets.all(8.w),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.sp),
+          onPressed: () => Navigator.pop(context),
+        ),
+        actions: [
+          Consumer<FavoritesController>(
+            builder: (context, controller, child) {
+              bool isFavorite = controller
+                  .isProviderFavorite(widget.provider['name'] ?? '');
+              return IconButton(
+                icon: Icon(
+                  isFavorite ? Icons.bookmark : Icons.bookmark_border,
+                  color: Colors.black,
+                  size: 24.sp,
                 ),
-                child: Icon(Icons.arrow_back, color: Colors.black, size: 20.sp),
-              ),
-              onPressed: () => Navigator.pop(context),
-            ),
-            actions: [
-              Consumer<FavoritesController>(
-                builder: (context, controller, child) {
-                  bool isFavorite = controller
-                      .isProviderFavorite(widget.provider['name'] ?? '');
-                  return IconButton(
-                    icon: Container(
-                      padding: EdgeInsets.all(8.w),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        isFavorite ? Icons.bookmark : Icons.bookmark_outline,
-                        color: isFavorite ? Colors.black : Colors.black,
-                        size: 20.sp,
-                      ),
-                    ),
-                    onPressed: () {
-                      controller.toggleFavoriteProvider(widget.provider);
-                    },
-                  );
+                onPressed: () {
+                  controller.toggleFavoriteProvider(widget.provider);
                 },
-              ),
-              IconButton(
-                icon: Container(
-                  padding: EdgeInsets.all(8.w),
+              );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.outlined_flag, color: Colors.red, size: 24.sp),
+            onPressed: () {},
+          ),
+          SizedBox(width: 10.w),
+        ],
+      ),
+      body: SingleChildScrollView(
+        physics: const ClampingScrollPhysics(),
+        child: Column(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Header Image
+                Container(
+                  height: 300.h,
+                  width: double.infinity,
                   decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.flag, color: Colors.red, size: 20.sp),
-                ),
-                onPressed: () {},
-              ),
-              SizedBox(width: 10.w),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              stretchModes: const [
-                StretchMode.zoomBackground,
-                StretchMode.blurBackground
-              ],
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.network(
-                    'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1000',
-                    fit: BoxFit.cover,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.8),
-                        ],
-                        stops: const [0.6, 1.0],
+                    image: DecorationImage(
+                      image: NetworkImage(
+                        'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1000',
                       ),
+                      fit: BoxFit.cover,
                     ),
                   ),
-                  Positioned(
-                    bottom: 60.h, // Leave space for the floating stats
-                    left: 0,
-                    right: 0,
-                    child: _isLoading
-                        ? const ProfileHeaderSkeleton()
-                        : _buildProfileInfo(),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          
-          // Profile Content
-          SliverToBoxAdapter(
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20.w),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStatsRow(),
-                        SizedBox(height: 10.h),
-                        _buildTabBar(),
-                        SizedBox(height: 20.h),
-                        _buildTabContent(),
-                        SizedBox(height: 100.h), // Bottom nav padding
+                ),
+                // Gradient Overlay for better contrast
+                Container(
+                  height: 300.h,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.1),
+                        Colors.black.withOpacity(0.4),
                       ],
                     ),
                   ),
+                ),
+                // Floating Glassmorphism Profile Card
+                Positioned(
+                  bottom: -5.h,
+                  left: 15.w,
+                  right: 15.w,
+                  child: _buildProfileInfo(),
+                ),
+                
+                // Overlapping Stats Row
+                Positioned(
+                  bottom: -80.h,
+                  left: 0,
+                  right: 0,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10.w),
+                    child: _buildStatsRow(),
+                  ),
+                ),
+              ],
+            ),
+            
+            // Padding for the overlapping stats cards
+            SizedBox(height: 80.h),
+            
+            // TabBar and Content
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Column(
+                children: [
+                  _buildTabBar(),
+                  SizedBox(height: 20.h),
+                  _buildTabContent(),
+                  SizedBox(height: 40.h),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildProfileInfo() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Profile',
-                style: TextStyle(
-                  fontSize: 22.sp.clamp(20, 24),
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10.w),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10.r),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            padding: EdgeInsets.all(25.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Profile',
+                  style: TextStyle(
+                    fontSize: 18.sp.clamp(16, 20),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 1,
+                  ),
                 ),
-              ),
-              SizedBox(height: 20.h),
-              Row(
-                children: [
-                  Container(
-                    width: 70.r.clamp(60, 80),
-                    height: 70.r.clamp(60, 80),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                      image: DecorationImage(
-                        image: NetworkImage(widget.provider['avatar'] ??
-                            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200'),
-                        fit: BoxFit.cover,
+                SizedBox(height: 10.h),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 80.r.clamp(70, 90),
+                      height: 80.r.clamp(70, 90),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 3.w),
+                        image: DecorationImage(
+                          image: NetworkImage(widget.provider['avatar'] ??
+                              'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200'),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                  ),
-                  SizedBox(width: 15.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.provider['name'] ?? 'Emma Wilson',
-                          style: TextStyle(
-                            fontSize: 20.sp.clamp(18, 22),
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                    SizedBox(width: 20.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.provider['name'] ?? 'Emma Wilson',
+                            style: TextStyle(
+                              fontSize: 20.sp.clamp(18, 22),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          'Wedding & Event Photography',
-                          style: TextStyle(
-                            fontSize: 13.sp.clamp(12, 14),
-                            color: Colors.white.withOpacity(0.9),
-                            fontWeight: FontWeight.w500,
+                          SizedBox(height: 5.h),
+                          Text(
+                            'Wedding & Event Photography',
+                            style: TextStyle(
+                              fontSize: 14.sp.clamp(12, 14),
+                              color: Colors.white.withOpacity(0.9),
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 8.h),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 10.w, vertical: 4.h),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.6),
-                            borderRadius: BorderRadius.circular(20).r,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.stars,
-                                  color: Colors.white, size: 10.sp),
-                              SizedBox(width: 4.w),
-                              Text(
-                                'Premium',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10.sp.clamp(10, 11),
-                                  fontWeight: FontWeight.bold,
+                          SizedBox(height: 8.h),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 15.w, vertical: 6.h),
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(30).r,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.stars,
+                                    color: Colors.white, size: 12.sp),
+                                SizedBox(width: 8.w),
+                                Text(
+                                  'Premium',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11.sp.clamp(10, 12),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 10.h),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 
   Widget _buildStatsRow() {
-    return Transform.translate(
-      offset: Offset(0, -50.h.clamp(-60, -40).toDouble()),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildStatItem(Icons.star_outline, '4.9', 'Rating'),
-          _buildStatItem(Icons.check_circle_outline, '127', 'Reviews'),
-          _buildStatItem(Icons.timer_outlined, '95%', 'Response Rate'),
-          _buildStatItem(Icons.camera_alt_outlined, '342', 'Projects'),
-        ],
-      ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        _buildStatItem(Icons.star_border, '4.9', 'Rating'),
+        _buildStatItem(Icons.verified_outlined, '127', 'Reviews'),
+        _buildStatItem(Icons.military_tech_outlined, '95%', 'Response Rate'),
+        _buildStatItem(Icons.camera_alt_outlined, '342', 'Projects'),
+      ],
     );
   }
 
@@ -292,13 +279,12 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> with Sing
       padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16).r,
+        borderRadius: BorderRadius.circular(10).r,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-            spreadRadius: 1,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
