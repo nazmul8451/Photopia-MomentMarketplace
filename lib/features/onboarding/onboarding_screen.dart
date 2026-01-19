@@ -72,7 +72,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             
             // Fixed Bottom Section (Dots + Button)
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 30.h),
+              padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 20.h),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -165,7 +165,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         children: [
           // Image Section (Fixed Flex)
           Expanded(
-            flex: 6,
+            flex: 9,
             child: Center(
               child: Stack(
                 alignment: Alignment.bottomCenter,
@@ -193,7 +193,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   // Overlapping Icon
                   Positioned(
-                    bottom: -1.r,
+                    bottom: 10.r,
                     child: Container(
                       width: 60.r,
                       height: 60.r,
@@ -237,7 +237,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           
           // Text Content Section (Fixed Flex)
           Expanded(
-            flex: 4,
+            flex: 5,
             child: Column(
               children: [
                 Text(

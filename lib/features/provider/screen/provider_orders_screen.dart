@@ -65,13 +65,13 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                     },
                     child: Stack(
                       children: [
-                        Icon(Icons.notifications_outlined, size: 28.sp),
+                        Icon(Icons.notifications_outlined, size: 20.sp),
                         Positioned(
                           right: 0,
                           top: 0,
                           child: Container(
-                            width: 10.w,
-                            height: 10.w,
+                            width: 8.w,
+                            height: 8.w,
                             decoration: const BoxDecoration(
                               color: Colors.red,
                               shape: BoxShape.circle,
@@ -692,14 +692,20 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                 children: [
                   _buildTextButton(
                     text: 'Decline',
-                    onTap: () {},
+                    onTap: () => _showConfirmationDialog(
+                      context: context,
+                      isAccept: false,
+                    ),
                     icon: Icons.close,
                     color: Colors.red,
                   ),
                   SizedBox(width: 15.w),
                   _buildTextButton(
                     text: 'Accept',
-                    onTap: () {},
+                    onTap: () => _showConfirmationDialog(
+                      context: context,
+                      isAccept: true,
+                    ),
                     icon: Icons.check,
                     color: Colors.black,
                   ),
@@ -730,6 +736,114 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showConfirmationDialog({
+    required BuildContext context,
+    required bool isAccept,
+  }) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(15.r),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      isAccept ? 'Are you want to Accept this' : 'Are you want to Decline This',
+                      style: TextStyle(
+                        fontSize: 18.sp.clamp(16, 20),
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Icon(Icons.close, size: 24.sp, color: Colors.black87),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, color: Color(0xFFE0E0E0)),
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 25.h, horizontal: 20.w),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Yes Button
+                    GestureDetector(
+                      onTap: () {
+                        // Handle action
+                        Navigator.pop(context);
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8F5E9),
+                          borderRadius: BorderRadius.circular(10.r),
+                          border: Border.all(color: const Color(0xFF2E7D32).withOpacity(0.3)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.check, size: 18.sp, color: const Color(0xFF2E7D32)),
+                            SizedBox(width: 8.w),
+                            Text(
+                              'Yes',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF2E7D32),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 15.w),
+                    // No Button
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFEBEE),
+                          borderRadius: BorderRadius.circular(10.r),
+                          border: Border.all(color: Colors.red.withOpacity(0.2)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.close, size: 18.sp, color: Colors.red),
+                            SizedBox(width: 8.w),
+                            Text(
+                              'No',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
