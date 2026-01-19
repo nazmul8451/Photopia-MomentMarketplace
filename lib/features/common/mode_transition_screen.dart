@@ -35,13 +35,12 @@ class _ModeTransitionScreenState extends State<ModeTransitionScreen> with Single
       TweenSequenceItem(tween: Tween<double>(begin: 1.15, end: 1.0), weight: 50),
     ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    _rotationAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween<double>(begin: 0.0, end: 0.1), weight: 25),
-      TweenSequenceItem(tween: Tween<double>(begin: 0.1, end: -0.1), weight: 50),
-      TweenSequenceItem(tween: Tween<double>(begin: -0.1, end: 0.0), weight: 25),
-    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _rotationAnimation = Tween<double>(
+      begin: 0.0,
+      end: 3.1415926535897932, // Flip 180 degrees (pi)
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
-    _controller.repeat();
+    _controller.repeat(reverse: true); // Flip back and forth
 
     // Simulate loading and then navigate
 
@@ -79,8 +78,11 @@ class _ModeTransitionScreenState extends State<ModeTransitionScreen> with Single
               builder: (context, child) {
                 return Transform.scale(
                   scale: _scaleAnimation.value,
-                  child: Transform.rotate(
-                    angle: _rotationAnimation.value,
+                  child: Transform(
+                    alignment: Alignment.center,
+                    transform: Matrix4.identity()
+                      ..setEntry(3, 2, 0.002) // Perspective
+                      ..rotateY(_rotationAnimation.value),
                     child: Icon(
                       Icons.camera_alt_outlined,
                       size: 80.sp.clamp(60, 100),
