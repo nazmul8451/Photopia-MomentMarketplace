@@ -40,7 +40,10 @@ class AppRoutes {
       return OtpVerificationScreen(email: email);
     },
     new_password: (context) => const NewPasswordScreen(),
-    provider_bottom_navigation: (context) => const ProviderBottomNavigationScreen(),
+    provider_bottom_navigation: (context) {
+      final index = ModalRoute.of(context)?.settings.arguments as int? ?? 0;
+      return ProviderBottomNavigationScreen(initialIndex: index);
+    },
     booking_details: (context) => const BookingDetailsScreen(),
   };
 }

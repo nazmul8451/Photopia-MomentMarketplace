@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/features/provider/screen/provider_create_listing_screen.dart';
+import 'package:photopia/features/provider/screen/provider_listing_details_screen.dart';
 
 class ProviderOverviewScreen extends StatefulWidget {
   const ProviderOverviewScreen({super.key});
@@ -72,7 +74,14 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                 ),
               ),
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProviderCreateListingScreen(),
+                    ),
+                  );
+                },
                 icon: Icon(Icons.add, size: 18.sp, color: Colors.white),
                 label: Text(
                   'Create',
@@ -246,7 +255,14 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                 child: _buildListingButton(
                   icon: Icons.visibility_outlined,
                   label: 'View',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProviderListingDetailsScreen(listing: listing),
+                      ),
+                    );
+                  },
                 ),
               ),
               SizedBox(width: 12.w),
