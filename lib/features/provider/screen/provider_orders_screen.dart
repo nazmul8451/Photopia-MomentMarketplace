@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/routes/app_routes.dart';
+import 'package:photopia/features/provider/screen/provider_notification_screen.dart';
 
 class ProviderOrdersScreen extends StatefulWidget {
   const ProviderOrdersScreen({super.key});
@@ -40,30 +41,45 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Photopia',
-                    style: TextStyle(
-                      fontSize: 24.sp.clamp(24, 28),
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                  Expanded(
+                    child: Text(
+                      'Photopia',
+                      style: TextStyle(
+                        fontSize: 24.sp.clamp(24, 28),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  Stack(
-                    children: [
-                      Icon(Icons.notifications_outlined, size: 28.sp),
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                          width: 10.w,
-                          height: 10.w,
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
+                  SizedBox(width: 10.w),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProviderNotificationScreen(),
+                        ),
+                      );
+                    },
+                    child: Stack(
+                      children: [
+                        Icon(Icons.notifications_outlined, size: 28.sp),
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            width: 10.w,
+                            height: 10.w,
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
