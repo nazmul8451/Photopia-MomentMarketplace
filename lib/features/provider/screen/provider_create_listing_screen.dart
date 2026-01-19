@@ -17,10 +17,20 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
   bool _acceptOutsideRadius = false;
   final List<String> _equipment = [];
   final TextEditingController _equipmentController = TextEditingController();
+  final TextEditingController _hourlyRateController = TextEditingController();
+  final TextEditingController _weekendRateController = TextEditingController();
+  final TextEditingController _basicPackageController = TextEditingController();
+  final TextEditingController _standardPackageController = TextEditingController();
+  final TextEditingController _premiumPackageController = TextEditingController();
 
   @override
   void dispose() {
     _equipmentController.dispose();
+    _hourlyRateController.dispose();
+    _weekendRateController.dispose();
+    _basicPackageController.dispose();
+    _standardPackageController.dispose();
+    _premiumPackageController.dispose();
     super.dispose();
   }
 
@@ -69,13 +79,27 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
             _buildPricingToggle(),
             SizedBox(height: 20.h),
             
-            _buildLabel('Weekday Hourly Rate (\$)'),
-            _buildTextField(hintText: '150'),
-            SizedBox(height: 20.h),
-            
-            _buildLabel('Weekend Hourly Rate (\$)'),
-            _buildTextField(hintText: '180'),
-            SizedBox(height: 20.h),
+            if (_selectedPricingModel == 'By Service') ...[
+              _buildLabel('Basic Package (\$)'),
+              _buildTextField(hintText: '500', controller: _basicPackageController),
+              SizedBox(height: 20.h),
+              
+              _buildLabel('Standard Package (\$)'),
+              _buildTextField(hintText: '1200', controller: _standardPackageController),
+              SizedBox(height: 20.h),
+              
+              _buildLabel('Premium Package (\$)'),
+              _buildTextField(hintText: '2500', controller: _premiumPackageController),
+              SizedBox(height: 20.h),
+            ] else ...[
+              _buildLabel('${_selectedPricingModel == 'By Day' ? 'Daily' : 'Weekday Hourly'} Rate (\$)'),
+              _buildTextField(hintText: _selectedPricingModel == 'By Day' ? '800' : '150', controller: _hourlyRateController),
+              SizedBox(height: 20.h),
+              
+              _buildLabel('${_selectedPricingModel == 'By Day' ? 'Weekend Daily' : 'Weekend Hourly'} Rate (\$)'),
+              _buildTextField(hintText: _selectedPricingModel == 'By Day' ? '1000' : '180', controller: _weekendRateController),
+              SizedBox(height: 20.h),
+            ],
             
             _buildLabel('Description'),
             _buildTextField(hintText: 'Describe your service...', maxLines: 4),
@@ -143,7 +167,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
     );
   }
 
-  Widget _buildTextField({required String hintText, int maxLines = 1}) {
+  Widget _buildTextField({required String hintText, int maxLines = 1, TextEditingController? controller}) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -151,6 +175,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
         border: Border.all(color: const Color(0xFFE0E0E0)),
       ),
       child: TextField(
+        controller: controller,
         maxLines: maxLines,
         decoration: InputDecoration(
           hintText: hintText,
