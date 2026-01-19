@@ -16,11 +16,35 @@ class ModeTransitionScreen extends StatefulWidget {
   State<ModeTransitionScreen> createState() => _ModeTransitionScreenState();
 }
 
-class _ModeTransitionScreenState extends State<ModeTransitionScreen> {
+class _ModeTransitionScreenState extends State<ModeTransitionScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _rotationAnimation;
+
   @override
   void initState() {
     super.initState();
+    
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween<double>(begin: 1.0, end: 1.15), weight: 50),
+      TweenSequenceItem(tween: Tween<double>(begin: 1.15, end: 1.0), weight: 50),
+    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _rotationAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween<double>(begin: 0.0, end: 0.1), weight: 25),
+      TweenSequenceItem(tween: Tween<double>(begin: 0.1, end: -0.1), weight: 50),
+      TweenSequenceItem(tween: Tween<double>(begin: -0.1, end: 0.0), weight: 25),
+    ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+    _controller.repeat();
+
     // Simulate loading and then navigate
+
     Timer(const Duration(seconds: 2), () {
       if (mounted) {
         Navigator.pushNamedAndRemoveUntil(
@@ -30,6 +54,12 @@ class _ModeTransitionScreenState extends State<ModeTransitionScreen> {
         );
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -44,10 +74,21 @@ class _ModeTransitionScreenState extends State<ModeTransitionScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.camera_alt_outlined,
-              size: 80.sp.clamp(60, 100),
-              color: Colors.black,
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: _scaleAnimation.value,
+                  child: Transform.rotate(
+                    angle: _rotationAnimation.value,
+                    child: Icon(
+                      Icons.camera_alt_outlined,
+                      size: 80.sp.clamp(60, 100),
+                      color: Colors.black,
+                    ),
+                  ),
+                );
+              },
             ),
             SizedBox(height: 24.h),
             Text(
