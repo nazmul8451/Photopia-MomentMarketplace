@@ -42,15 +42,13 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(
-                      'Photopia',
-                      style: TextStyle(
-                        fontSize: AppTypography.h1,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Image.asset(
+                        'assets/images/app_name.png',
+                        height: 24.h,
+                        fit: BoxFit.contain,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   SizedBox(width: 10.w),
@@ -108,6 +106,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                     fontWeight: FontWeight.w600,
                   ),
                   dividerColor: Colors.transparent,
+                  overlayColor: MaterialStateProperty.all(Colors.transparent),
                   tabs: const [
                     Tab(text: 'Today'),
                     Tab(text: 'Upcoming'),

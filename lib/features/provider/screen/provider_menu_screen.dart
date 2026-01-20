@@ -4,6 +4,7 @@ import 'package:photopia/features/common/mode_transition_screen.dart';
 import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/features/provider/screen/provider_subscription_screen.dart';
 import 'package:photopia/features/provider/screen/provider_profile_screen.dart';
+import 'package:photopia/features/provider/screen/provider_wallet_screen.dart';
 
 class ProviderMenuScreen extends StatelessWidget {
   const ProviderMenuScreen({super.key});
@@ -34,7 +35,14 @@ class ProviderMenuScreen extends StatelessWidget {
                 _buildMenuItem(
                   icon: Icons.payment,
                   title: 'Payments & Transactions',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ProviderWalletScreen(),
+                      ),
+                    );
+                  },
                 ),
                 SizedBox(height: 12.h.clamp(8, 16)),
                 
