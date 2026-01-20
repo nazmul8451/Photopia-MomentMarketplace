@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/core/constants/app_typography.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_profile_controller.dart';
@@ -160,7 +162,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                   Text(
                     'Profile',
                     style: TextStyle(
-                      fontSize: 18.sp,
+                      fontSize: AppTypography.h1,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       letterSpacing: 1,
@@ -234,7 +236,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                         Text(
                           'Michael Photographer',
                           style: TextStyle(
-                            fontSize: 19.sp,
+                            fontSize: AppTypography.h1,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
@@ -243,7 +245,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                         Text(
                           'Wedding & Event Photography',
                           style: TextStyle(
-                            fontSize: 13.sp,
+                            fontSize: AppTypography.bodyMedium,
                             color: Colors.white.withOpacity(0.9),
                             fontWeight: FontWeight.w400,
                           ),
@@ -323,7 +325,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
             child: Text(
               value,
               style: TextStyle(
-                fontSize: 18.sp,
+                fontSize: AppTypography.h1,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
@@ -333,7 +335,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 11.sp,
+              fontSize: AppTypography.bodySmall,
               color: Colors.grey[600],
               height: 1,
               fontWeight: FontWeight.w500,
@@ -350,7 +352,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('About Me', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+          Text('About Me', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
           SizedBox(height: 12.h),
           Container(
             decoration: BoxDecoration(
@@ -360,7 +362,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
             child: TextField(
               controller: _aboutController,
               maxLines: 4,
-              style: TextStyle(fontSize: 14.sp, color: Colors.black87),
+              style: TextStyle(fontSize: AppTypography.bodyLarge, color: Colors.black87),
               decoration: InputDecoration(
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.all(12.w),
@@ -405,7 +407,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            Text(title, style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
             GestureDetector(
               onTap: () => _showAddDialog(title, onAdd),
               child: Icon(Icons.add, size: 22.sp, color: Colors.black)
@@ -458,7 +460,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: TextStyle(fontSize: 12.sp, color: Colors.black87)),
+          Text(label, style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.black87)),
           SizedBox(width: 6.w),
           GestureDetector(
             onTap: onRemove,
@@ -476,7 +478,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Recent (${_tempRecentWork.length})', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            Text('Recent (${_tempRecentWork.length})', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
             GestureDetector(
               onTap: () {
                 // Mock adding a photo

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/provider/widgets/provider_custom_bottom_nav_bar.dart';
 import 'package:photopia/features/provider/screen/BottomNavigationBar/bottom_navigation_screen.dart';
 
@@ -50,7 +51,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
           'Create Listing',
           style: TextStyle(
             color: Colors.black,
-            fontSize: 18.sp,
+            fontSize: AppTypography.h1,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -144,7 +145,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 13.sp,
+          fontSize: AppTypography.bodySmall,
           color: Colors.black87,
           fontWeight: FontWeight.w500,
         ),
@@ -164,7 +165,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
         maxLines: maxLines,
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14.sp),
+          hintStyle: TextStyle(color: Colors.grey[400], fontSize: AppTypography.bodyLarge),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         ),
@@ -187,7 +188,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
           items: items.map((String value) {
             return DropdownMenuItem<String>(
               value: value,
-              child: Text(value, style: TextStyle(fontSize: 14.sp)),
+              child: Text(value, style: TextStyle(fontSize: AppTypography.bodyLarge)),
             );
           }).toList(),
           onChanged: (_) {},
@@ -223,7 +224,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
               ) : null,
             ),
             SizedBox(width: 12.w),
-            Text(value, style: TextStyle(fontSize: 14.sp, color: Colors.black87)),
+            Text(value, style: TextStyle(fontSize: AppTypography.bodyLarge, color: Colors.black87)),
           ],
         ),
       ),
@@ -250,7 +251,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: isSelected ? Colors.white : Colors.black54,
-                  fontSize: 13.sp,
+                  fontSize: AppTypography.bodyMedium,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 ),
               ),
@@ -311,12 +312,12 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
               children: [
                 Text(
                   'Accept orders from outside location radius',
-                  style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.black87),
+                  style: TextStyle(fontSize: AppTypography.bodyLarge, fontWeight: FontWeight.w500, color: Colors.black87),
                 ),
                 SizedBox(height: 4.h),
                 Text(
                   'Additional travel fees may apply for bookings outside your service radius',
-                  style: TextStyle(fontSize: 11.sp, color: Colors.grey[400]),
+                  style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.grey[400]),
                 ),
               ],
             ),
@@ -340,7 +341,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
               controller: _equipmentController,
               decoration: InputDecoration(
                 hintText: 'Canon EOS R5',
-                hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14.sp),
+                hintStyle: TextStyle(color: Colors.grey[400], fontSize: AppTypography.bodyLarge),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
               ),
@@ -365,7 +366,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
             ),
             child: Text(
               'Add',
-              style: TextStyle(color: Colors.white, fontSize: 14.sp, fontWeight: FontWeight.bold),
+              style: TextStyle(color: Colors.white, fontSize: AppTypography.bodyLarge, fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -389,7 +390,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(item, style: TextStyle(fontSize: 12.sp, color: Colors.black87)),
+                Text(item, style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.black87)),
                 SizedBox(width: 4.w),
                 GestureDetector(
                   onTap: () => setState(() => _equipment.remove(item)),
@@ -418,12 +419,12 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
           SizedBox(height: 12.h),
           Text(
             'Click to upload photos and videos',
-            style: TextStyle(fontSize: 14.sp, color: Colors.black87, fontWeight: FontWeight.w500),
+            style: TextStyle(fontSize: AppTypography.bodyLarge, color: Colors.black87, fontWeight: FontWeight.w500),
           ),
           SizedBox(height: 4.h),
           Text(
             'or drag and drop',
-            style: TextStyle(fontSize: 12.sp, color: Colors.grey[400]),
+            style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.grey[400]),
           ),
         ],
       ),
@@ -443,7 +444,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
                   side: const BorderSide(color: Color(0xFFE0E0E0)),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
                 ),
-                child: Text('Save as Draft', style: TextStyle(color: Colors.black, fontSize: 14.sp)),
+                child: Text('Save as Draft', style: TextStyle(color: Colors.black, fontSize: AppTypography.bodyLarge)),
               ),
             ),
             SizedBox(width: 15.w),
@@ -457,7 +458,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
                   elevation: 0,
                 ),
-                child: Text('Publish', style: TextStyle(color: Colors.white, fontSize: 14.sp)),
+                child: Text('Publish', style: TextStyle(color: Colors.white, fontSize: AppTypography.bodyLarge)),
               ),
             ),
           ],
@@ -466,7 +467,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
         Center(
           child: Text(
             'Please complete all required fields to publish',
-            style: TextStyle(color: Colors.red[400], fontSize: 11.sp),
+            style: TextStyle(color: Colors.red[400], fontSize: AppTypography.bodySmall),
           ),
         ),
       ],

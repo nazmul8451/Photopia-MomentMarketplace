@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/provider/widgets/provider_custom_bottom_nav_bar.dart';
 import 'package:photopia/features/provider/screen/BottomNavigationBar/bottom_navigation_screen.dart';
 
@@ -20,14 +21,14 @@ class ProviderListingDetailsScreen extends StatelessWidget {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.sp),
+          icon: Icon(Icons.arrow_back, color: Colors.black, size: 20.sp),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Listing Details',
           style: TextStyle(
             color: Colors.black,
-            fontSize: 18.sp,
+            fontSize: AppTypography.h1,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -64,7 +65,7 @@ class ProviderListingDetailsScreen extends StatelessWidget {
                   child: Text(
                     listing['title'],
                     style: TextStyle(
-                      fontSize: 18.sp,
+                      fontSize: AppTypography.h1,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
@@ -79,7 +80,7 @@ class ProviderListingDetailsScreen extends StatelessWidget {
                   child: Text(
                     listing['status'],
                     style: TextStyle(
-                      fontSize: 11.sp,
+                      fontSize: AppTypography.bodySmall,
                       color: const Color(0xFF2E7D32),
                       fontWeight: FontWeight.w600,
                     ),
@@ -96,7 +97,7 @@ class ProviderListingDetailsScreen extends StatelessWidget {
                 Text(
                   listing['rate'],
                   style: TextStyle(
-                    fontSize: 20.sp,
+                    fontSize: AppTypography.h1,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
                   ),
@@ -107,7 +108,7 @@ class ProviderListingDetailsScreen extends StatelessWidget {
                 Text(
                   '2-4 hours', 
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: AppTypography.bodyLarge,
                     color: Colors.grey[600],
                   ),
                 ),
@@ -125,7 +126,7 @@ class ProviderListingDetailsScreen extends StatelessWidget {
               child: Text(
                 listing['category'],
                 style: TextStyle(
-                  fontSize: 12.sp,
+                  fontSize: AppTypography.bodySmall,
                   color: Colors.black87,
                   fontWeight: FontWeight.w500,
                 ),
@@ -140,7 +141,7 @@ class ProviderListingDetailsScreen extends StatelessWidget {
             Text(
               'Description',
               style: TextStyle(
-                fontSize: 16.sp,
+                fontSize: AppTypography.h2,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
@@ -149,7 +150,7 @@ class ProviderListingDetailsScreen extends StatelessWidget {
             Text(
               'Capture your special events with professional photography services.',
               style: TextStyle(
-                fontSize: 14.sp,
+                fontSize: AppTypography.bodyLarge,
                 color: Colors.grey[600],
                 height: 1.5,
               ),
@@ -163,7 +164,7 @@ class ProviderListingDetailsScreen extends StatelessWidget {
             Text(
               'Location',
               style: TextStyle(
-                fontSize: 16.sp,
+                fontSize: AppTypography.h2,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
@@ -172,7 +173,7 @@ class ProviderListingDetailsScreen extends StatelessWidget {
             Text(
               'New York, NY',
               style: TextStyle(
-                fontSize: 14.sp,
+                fontSize: AppTypography.bodyLarge,
                 color: Colors.grey[600],
               ),
             ),
@@ -191,14 +192,14 @@ class ProviderListingDetailsScreen extends StatelessWidget {
                       Text(
                         listing['views'].toString(),
                         style: TextStyle(
-                          fontSize: 22.sp,
+                          fontSize: AppTypography.h1,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
                       ),
                       Text(
                         'Total Views',
-                        style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+                        style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -210,14 +211,14 @@ class ProviderListingDetailsScreen extends StatelessWidget {
                       Text(
                         listing['bookings'].toString(),
                         style: TextStyle(
-                          fontSize: 22.sp,
+                          fontSize: AppTypography.h1,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
                       ),
                       Text(
                         'Bookings',
-                        style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+                        style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -240,7 +241,7 @@ class ProviderListingDetailsScreen extends StatelessWidget {
                     ),
                     child: Text(
                       'Edit Listing',
-                      style: TextStyle(color: Colors.white, fontSize: 16.sp, fontWeight: FontWeight.bold),
+                      style: TextStyle(color: Colors.white, fontSize: AppTypography.h2, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
