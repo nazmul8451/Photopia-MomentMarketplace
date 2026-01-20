@@ -155,7 +155,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
               Text(
                 'Profile',
                 style: TextStyle(
-                  fontSize: 18.sp,
+                  fontSize: AppTypography.h1,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                   letterSpacing: 1,
@@ -187,16 +187,17 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                         Text(
                           controller.name,
                           style: TextStyle(
-                            fontSize: 19.sp,
+                            fontSize: AppTypography.h1,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 2.h),
                         Text(
                           'Wedding & Event Photography',
                           style: TextStyle(
-                            fontSize: 13.sp,
+                            fontSize: AppTypography.bodyMedium,
                             color: Colors.white.withOpacity(0.9),
                             fontWeight: FontWeight.w400,
                           ),
@@ -276,20 +277,23 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
             child: Text(
               value,
               style: TextStyle(
-                fontSize: 18.sp,
+                fontSize: AppTypography.h1,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
             ),
           ),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11.sp,
-              color: Colors.grey[600],
-              height: 1,
-              fontWeight: FontWeight.w500,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11.sp,
+                color: Colors.grey[600],
+                height: 1,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -322,11 +326,11 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('About Me', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+        Text('About Me', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
         SizedBox(height: 12.h),
         Text(
           controller.aboutMe,
-          style: TextStyle(fontSize: 14.sp, color: Colors.black87, height: 1.5),
+          style: TextStyle(fontSize: AppTypography.bodyLarge, color: Colors.black87, height: 1.5),
         ),
       ],
     );
@@ -339,7 +343,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Specializations', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            Text('Specializations', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
           ],
         ),
         SizedBox(height: 12.h),
@@ -359,7 +363,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Languages', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            Text('Languages', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
           ],
         ),
         SizedBox(height: 12.h),
@@ -379,7 +383,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         color: const Color(0xFFF5F5F7),
         borderRadius: BorderRadius.circular(20.r),
       ),
-      child: Text(label, style: TextStyle(fontSize: 12.sp, color: Colors.black87)),
+      child: Text(label, style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.black87)),
     );
   }
 
@@ -390,7 +394,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Recent (${controller.recentWork.length})', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            Text('Recent (${controller.recentWork.length})', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
           ],
         ),
         SizedBox(height: 15.h),
@@ -423,12 +427,12 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Client Reviews', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            Text('Client Reviews', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
             Row(
               children: [
                 Icon(Icons.star, color: Colors.amber, size: 16.sp),
                 SizedBox(width: 4.w),
-                Text('4.9 (127 reviews)', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w500)),
+                Text('4.9 (127 reviews)', style: TextStyle(fontSize: AppTypography.bodySmall, fontWeight: FontWeight.w500)),
               ],
             ),
           ],
@@ -446,7 +450,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
               color: const Color(0xFFF5F5F7),
               borderRadius: BorderRadius.circular(10.r),
             ),
-            child: Text('View All Reviews', textAlign: TextAlign.center, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500)),
+            child: Text('View All Reviews', textAlign: TextAlign.center, style: TextStyle(fontSize: AppTypography.bodyLarge, fontWeight: FontWeight.w500)),
           ),
         ),
       ],
@@ -469,15 +473,18 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(name, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                  Text(date, style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
+                  Expanded(
+                    child: Text(name, style: TextStyle(fontSize: AppTypography.bodyLarge, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(date, style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.grey)),
                 ],
               ),
               Row(
                 children: List.generate(5, (_) => Icon(Icons.star, color: Colors.amber, size: 12.sp)),
               ),
               SizedBox(height: 8.h),
-              Text(content, style: TextStyle(fontSize: 13.sp, color: Colors.black87, height: 1.4)),
+              Text(content, style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.black87, height: 1.4)),
             ],
           ),
         ),

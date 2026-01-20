@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/provider/screen/provider_create_listing_screen.dart';
 import 'package:photopia/features/provider/screen/provider_listing_details_screen.dart';
 
@@ -69,7 +70,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                 'My Listings',
                 style: TextStyle(
                   color: Colors.black,
-                  fontSize: 22.sp,
+                  fontSize: AppTypography.h1,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -87,7 +88,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                   'Create',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14.sp,
+                    fontSize: AppTypography.bodyLarge,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -148,7 +149,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: isSelected ? Colors.white : Colors.black54,
-              fontSize: 14.sp,
+              fontSize: AppTypography.bodyLarge,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
             ),
           ),
@@ -183,12 +184,14 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                 child: Text(
                   listing['title'],
                   style: TextStyle(
-                    fontSize: 16.sp,
+                    fontSize: AppTypography.h2,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              SizedBox(width: 8.w),
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(
@@ -198,7 +201,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                 child: Text(
                   listing['status'],
                   style: TextStyle(
-                    fontSize: 11.sp,
+                    fontSize: AppTypography.bodySmall,
                     color: const Color(0xFF2E7D32),
                     fontWeight: FontWeight.w600,
                   ),
@@ -212,7 +215,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
               Text(
                 listing['category'],
                 style: TextStyle(
-                  fontSize: 13.sp,
+                  fontSize: AppTypography.bodyMedium,
                   color: Colors.grey[600],
                 ),
               ),
@@ -223,7 +226,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
               Text(
                 listing['rate'],
                 style: TextStyle(
-                  fontSize: 13.sp,
+                  fontSize: AppTypography.bodyMedium,
                   fontWeight: FontWeight.w600,
                   color: Colors.black87,
                 ),
@@ -237,12 +240,12 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
               SizedBox(width: 4.w),
               Text(
                 '${listing['views']} views',
-                style: TextStyle(fontSize: 13.sp, color: Colors.black87),
+                style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.black87),
               ),
               SizedBox(width: 16.w),
               Text(
                 '${listing['bookings']} bookings',
-                style: TextStyle(fontSize: 13.sp, color: const Color(0xFF636AFF)),
+                style: TextStyle(fontSize: AppTypography.bodyMedium, color: const Color(0xFF636AFF)),
               ),
             ],
           ),
@@ -313,12 +316,15 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
             Icon(icon, size: 15.sp, color: Colors.black87),
             if (label.isNotEmpty) ...[
               SizedBox(width: 8.w),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12.sp.clamp(12,13),
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12.sp.clamp(12,13),
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -342,7 +348,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
           Text(
             'Overall Statistics',
             style: TextStyle(
-              fontSize: 16.sp,
+              fontSize: AppTypography.h2,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
@@ -368,7 +374,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
         Text(
           label,
           style: TextStyle(
-            fontSize: 13.sp,
+            fontSize: AppTypography.bodyMedium,
             color: Colors.grey[600],
           ),
         ),
@@ -376,7 +382,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
         Text(
           value,
           style: TextStyle(
-            fontSize: 16.sp,
+            fontSize: AppTypography.h2,
             fontWeight: FontWeight.bold,
             color: Colors.black,
           ),

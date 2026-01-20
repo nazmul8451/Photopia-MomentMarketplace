@@ -45,7 +45,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                     child: Text(
                       'Photopia',
                       style: TextStyle(
-                        fontSize: 24.sp.clamp(24, 28),
+                        fontSize: AppTypography.h1,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
@@ -104,7 +104,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                   labelColor: Colors.white,
                   unselectedLabelColor: Colors.grey[600],
                   labelStyle: TextStyle(
-                    fontSize: 14.sp.clamp(14, 16),
+                    fontSize: AppTypography.bodyLarge,
                     fontWeight: FontWeight.w600,
                   ),
                   dividerColor: Colors.transparent,
@@ -144,14 +144,14 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
             Text(
               "Today's Bookings",
               style: TextStyle(
-                fontSize: 18.sp.clamp(18, 20),
+                fontSize: AppTypography.h1,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
               '2 bookings',
               style: TextStyle(
-                fontSize: 12.sp.clamp(11, 13),
+                fontSize: AppTypography.bodySmall,
                 color: Colors.grey[500],
               ),
             ),
@@ -190,14 +190,14 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
             Text(
               "Upcoming Bookings",
               style: TextStyle(
-                fontSize: 18.sp.clamp(18, 20),
+                fontSize: AppTypography.h1,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
               '3 bookings',
               style: TextStyle(
-                fontSize: 12.sp.clamp(11, 13),
+                fontSize: AppTypography.bodySmall,
                 color: Colors.grey[500],
               ),
             ),
@@ -242,14 +242,14 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
             Text(
               "Pending Approval",
               style: TextStyle(
-                fontSize: 18.sp.clamp(18, 20),
+                fontSize: AppTypography.h1,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
               '2 requests',
               style: TextStyle(
-                fontSize: 12.sp.clamp(11, 13),
+                fontSize: AppTypography.bodySmall,
                 color: Colors.grey[500],
               ),
             ),
@@ -318,7 +318,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                           child: Text(
                             name,
                             style: TextStyle(
-                              fontSize: 15.sp.clamp(14, 16),
+                              fontSize: AppTypography.bodyLarge,
                               fontWeight: FontWeight.bold,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -334,7 +334,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                           child: Text(
                             status,
                             style: TextStyle(
-                              fontSize: 10.sp.clamp(9, 11),
+                              fontSize: AppTypography.bodySmall,
                               color: const Color(0xFF2E7D32),
                               fontWeight: FontWeight.w600,
                             ),
@@ -345,7 +345,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                     Text(
                       service,
                       style: TextStyle(
-                        fontSize: 13.sp.clamp(12, 14),
+                        fontSize: AppTypography.bodyMedium,
                         color: Colors.grey[600],
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -358,7 +358,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                         Text(
                           time,
                           style: TextStyle(
-                            fontSize: 12.sp.clamp(11, 13),
+                            fontSize: AppTypography.bodySmall,
                             color: Colors.grey[700],
                           ),
                         ),
@@ -373,7 +373,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                           child: Text(
                             location,
                             style: TextStyle(
-                              fontSize: 12.sp.clamp(11, 13),
+                              fontSize: AppTypography.bodySmall,
                               color: Colors.grey[700],
                             ),
                             maxLines: 1,
@@ -394,26 +394,33 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
               Text(
                 '\$$price',
                 style: TextStyle(
-                  fontSize: 16.sp.clamp(16, 18),
+                  fontSize: AppTypography.h2,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Row(
-                children: [
-                  _buildButton(
-                    text: 'Contact',
-                    onTap: () {},
-                    isPrimary: false,
-                  ),
-                  SizedBox(width: 10.w),
-                  _buildButton(
-                    text: 'Details',
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoutes.booking_details);
-                    },
-                    isPrimary: true,
-                  ),
-                ],
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Flexible(
+                      child: _buildButton(
+                        text: 'Contact',
+                        onTap: () {},
+                        isPrimary: false,
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
+                    Flexible(
+                      child: _buildButton(
+                        text: 'Details',
+                        onTap: () {
+                          Navigator.pushNamed(context, AppRoutes.booking_details);
+                        },
+                        isPrimary: true,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -451,7 +458,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                     Text(
                       name,
                       style: TextStyle(
-                        fontSize: 15.sp.clamp(14, 16),
+                        fontSize: AppTypography.bodyLarge,
                         fontWeight: FontWeight.bold,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -477,7 +484,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                 child: Text(
                   status,
                   style: TextStyle(
-                    fontSize: 10.sp.clamp(9, 11),
+                    fontSize: AppTypography.bodySmall,
                     color: status == 'Confirmed' ? const Color(0xFF2E7D32) : const Color(0xFFE65100),
                     fontWeight: FontWeight.w600,
                   ),
@@ -493,7 +500,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
               Text(
                 date,
                 style: TextStyle(
-                  fontSize: 12.sp.clamp(11, 13),
+                  fontSize: AppTypography.bodySmall,
                   color: Colors.grey[700],
                 ),
               ),
@@ -503,7 +510,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
               Text(
                 time,
                 style: TextStyle(
-                  fontSize: 12.sp.clamp(11, 13),
+                  fontSize: AppTypography.bodySmall,
                   color: Colors.grey[700],
                 ),
               ),
@@ -519,29 +526,37 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                 child: Text(
                   '\$$price',
                   style: TextStyle(
-                    fontSize: 16.sp.clamp(16, 18),
+                    fontSize: AppTypography.h2,
                     fontWeight: FontWeight.bold,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               SizedBox(width: 8.w),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, AppRoutes.booking_details);
-                },
-                child: Row(
-                  children: [
-                    Text(
-                      'View Details',
-                      style: TextStyle(
-                        fontSize: 12.sp.clamp(11, 13),
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w600,
+              SizedBox(width: 8.w),
+              Flexible(
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, AppRoutes.booking_details);
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'View Details',
+                          style: TextStyle(
+                            fontSize: AppTypography.bodyMedium,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    ),
-                    Icon(Icons.arrow_forward, size: 14.sp, color: Colors.grey[600]),
-                  ],
+                      SizedBox(width: 4.w),
+                      Icon(Icons.arrow_forward, size: 14.sp, color: Colors.grey[600]),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -591,7 +606,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                           child: Text(
                             name,
                             style: TextStyle(
-                              fontSize: 15.sp.clamp(14, 16),
+                              fontSize: AppTypography.bodyLarge,
                               fontWeight: FontWeight.bold,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -607,7 +622,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                           child: Text(
                             'Pending',
                             style: TextStyle(
-                              fontSize: 10.sp.clamp(9, 11),
+                              fontSize: AppTypography.bodySmall,
                               color: Colors.grey[600],
                               fontWeight: FontWeight.w600,
                             ),
@@ -618,7 +633,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                     Text(
                       service,
                       style: TextStyle(
-                        fontSize: 13.sp.clamp(12, 14),
+                        fontSize: AppTypography.bodyMedium,
                         color: Colors.grey[600],
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -626,7 +641,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                     Text(
                       requestedAgo,
                       style: TextStyle(
-                        fontSize: 11.sp.clamp(10, 12),
+                        fontSize: AppTypography.bodySmall,
                         color: Colors.grey[400],
                       ),
                     ),
@@ -671,7 +686,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
               Text(
                 location,
                 style: TextStyle(
-                  fontSize: 12.sp.clamp(11, 13),
+                  fontSize: AppTypography.bodySmall,
                   color: Colors.grey[700],
                 ),
               ),
@@ -684,30 +699,34 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
               Text(
                 '\$$price',
                 style: TextStyle(
-                  fontSize: 16.sp.clamp(16, 18),
+                  fontSize: AppTypography.h2,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Row(
                 children: [
-                  _buildTextButton(
-                    text: 'Decline',
-                    onTap: () => _showConfirmationDialog(
-                      context: context,
-                      isAccept: false,
+                  Flexible(
+                    child: _buildTextButton(
+                      text: 'Decline',
+                      onTap: () => _showConfirmationDialog(
+                        context: context,
+                        isAccept: false,
+                      ),
+                      icon: Icons.close,
+                      color: Colors.red,
                     ),
-                    icon: Icons.close,
-                    color: Colors.red,
                   ),
                   SizedBox(width: 15.w),
-                  _buildTextButton(
-                    text: 'Accept',
-                    onTap: () => _showConfirmationDialog(
-                      context: context,
-                      isAccept: true,
+                  Flexible(
+                    child: _buildTextButton(
+                      text: 'Accept',
+                      onTap: () => _showConfirmationDialog(
+                        context: context,
+                        isAccept: true,
+                      ),
+                      icon: Icons.check,
+                      color: Colors.black,
                     ),
-                    icon: Icons.check,
-                    color: Colors.black,
                   ),
                 ],
               ),
@@ -725,11 +744,13 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                   Text(
                     'View Full Details',
                     style: TextStyle(
-                      fontSize: 12.sp.clamp(11, 13),
+                      fontSize: AppTypography.bodyMedium,
                       color: Colors.grey[600],
                       fontWeight: FontWeight.w600,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
+                  SizedBox(width: 4.w),
                   Icon(Icons.arrow_forward, size: 14.sp, color: Colors.grey[600]),
                 ],
               ),
@@ -764,7 +785,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                     Text(
                       isAccept ? 'Are you want to Accept this' : 'Are you want to Decline This',
                       style: TextStyle(
-                        fontSize: 18.sp.clamp(16, 20),
+                        fontSize: AppTypography.h1,
                         fontWeight: FontWeight.w500,
                         color: Colors.black87,
                       ),
