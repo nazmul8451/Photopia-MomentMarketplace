@@ -5,6 +5,7 @@ import 'package:photopia/features/client/home_page.dart';
 import 'package:photopia/features/client/user_profile_screen.dart';
 import 'package:photopia/features/client/favorites_screen.dart';
 import 'package:photopia/features/client/messages_screen.dart';
+import 'package:photopia/features/client/search_screen.dart';
 
 class BottomNavigationScreen extends StatefulWidget {
   const BottomNavigationScreen({super.key});
@@ -49,7 +50,11 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
         children: [
           _buildTabNavigator(0, const MyHomePage()),
           _buildTabNavigator(1, const MessagesScreen()),
-          _buildTabNavigator(2, const Center(child: Text('Search'))),
+
+          //now i change this screen when client change any UI so i update that
+          _buildTabNavigator(2, const SearchScreen()),
+          //now i change this screen when client change any UI so i update that
+
           _buildTabNavigator(3, const FavoritesScreen()),
           _buildTabNavigator(4, const UserProfileScreen()),
         ],
