@@ -4,6 +4,7 @@ import 'package:photopia/features/client/home_page.dart';
 import 'package:photopia/features/client/BottomNavigation.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
+import 'package:photopia/controller/provider/provider_profile_controller.dart';
 import 'package:photopia/core/routes/app_routes.dart';
 
 import 'package:photopia/features/onboarding/get_started.dart';
@@ -21,6 +22,7 @@ class Photopia extends StatelessWidget {
         return MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => FavoritesController()),
+            ChangeNotifierProvider(create: (_) => ProviderProfileController()),
           ],
           child: MaterialApp(
             debugShowCheckedModeBanner: false,

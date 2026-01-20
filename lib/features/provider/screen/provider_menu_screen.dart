@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/common/mode_transition_screen.dart';
 import 'package:photopia/core/routes/app_routes.dart';
+import 'package:photopia/features/provider/screen/provider_subscription_screen.dart';
+import 'package:photopia/features/provider/screen/provider_profile_screen.dart';
 
 class ProviderMenuScreen extends StatelessWidget {
   const ProviderMenuScreen({super.key});
@@ -17,7 +19,7 @@ class ProviderMenuScreen extends StatelessWidget {
             child: Column(
               children: [
                 // Profile Section
-                _buildProfileSection(),
+                _buildProfileSection(context),
                 SizedBox(height: 16.h.clamp(12, 20)),
                 
                 // Stats Grid
@@ -25,7 +27,7 @@ class ProviderMenuScreen extends StatelessWidget {
                 SizedBox(height: 16.h.clamp(12, 20)),
                 
                 // Premium Member Card
-                _buildPremiumCard(),
+                _buildPremiumCard(context),
                 SizedBox(height: 16.h.clamp(12, 20)),
                 
                 // Menu Items
@@ -91,7 +93,7 @@ class ProviderMenuScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileSection() {
+  Widget _buildProfileSection(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -170,12 +172,18 @@ class ProviderMenuScreen extends StatelessWidget {
             ],
           ),
           SizedBox(height: 14.h.clamp(12, 16)),
-          // View Public Profile Button
           SizedBox(
             width: double.infinity,
             height: 48.h.clamp(44, 52),
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProviderProfileScreen(),
+                  ),
+                );
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 shape: RoundedRectangleBorder(
@@ -305,7 +313,7 @@ class ProviderMenuScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPremiumCard() {
+  Widget _buildPremiumCard(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -348,11 +356,18 @@ class ProviderMenuScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: 12.h.clamp(10, 14)),
-          SizedBox(
+            SizedBox(
             width: double.infinity,
-            height: 40.h.clamp(36, 44),
+            height: 48.h.clamp(44, 52),
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProviderSubscriptionScreen(),
+                  ),
+                );
+              },
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: Colors.white, width: 1.5),
                 shape: RoundedRectangleBorder(

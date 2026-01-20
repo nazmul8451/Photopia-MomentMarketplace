@@ -11,6 +11,7 @@ import 'package:photopia/features/client/authentication/otp_verification_screen.
 import 'package:photopia/features/client/authentication/new_password_screen.dart';
 import 'package:photopia/features/provider/screen/BottomNavigationBar/bottom_navigation_screen.dart';
 import 'package:photopia/features/provider/screen/booking_details_screen.dart';
+import 'package:photopia/features/provider/screen/provider_subscription_screen.dart';
 
 class AppRoutes {
   static const String home_page = MyHomePage.name;
@@ -25,6 +26,7 @@ class AppRoutes {
   static const String new_password = NewPasswordScreen.name;
   static const String provider_bottom_navigation = ProviderBottomNavigationScreen.name;
   static const String booking_details = BookingDetailsScreen.name;
+  static const String provider_subscription = ProviderSubscriptionScreen.name;
 
   static final routes = {
     home_page: (context) => const MyHomePage(),
@@ -45,5 +47,6 @@ class AppRoutes {
       return ProviderBottomNavigationScreen(initialIndex: index);
     },
     booking_details: (context) => const BookingDetailsScreen(),
+    provider_subscription: (context) => const ProviderSubscriptionScreen(),
   };
 }

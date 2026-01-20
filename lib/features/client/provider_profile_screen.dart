@@ -100,7 +100,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                     ),
                   ),
                 ),
-                // Gradient Overlay for better contrast
+                // Gradient Overlay
                 Container(
                   height: 200.h,
                   decoration: BoxDecoration(
@@ -114,6 +114,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                     ),
                   ),
                 ),
+                
                 // Floating Glassmorphism Profile Card
                 Positioned(
                   bottom: -5.h,
@@ -121,7 +122,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                   right: 6.w,
                   child: _buildProfileInfo(),
                 ),
-                
+
                 // Overlapping Stats Row
                 Positioned(
                   bottom: -80.h,
@@ -175,7 +176,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
               Text(
                 'Profile',
                 style: TextStyle(
-                  fontSize: 18.sp.clamp(16, 20),
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                   letterSpacing: 1,
@@ -186,8 +187,8 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    width: 75.r.clamp(65, 85),
-                    height: 75.r.clamp(65, 85),
+                    width: 75.r,
+                    height: 75.r,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2.5.w),
@@ -206,7 +207,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                         Text(
                           widget.provider['name'] ?? 'Emma Wilson',
                           style: TextStyle(
-                            fontSize: 19.sp.clamp(17, 21),
+                            fontSize: 19.sp,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
@@ -215,7 +216,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                         Text(
                           'Wedding & Event Photography',
                           style: TextStyle(
-                            fontSize: 13.sp.clamp(12, 14),
+                            fontSize: 13.sp,
                             color: Colors.white.withOpacity(0.9),
                             fontWeight: FontWeight.w400,
                           ),
@@ -223,7 +224,9 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                         SizedBox(height: 6.h),
                         Container(
                           padding: EdgeInsets.symmetric(
-                              horizontal: 14.w, vertical: 5.h),
+                            horizontal: 14.w,
+                            vertical: 5.h,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.black,
                             borderRadius: BorderRadius.circular(30).r,
@@ -231,14 +234,13 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.stars,
-                                  color: Colors.white, size: 12.sp),
+                              Icon(Icons.stars, color: Colors.white, size: 12.sp),
                               SizedBox(width: 6.w),
                               Text(
                                 'Premium',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 10.5.sp.clamp(10, 12),
+                                  fontSize: 10.5.sp,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -271,8 +273,8 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
 
   Widget _buildStatItem(IconData icon, String value, String label) {
     return Container(
-      width: 78.w.clamp(70, 90),
-      height: 90.h.clamp(85, 100),
+      width: 78.w,
+      height: 90.h,
       padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -288,13 +290,13 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Icon(icon, size: 22.sp.clamp(20, 24), color: Colors.black87),
+          Icon(icon, size: 22.sp, color: Colors.black87),
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
               value,
               style: TextStyle(
-                fontSize: 18.sp.clamp(16, 20),
+                fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
@@ -304,7 +306,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 11.sp.clamp(10, 12),
+              fontSize: 11.sp,
               color: Colors.grey[600],
               height: 1,
               fontWeight: FontWeight.w500,
@@ -317,7 +319,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
 
   Widget _buildTabBar() {
     return Container(
-      height: 38.h,
+      height: 48.h,
       decoration: BoxDecoration(
         color: const Color(0xFFF8F9FA),
         borderRadius: BorderRadius.circular(30).r,

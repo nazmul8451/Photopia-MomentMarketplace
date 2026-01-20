@@ -134,22 +134,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
           ],
         ),
       ),
-      bottomNavigationBar: ProviderCustomBottomNavBar(
-        selectedIndex: 2, // Overview tab
-        onItemSelected: (index) {
-          if (index == 2) {
-            Navigator.pop(context);
-          } else {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProviderBottomNavigationScreen(initialIndex: index),
-              ),
-              (route) => false,
-            );
-          }
-        },
-      ),
+      bottomNavigationBar: null,
     );
   }
 
