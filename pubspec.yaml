@@ -85,6 +85,7 @@ flutter:
     - assets/images/page_viewimg3.png
     - assets/images/page_viewimg4.png
     - assets/images/page_viewimg5.png
+    - assets/images/filter_icon.png
     - assets/images/provider_order_icon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see

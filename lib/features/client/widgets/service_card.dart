@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:photopia/features/client/service_details_screen.dart';
@@ -131,16 +132,32 @@ class ServiceCard extends StatelessWidget {
                             'isPremium': isPremium,
                           });
                         },
-                        child: Container(
-                          padding: EdgeInsets.all(4.w),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: Colors.red,
-                            size: 16.sp.clamp(16, 18),
+                        child: ClipOval(
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                            child: Container(
+                              padding: EdgeInsets.all(5.w),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 0.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 10,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                isFavorite ? Icons.favorite : Icons.favorite_border,
+                                color: Colors.red,
+                                size: 18.sp.clamp(18, 20),
+                              ),
+                            ),
                           ),
                         ),
                       );

@@ -85,7 +85,12 @@ class SearchHeader extends StatelessWidget {
                       onFilterApplied!(result);
                     }
                   },
-                  icon: Icon(Icons.tune, color: Colors.black, size: 22.sp.clamp(22, 24)),
+                  icon: Image.asset(
+                    'assets/images/filter_icon.png',
+                    height: 20.h,
+                    width: 20.h,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ],
