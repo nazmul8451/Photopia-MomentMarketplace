@@ -106,8 +106,12 @@ class _ProviderMessageScreenState extends State<ProviderMessageScreen> {
       padding: EdgeInsets.fromLTRB(20.w, 15.h, 20.w, 10.h),
       child: Row(
         children: [
-          Icon(Icons.chat_bubble_outline,
-              size: 28.sp.clamp(24, 32), color: Colors.black),
+          Image.asset(
+            'assets/images/message_icon.png',
+            width: 28.sp.clamp(24, 32),
+            height: 28.sp.clamp(24, 32),
+            color: Colors.black,
+          ),
           SizedBox(width: 12.w),
           Text(
             'Messages',
@@ -126,7 +130,7 @@ class _ProviderMessageScreenState extends State<ProviderMessageScreen> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
       child: Container(
-        height: 48.h.clamp(48, 50),
+        height: 40.h.clamp(40, 45),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12).r,

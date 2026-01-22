@@ -5,6 +5,7 @@ import 'package:photopia/core/constants/app_typography.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_profile_controller.dart';
+import 'package:photopia/core/widgets/custom_network_image.dart';
 
 class ProviderEditProfileScreen extends StatefulWidget {
   const ProviderEditProfileScreen({super.key});
@@ -67,24 +68,20 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
       clipBehavior: Clip.none,
       children: [
         // Header Image
-        Container(
-          height: 300.h,
+        CustomNetworkImage(
           width: double.infinity,
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: NetworkImage(
-                'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1000',
-              ),
-              fit: BoxFit.cover,
-            ),
-          ),
-          child: Container(
+          height: 300.h,
+          imageUrl: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1000',
+          fit: BoxFit.cover,
+        ),
+          Container(
+            width: double.infinity,
+            height: 300.h,
             color: Colors.black.withOpacity(0.4),
             child: Center(
               child: Icon(Icons.camera_alt_outlined, color: Colors.white, size: 40.sp),
             ),
           ),
-        ),
         // Gradient Overlay
         Container(
           height: 200.h,
@@ -203,15 +200,15 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                       Container(
                         width: 75.r,
                         height: 75.r,
+                        padding: EdgeInsets.all(2.5.w),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 2.5.w),
-                          image: const DecorationImage(
-                            image: NetworkImage(
-                              'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
-                            ),
-                            fit: BoxFit.cover,
-                          ),
+                        ),
+                        child: CustomNetworkImage(
+                          imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
+                          shape: BoxShape.circle,
+                          fit: BoxFit.cover,
                         ),
                       ),
                       Positioned(
@@ -511,9 +508,12 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
           itemBuilder: (context, index) {
             return Stack(
               children: [
-                ClipRRect(
+                CustomNetworkImage(
+                  imageUrl: _tempRecentWork[index],
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
                   borderRadius: BorderRadius.circular(12.r),
-                  child: Image.network(_tempRecentWork[index], fit: BoxFit.cover, width: double.infinity, height: double.infinity),
                 ),
                 Positioned(
                   top: 6.h,

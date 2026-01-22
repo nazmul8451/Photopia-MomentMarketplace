@@ -5,6 +5,7 @@ import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/features/provider/screen/provider_subscription_screen.dart';
 import 'package:photopia/features/provider/screen/provider_profile_screen.dart';
 import 'package:photopia/features/provider/screen/provider_wallet_screen.dart';
+import 'package:photopia/core/widgets/custom_network_image.dart';
 
 class ProviderMenuScreen extends StatelessWidget {
   const ProviderMenuScreen({super.key});
@@ -117,14 +118,13 @@ class ProviderMenuScreen extends StatelessWidget {
               Container(
                 width: 60.w.clamp(55, 65),
                 height: 60.w.clamp(55, 65),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  image: const DecorationImage(
-                    image: NetworkImage(
-                      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
-                    ),
-                    fit: BoxFit.cover,
-                  ),
+                ),
+                child: CustomNetworkImage(
+                  imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
+                  shape: BoxShape.circle,
+                  fit: BoxFit.cover,
                 ),
               ),
               SizedBox(width: 12.w),

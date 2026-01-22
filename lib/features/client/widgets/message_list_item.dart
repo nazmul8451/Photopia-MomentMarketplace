@@ -18,7 +18,7 @@ class MessageListItem extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(color: Colors.grey.withOpacity(0.1)),
@@ -29,7 +29,7 @@ class MessageListItem extends StatelessWidget {
             Stack(
               children: [
                 CircleAvatar(
-                  radius: 28.r.clamp(24, 34),
+                  radius: 22.r.clamp(20, 26),
                   backgroundImage: NetworkImage(conversation.avatarUrl),
                 ),
                 if (conversation.isOnline)

@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/features/provider/screen/provider_notification_screen.dart';
+import 'package:photopia/core/widgets/custom_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 
 class ProviderOrdersScreen extends StatefulWidget {
   const ProviderOrdersScreen({super.key});
@@ -19,6 +21,19 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _simulateLoading();
+  }
+
+  bool _isLoading = true;
+
+  void _simulateLoading() {
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    });
   }
 
   @override
@@ -121,9 +136,9 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildTodayTab(),
-                  _buildUpcomingTab(),
-                  _buildPendingTab(),
+                  _isLoading ? _buildShimmerLoading() : _buildTodayTab(),
+                  _isLoading ? _buildShimmerLoading() : _buildUpcomingTab(),
+                  _isLoading ? _buildShimmerLoading() : _buildPendingTab(),
                 ],
               ),
             ),
@@ -301,10 +316,13 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 25.r,
-                backgroundImage: NetworkImage(imageUrl),
-              ),
+                CustomNetworkImage(
+                  imageUrl: imageUrl,
+                  width: 50.r,
+                  height: 50.r,
+                  shape: BoxShape.circle,
+                  fit: BoxFit.cover,
+                ),
               SizedBox(width: 12.w),
               Expanded(
                 child: Column(
@@ -589,10 +607,13 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 25.r,
-                backgroundImage: NetworkImage(imageUrl),
-              ),
+                CustomNetworkImage(
+                  imageUrl: imageUrl,
+                  width: 50.r,
+                  height: 50.r,
+                  shape: BoxShape.circle,
+                  fit: BoxFit.cover,
+                ),
               SizedBox(width: 12.w),
               Expanded(
                 child: Column(
@@ -916,6 +937,66 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
           ),
         ],
       ),
+    );
+
+  }
+
+  Widget _buildShimmerLoading() {
+    return ListView.builder(
+      padding: EdgeInsets.symmetric(horizontal: 20.w),
+      itemCount: 3,
+      itemBuilder: (context, index) {
+        return Container(
+          margin: EdgeInsets.only(bottom: 15.h),
+          padding: EdgeInsets.all(15.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          child: Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: Row(
+              children: [
+                Container(
+                  width: 50.r,
+                  height: 50.r,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 120.w,
+                        height: 16.h,
+                        color: Colors.white,
+                      ),
+                      SizedBox(height: 8.h),
+                      Container(
+                        width: 180.w,
+                        height: 12.h,
+                        color: Colors.white,
+                      ),
+                      SizedBox(height: 8.h),
+                      Container(
+                        width: 100.w,
+                        height: 12.h,
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

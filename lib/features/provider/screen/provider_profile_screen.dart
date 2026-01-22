@@ -5,6 +5,7 @@ import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/provider/screen/provider_edit_profile_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_profile_controller.dart';
+import 'package:photopia/core/widgets/custom_network_image.dart';
 
 class ProviderProfileScreen extends StatefulWidget {
   const ProviderProfileScreen({super.key});
@@ -40,17 +41,11 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
       clipBehavior: Clip.none,
       children: [
         // Header Image
-        Container(
-          height: 300.h,
+        CustomNetworkImage(
           width: double.infinity,
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: NetworkImage(
-                'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1000',
-              ),
-              fit: BoxFit.cover,
-            ),
-          ),
+          height: 300.h,
+          imageUrl: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1000',
+          fit: BoxFit.cover,
         ),
         // Gradient Overlay
         Container(
@@ -168,15 +163,15 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                   Container(
                     width: 75.r,
                     height: 75.r,
+                    padding: EdgeInsets.all(2.5.w),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2.5.w),
-                      image: const DecorationImage(
-                        image: NetworkImage(
-                          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
-                        ),
-                        fit: BoxFit.cover,
-                      ),
+                    ),
+                    child: CustomNetworkImage(
+                      imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
+                      shape: BoxShape.circle,
+                      fit: BoxFit.cover,
                     ),
                   ),
                   SizedBox(width: 18.w),
@@ -410,9 +405,12 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
           ),
           itemCount: controller.recentWork.length,
           itemBuilder: (context, index) {
-            return ClipRRect(
+            return CustomNetworkImage(
+              imageUrl: controller.recentWork[index],
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
               borderRadius: BorderRadius.circular(10.r),
-              child: Image.network(controller.recentWork[index], fit: BoxFit.cover, width: double.infinity, height: double.infinity),
             );
           },
         ),
@@ -461,9 +459,12 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CircleAvatar(
-          radius: 20.r,
-          backgroundImage: const NetworkImage('https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200'),
+        CustomNetworkImage(
+          width: 40.r,
+          height: 40.r,
+          shape: BoxShape.circle,
+          imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200',
+          fit: BoxFit.cover,
         ),
         SizedBox(width: 12.w),
         Expanded(

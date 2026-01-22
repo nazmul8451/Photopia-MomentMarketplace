@@ -33,27 +33,27 @@ class ProviderCustomBottomNavBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildNavItem(
-              icon: Icons.bookmark_border,
+              iconAsset: 'assets/images/provider_order_icon.png',
               label: 'Orders',
               index: 0,
             ),
             _buildNavItem(
-              icon: Icons.calendar_today_outlined,
+              iconAsset: 'assets/images/calendar_icon.png',
               label: 'Calendar',
               index: 1,
             ),
             _buildNavItem(
-              icon: Icons.description_outlined,
+              iconAsset: 'assets/images/overview_icon.png',
               label: 'Overview',
               index: 2,
             ),
             _buildNavItem(
-              icon: Icons.chat_bubble_outline,
-              label: 'Massage',
+              iconAsset: 'assets/images/message_icon.png',
+              label: 'Message',
               index: 3,
             ),
             _buildNavItem(
-              icon: Icons.menu,
+              iconAsset: 'assets/images/menu_icon.png',
               label: 'Menu',
               index: 4,
             ),
@@ -64,7 +64,8 @@ class ProviderCustomBottomNavBar extends StatelessWidget {
   }
 
   Widget _buildNavItem({
-    required IconData icon,
+    IconData? icon,
+    String? iconAsset,
     required String label,
     required int index,
   }) {
@@ -79,11 +80,19 @@ class ProviderCustomBottomNavBar extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                icon,
-                size: 22.sp.clamp(20, 24),
-                color: isSelected ? Colors.black : Colors.grey,
-              ),
+              if (iconAsset != null)
+                Image.asset(
+                  iconAsset,
+                  width: 22.sp.clamp(20, 24),
+                  height: 22.sp.clamp(20, 24),
+                  color: isSelected ? Colors.black : Colors.grey,
+                )
+              else if (icon != null)
+                Icon(
+                  icon,
+                  size: 22.sp.clamp(20, 24),
+                  color: isSelected ? Colors.black : Colors.grey,
+                ),
               SizedBox(height: 4.h.clamp(3, 5)),
               Text(
                 label,
