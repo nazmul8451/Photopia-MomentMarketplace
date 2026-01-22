@@ -12,65 +12,69 @@ class GetStartedScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 30.w),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo
-              Image.asset(
-                'assets/images/app_name.png',
-                height: 50.h,
-                fit: BoxFit.contain,
-              ),
-              SizedBox(height: 50.h,),              // Button
-              // Subtitle
-              Text(
-                'Connect with the world\'s best\nphotography & video professionals',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  color: Colors.black87,
-                  height: 1.5,
-                  fontWeight: FontWeight.w500,
+          padding: EdgeInsets.all(30.w),
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Logo
+                Image.asset(
+                  'assets/images/app_name.png',
+                  height: 50.h,
+                  fit: BoxFit.contain,
                 ),
-              ),
-              SizedBox(height: 50.h,),              // Button
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const RoleSelectionScreen(),
-                    ),
-                  );
-                },
-                child: Container(
-                  width: double.infinity,
-                  height: AppSizes.fieldHeight,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A1A),
-                    borderRadius: BorderRadius.circular(AppSizes.borderRadius),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
+                SizedBox(height: 50.h,),              // Button
+                // Subtitle
+                Text(
+                  'Connect with the world\'s best\nphotography & video professionals',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    color: Colors.black87,
+                    height: 1.5,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 50.h,),              // Button
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RoleSelectionScreen(),
                       ),
-                    ],
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Get Started',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15.sp.clamp(15, 16),
-                      fontWeight: FontWeight.bold,
+                    );
+                  },
+                  child: Container(
+                    width:200.w,
+                    height: AppSizes.fieldHeight,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A1A1A),
+                      borderRadius: BorderRadius.circular(25.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Get Started',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15.sp.clamp(15, 16),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              SizedBox(height: 50.h),
-            ],
+                SizedBox(height: 50.h),
+              ],
+            ),
           ),
         ),
       ),

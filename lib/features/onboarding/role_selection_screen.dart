@@ -28,8 +28,9 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
+          padding: EdgeInsets.all(20.w),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               // Logo
@@ -121,7 +122,7 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16).r,
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.grey.withOpacity(0.2),
+            color: isSelected ? Colors.black : Colors.grey.withOpacity(0.2),
             width: isSelected ? 2 : 1,
           ),
           boxShadow: [
