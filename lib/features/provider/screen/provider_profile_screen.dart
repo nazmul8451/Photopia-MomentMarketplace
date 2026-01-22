@@ -43,7 +43,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         // Header Image
         CustomNetworkImage(
           width: double.infinity,
-          height: 300.h,
+          height: 260.h,
           imageUrl: 'assets/images/img5.png',
           fit: BoxFit.cover,
         ),
@@ -223,6 +223,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                             ],
                           ),
                         ),
+                                                SizedBox(height: 15.h),
                       ],
                     ),
                   ),
