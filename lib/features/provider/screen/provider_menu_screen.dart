@@ -122,7 +122,7 @@ class ProviderMenuScreen extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: CustomNetworkImage(
-                  imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
+                  imageUrl: 'assets/images/img8.jpg',
                   shape: BoxShape.circle,
                   fit: BoxFit.cover,
                 ),

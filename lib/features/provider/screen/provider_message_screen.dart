@@ -22,8 +22,7 @@ class _ProviderMessageScreenState extends State<ProviderMessageScreen> {
       id: '1',
       name: 'Emma Wilson',
       lastMessage: 'Thank you! I can do the shoot on Saturday.',
-      avatarUrl:
-          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
+      avatarUrl: 'assets/images/img1.png',
       lastMessageTime: DateTime.now().subtract(const Duration(minutes: 2)),
       unreadCount: 2,
       isOnline: true,
@@ -33,8 +32,7 @@ class _ProviderMessageScreenState extends State<ProviderMessageScreen> {
       id: '2',
       name: 'Tech Media Studio',
       lastMessage: "I've sent you the quote for the corporate video.",
-      avatarUrl:
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200',
+      avatarUrl: 'assets/images/img2.png',
       lastMessageTime: DateTime.now().subtract(const Duration(hours: 1)),
       unreadCount: 0,
       isOnline: true,
@@ -44,8 +42,7 @@ class _ProviderMessageScreenState extends State<ProviderMessageScreen> {
       id: '3',
       name: 'Marco Silva',
       lastMessage: 'Perfect! Looking forward to working with you.',
-      avatarUrl:
-          'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200',
+      avatarUrl: 'assets/images/img3.png',
       lastMessageTime: DateTime.now().subtract(const Duration(hours: 3)),
       unreadCount: 0,
       isOnline: true,
@@ -55,8 +52,7 @@ class _ProviderMessageScreenState extends State<ProviderMessageScreen> {
       id: '4',
       name: 'Lucia Rossi',
       lastMessage: 'The portfolio is ready for review.',
-      avatarUrl:
-          'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200',
+      avatarUrl: 'assets/images/img7.jpg',
       lastMessageTime: DateTime.now().subtract(const Duration(days: 1)),
       unreadCount: 0,
       isOnline: true,

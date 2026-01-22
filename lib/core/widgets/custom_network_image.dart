@@ -24,37 +24,49 @@ class CustomNetworkImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isAsset = imageUrl.startsWith('assets/');
+    
     return ClipRRect(
       borderRadius: shape == BoxShape.circle 
           ? BorderRadius.circular(1000) 
           : (borderRadius ?? BorderRadius.zero),
-      child: Image.network(
-        imageUrl,
-        width: width,
-        height: height,
-        fit: fit,
-        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-          if (wasSynchronouslyLoaded) return child;
-          if (frame == null) {
-            return _buildShimmer(width, height);
-          }
-          return child;
-        },
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return _buildShimmer(width, height);
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return _buildErrorPlaceholder(width, height);
-        },
-      ),
+      child: isAsset 
+          ? Image.asset(
+              imageUrl,
+              width: width,
+              height: height,
+              fit: fit,
+              errorBuilder: (context, error, stackTrace) {
+                return _buildErrorPlaceholder(width, height);
+              },
+            )
+          : Image.network(
+              imageUrl,
+              width: width,
+              height: height,
+              fit: fit,
+              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+                if (wasSynchronouslyLoaded) return child;
+                if (frame == null) {
+                  return _buildShimmer(width, height);
+                }
+                return child;
+              },
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return _buildShimmer(width, height);
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return _buildErrorPlaceholder(width, height);
+              },
+            ),
     );
   }
 
   Widget _buildShimmer(double? w, double? h) {
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: Colors.grey[300] ?? Colors.grey,
+      highlightColor: Colors.grey[100] ?? Colors.white,
       child: Container(
         width: w,
         height: h,

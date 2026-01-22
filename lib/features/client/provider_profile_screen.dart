@@ -93,8 +93,8 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     image: DecorationImage(
-                      image: NetworkImage(
-                        'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1000',
+                      image: AssetImage(
+                        'assets/images/img5.png',
                       ),
                       fit: BoxFit.cover,
                     ),
@@ -193,8 +193,8 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2.5.w),
                       image: DecorationImage(
-                        image: NetworkImage(widget.provider['avatar'] ??
-                            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200'),
+                        image: AssetImage(widget.provider['avatar'] ??
+                            'assets/images/img6.png'),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -408,7 +408,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
             return ServiceCard(
               title: 'Romantic Wedding Photography',
               subtitle: 'Emma Wilson',
-              imageUrl: 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=500',
+              imageUrl: 'assets/images/img2.png',
               rating: 4.9,
               reviews: 127,
               priceRange: '€800 - €2,500',
@@ -439,18 +439,18 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
           itemCount: 8,
           itemBuilder: (context, index) {
             final images = [
-              'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=500',
-              'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=500',
-              'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=500',
-              'https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=500',
-              'https://images.unsplash.com/photo-1520854221256-17d51cc3c663?q=80&w=500',
-              'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=500',
-              'https://images.unsplash.com/photo-1510076857177-7470076d4098?q=80&w=500',
-              'https://images.unsplash.com/photo-1523438885200-e635ba2c371e?q=80&w=500',
+              'assets/images/img1.png',
+              'assets/images/img2.png',
+              'assets/images/img3.png',
+              'assets/images/img4.png',
+              'assets/images/img5.png',
+              'assets/images/img6.png',
+              'assets/images/img7.jpg',
+              'assets/images/img8.jpg',
             ];
             return ClipRRect(
               borderRadius: BorderRadius.circular(12).r,
-              child: Image.network(
+              child: Image.asset(
                 images[index % images.length],
                 fit: BoxFit.cover,
               ),
@@ -473,7 +473,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                 children: [
                   CircleAvatar(
                     radius: 20.r,
-                    backgroundImage: const NetworkImage('https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200'),
+                    backgroundImage: const AssetImage('assets/images/img7.jpg'),
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
@@ -528,9 +528,9 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
               SizedBox(height: 15.h),
               Row(
                 children: [
-                  _buildReviewImage('https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=200'),
+                  _buildReviewImage('assets/images/img1.png'),
                   SizedBox(width: 10.w),
-                  _buildReviewImage('https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=200'),
+                  _buildReviewImage('assets/images/img2.png'),
                 ],
               ),
             ],
@@ -546,7 +546,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
       height: 80.w,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12).r,
-        image: DecorationImage(image: NetworkImage(url), fit: BoxFit.cover),
+        image: DecorationImage(image: AssetImage(url), fit: BoxFit.cover),
       ),
     );
   }

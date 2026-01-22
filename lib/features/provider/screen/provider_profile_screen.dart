@@ -44,7 +44,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         CustomNetworkImage(
           width: double.infinity,
           height: 300.h,
-          imageUrl: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1000',
+          imageUrl: 'assets/images/img5.png',
           fit: BoxFit.cover,
         ),
         // Gradient Overlay
@@ -169,7 +169,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                       border: Border.all(color: Colors.white, width: 2.5.w),
                     ),
                     child: CustomNetworkImage(
-                      imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
+                      imageUrl: 'assets/images/img6.png',
                       shape: BoxShape.circle,
                       fit: BoxFit.cover,
                     ),
@@ -463,7 +463,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
           width: 40.r,
           height: 40.r,
           shape: BoxShape.circle,
-          imageUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200',
+          imageUrl: 'assets/images/img7.jpg',
           fit: BoxFit.cover,
         ),
         SizedBox(width: 12.w),

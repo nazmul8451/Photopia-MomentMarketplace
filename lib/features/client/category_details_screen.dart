@@ -110,8 +110,7 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                             {
                               'title': 'Romantic Wedding Shoot',
                               'subtitle': 'Emma Wilson',
-                              'imageUrl':
-                                  'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=500',
+                              'imageUrl': 'assets/images/img1.png',
                               'rating': 4.9,
                               'reviews': 127,
                               'priceRange': '€800 - €2,500',
@@ -121,8 +120,7 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                             {
                               'title': 'Professional Portrait',
                               'subtitle': 'Marco Silva',
-                              'imageUrl':
-                                  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=500',
+                              'imageUrl': 'assets/images/img2.png',
                               'rating': 4.8,
                               'reviews': 89,
                               'priceRange': '€150 - €500',
@@ -132,8 +130,7 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                             {
                               'title': 'Corporate Video',
                               'subtitle': 'Tech Media Studio',
-                              'imageUrl':
-                                  'https://images.unsplash.com/photo-1492724441997-5dc865305da7?q=80&w=500',
+                              'imageUrl': 'assets/images/img3.png',
                               'rating': 5.0,
                               'reviews': 45,
                               'priceRange': '€1,200 - €4,000',
@@ -143,8 +140,7 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                             {
                               'title': 'Aerial Drone Photo',
                               'subtitle': 'SkyView Productions',
-                              'imageUrl':
-                                  'https://images.unsplash.com/photo-1508614589041-895b88991e3e?q=80&w=500',
+                              'imageUrl': 'assets/images/img4.png',
                               'rating': 4.9,
                               'reviews': 62,
                               'priceRange': '€300 - €1,500',

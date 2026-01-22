@@ -4,6 +4,7 @@ import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:photopia/features/client/service_details_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
+import 'package:photopia/core/widgets/custom_network_image.dart';
 
 class ServiceCard extends StatelessWidget {
   final String title;
@@ -78,8 +79,8 @@ class ServiceCard extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius:
                         BorderRadius.vertical(top: Radius.circular(16).r),
-                    child: Image.network(
-                      imageUrl,
+                    child: CustomNetworkImage(
+                      imageUrl: imageUrl,
                       fit: BoxFit.cover,
                     ),
                   ),

@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/features/provider/screen/provider_notification_screen.dart';
+import 'package:photopia/features/provider/screen/booking_details_screen.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -178,7 +179,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
           time: '10:00 - 11:30',
           location: 'Central Park, New York',
           price: '150',
-          imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
+          imageUrl: 'assets/images/img1.png',
           status: 'Confirmed',
         ),
         _buildTodayBookingCard(
@@ -187,7 +188,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
           time: '14:00 - 17:00',
           location: 'Grand Ballroom, Manhattan',
           price: '450',
-          imageUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=200',
+          imageUrl: 'assets/images/img2.png',
           status: 'Confirmed',
         ),
       ],
@@ -278,7 +279,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
           time: '10:00 - 14:00',
           location: 'Client Office, Manhattan',
           price: '500',
-          imageUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200',
+          imageUrl: 'assets/images/img3.png',
         ),
         _buildPendingBookingCard(
           name: 'Lisa Anderson',
@@ -288,7 +289,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
           time: '18:00 - 22:00',
           location: 'Convention Center, Brooklyn',
           price: '500',
-          imageUrl: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=200',
+          imageUrl: 'assets/images/img4.png',
         ),
       ],
     );
@@ -309,7 +310,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: Colors.grey[200] ?? Colors.grey),
       ),
       child: Column(
         children: [
@@ -431,7 +432,12 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                       child: _buildButton(
                         text: 'Details',
                         onTap: () {
-                          Navigator.pushNamed(context, AppRoutes.booking_details);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BookingDetailsScreen(),
+                            ),
+                          );
                         },
                         isPrimary: true,
                       ),
@@ -460,7 +466,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: Colors.grey[200] ?? Colors.grey),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -554,7 +560,12 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
               Flexible(
                 child: TextButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, AppRoutes.booking_details);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BookingDetailsScreen(),
+                      ),
+                    );
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -599,7 +610,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: Colors.grey[200] ?? Colors.grey),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -756,7 +767,12 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
           Center(
             child: TextButton(
               onPressed: () {
-                Navigator.pushNamed(context, AppRoutes.booking_details);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => BookingDetailsScreen(),
+                  ),
+                );
               },
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -901,7 +917,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
         decoration: BoxDecoration(
           color: isPrimary ? Colors.black : Colors.white,
           borderRadius: BorderRadius.circular(8.r),
-          border: isPrimary ? null : Border.all(color: Colors.grey[300]!),
+          border: isPrimary ? null : Border.all(color: Colors.grey[300] ?? Colors.grey),
         ),
         child: Text(
           text,
@@ -952,11 +968,11 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(color: Colors.grey[200]!),
+            border: Border.all(color: Colors.grey[200] ?? Colors.grey),
           ),
           child: Shimmer.fromColors(
-            baseColor: Colors.grey[300]!,
-            highlightColor: Colors.grey[100]!,
+            baseColor: Colors.grey[300] ?? Colors.grey,
+            highlightColor: Colors.grey[100] ?? Colors.white,
             child: Row(
               children: [
                 Container(

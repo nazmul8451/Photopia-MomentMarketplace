@@ -42,8 +42,8 @@ class ProviderListingDetailsScreen extends StatelessWidget {
             // Hero Image
             ClipRRect(
               borderRadius: BorderRadius.circular(15.r),
-              child: Image.network(
-                'https://images.unsplash.com/photo-1511367461989-f85a21fda167?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+              child: Image.asset(
+                'assets/images/img1.png',
                 height: 200.h,
                 width: double.infinity,
                 fit: BoxFit.cover,

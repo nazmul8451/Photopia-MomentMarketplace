@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/book_now_SelectPackage_screen.dart';
 import 'package:photopia/features/client/provider_profile_screen.dart';
+import 'package:photopia/core/widgets/custom_network_image.dart';
 
 class ServiceDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> service;
@@ -120,9 +121,9 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
 
   Widget _buildTopMedia() {
     final List<String> images = [
-      widget.service['imageUrl'] ?? 'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=500',
-      'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=500',
-      'https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=500',
+      widget.service['imageUrl'] ?? 'assets/images/img1.png',
+      'assets/images/img2.png',
+      'assets/images/img3.png',
     ];
 
     return Stack(
@@ -139,8 +140,9 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
             },
             itemCount: images.length,
             itemBuilder: (context, index) {
-              return Image.network(
-                images[index],
+              final String path = images[index];
+              return CustomNetworkImage(
+                imageUrl: path,
                 fit: BoxFit.cover,
               );
             },
@@ -235,7 +237,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
             builder: (context) => ProviderProfileScreen(
               provider: {
                 'name': widget.service['subtitle'] ?? 'Emma Wilson',
-                'avatar': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
+                'avatar': 'assets/images/img6.png',
               },
             ),
           ),
@@ -245,7 +247,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
         children: [
           CircleAvatar(
             radius: 25.r,
-            backgroundImage: const NetworkImage('https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200'),
+            backgroundImage: const AssetImage('assets/images/img6.png'),
           ),
           SizedBox(width: 12.w),
           Expanded(
@@ -390,10 +392,10 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
 
   Widget _buildPortfolioGrid() {
     final images = [
-      'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=300',
-      'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=300',
-      'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=300',
-      'https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=300',
+      'assets/images/img1.png',
+      'assets/images/img2.png',
+      'assets/images/img3.png',
+      'assets/images/img4.png',
     ];
 
     return Column(
@@ -411,13 +413,12 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
           ),
           itemCount: images.length,
           itemBuilder: (context, index) {
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(12).r,
-              child: Image.network(
-                images[index],
+            final String path = images[index];
+            return CustomNetworkImage(
+                imageUrl: path,
                 fit: BoxFit.cover,
-              ),
-            );
+                borderRadius: BorderRadius.circular(12).r,
+              );
           },
         ),
       ],

@@ -36,7 +36,7 @@ class PhotoCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20).r,
                   image: DecorationImage(
-                    image: NetworkImage(imageUrl),
+                    image: AssetImage(imageUrl.startsWith('assets/') ? imageUrl : 'assets/images/img1.png'),
                     fit: BoxFit.cover,
                   ),
                 ),

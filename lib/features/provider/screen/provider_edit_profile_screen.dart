@@ -71,7 +71,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
         CustomNetworkImage(
           width: double.infinity,
           height: 300.h,
-          imageUrl: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=1000',
+          imageUrl: 'assets/images/img5.png',
           fit: BoxFit.cover,
         ),
           Container(
@@ -206,7 +206,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                           border: Border.all(color: Colors.white, width: 2.5.w),
                         ),
                         child: CustomNetworkImage(
-                          imageUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200',
+                          imageUrl: 'assets/images/img6.png',
                           shape: BoxShape.circle,
                           fit: BoxFit.cover,
                         ),
@@ -480,7 +480,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
               onTap: () {
                 // Mock adding a photo
                 setState(() {
-                  _tempRecentWork.add('https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=300');
+                  _tempRecentWork.add('assets/images/img1.png');
                 });
               },
               child: Row(

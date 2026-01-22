@@ -30,7 +30,7 @@ class ProviderCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 30.r,
-                backgroundImage: NetworkImage(provider['avatar'] ?? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200'),
+                backgroundImage: AssetImage(provider['avatar'] ?? 'assets/images/img6.png'),
               ),
               SizedBox(width: 12.w),
               Expanded(

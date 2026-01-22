@@ -185,7 +185,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     },
                     child: RichText(
                       text: TextSpan(
-                        text: "Don't have an account  ",
+                        text: "Already have an account? ",
                         style: TextStyle(
                           fontSize: AppTypography.bodyMedium,
                           color: Colors.black87,

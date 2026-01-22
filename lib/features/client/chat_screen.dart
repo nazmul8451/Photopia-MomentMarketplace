@@ -125,7 +125,9 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               CircleAvatar(
                 radius: 20.r.clamp(16, 24),
-                backgroundImage: NetworkImage(widget.conversation.avatarUrl),
+                backgroundImage: widget.conversation.avatarUrl.startsWith('assets/')
+                    ? AssetImage(widget.conversation.avatarUrl) as ImageProvider
+                    : NetworkImage(widget.conversation.avatarUrl),
               ),
               if (widget.conversation.isOnline)
                 Positioned(

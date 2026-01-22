@@ -18,8 +18,6 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
   final _confirmPasswordController = TextEditingController();
   bool _isNewPasswordValid = false;
   bool _isConfirmPasswordValid = false;
-  bool _obscureNewPassword = true;
-  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {

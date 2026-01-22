@@ -6,12 +6,12 @@ class ProviderProfileController extends ChangeNotifier {
   List<String> _specializations = ['Wedding', 'Event', 'Portrait'];
   List<String> _languages = ['English', 'Spanish', 'Catalan'];
   List<String> _recentWork = [
-    'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=300',
-    'https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=300',
-    'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=300',
-    'https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=300',
-    'https://images.unsplash.com/photo-1520854221256-17d51cc3c663?q=80&w=300',
-    'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=300',
+    'assets/images/img1.png',
+    'assets/images/img2.png',
+    'assets/images/img3.png',
+    'assets/images/img4.png',
+    'assets/images/img5.png',
+    'assets/images/img6.png',
   ];
 
   String get name => _name;

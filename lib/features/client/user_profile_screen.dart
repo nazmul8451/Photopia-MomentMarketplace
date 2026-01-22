@@ -63,7 +63,7 @@ class UserProfileScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   image: const DecorationImage(
-                    image: NetworkImage('https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=200'),
+                    image: AssetImage('assets/images/img6.png'),
                     fit: BoxFit.cover,
                   ),
                 ),
