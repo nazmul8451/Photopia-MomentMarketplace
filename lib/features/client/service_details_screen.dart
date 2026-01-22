@@ -469,7 +469,12 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
               border: Border.all(color: Colors.grey.shade300),
               borderRadius: BorderRadius.circular(12).r,
             ),
-            child: Icon(Icons.chat_bubble_outline, size: 24.sp, color: Colors.black),
+            child: Image.asset(
+              'assets/images/message_icon.png',
+              width: 24.sp.clamp(24, 24),
+              height: 24.sp.clamp(24, 24),
+              fit: BoxFit.contain,
+            ),
           ),
           SizedBox(width: 15.w),
           Expanded(

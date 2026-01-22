@@ -20,32 +20,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       'title': 'Find Top Photography & Video Professionals',
       'description': 'Connect with thousands of talented photographers and videographers for any occasion',
-      'image': 'assets/images/page_viewimg1.png',
-      'icon': 'camera_alt',
+      'image': 'assets/images/onboard_container1.png',
     },
     {
       'title': 'Browse & Discover Creative Services',
       'description': 'Explore an inspiring feed of stunning portfolios and find the perfect match for your project',
-      'image': 'assets/images/page_viewimg2.png',
-      'icon': 'search',
+      'image': 'assets/images/onboard_container2.png',
     },
     {
       'title': 'Book & Collaborate Seamlessly',
       'description': 'Chat in real-time, schedule sessions, and manage everything from one simple platform',
-      'image': 'assets/images/page_viewimg3.png',
-      'icon': 'chat_bubble_outline',
+      'image': 'assets/images/onboard_container3.png',
     },
     {
       'title': 'Secure & Transparent Payments',
       'description': 'All payments are protected with bank-level security. No unexpected fees, no hidden charges',
-      'image': 'assets/images/page_viewimg4.png',
-      'icon': 'security',
+      'image': 'assets/images/onboard_container5.png',
     },
     {
       'title': 'Premium Quality, Trusted Results',
       'description': 'Read reviews, check ratings, and hire verified professionals with confidence',
-      'image': 'assets/images/page_viewimg5.png',
-      'icon': 'star_outline',
+      'image': 'assets/images/onboard_container4.png',
     },
   ];
 
@@ -148,87 +143,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildPage(int index) {
     final data = _onboardingData[index];
-    IconData getIcon(String? name) {
-      switch (name) {
-        case 'camera_alt': return Icons.camera_alt_outlined;
-        case 'search': return Icons.search_outlined;
-        case 'chat_bubble_outline': return Icons.chat_bubble_outline;
-        case 'security': return Icons.shield_outlined;
-        case 'star_outline': return Icons.star_outline;
-        default: return Icons.check;
-      }
-    }
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 24.w),
       child: Column(
         children: [
-          // Image Section (Fixed Flex)
+          // Image Section (Direct Container)
           Expanded(
             flex: 9,
             child: Center(
-              child: Stack(
-                alignment: Alignment.bottomCenter,
-                clipBehavior: Clip.none,
-                children: [
-                  // Image
-                  AspectRatio(
-                    aspectRatio: 1.0,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(35).r,
-                        image: DecorationImage(
-                          image: AssetImage(data['image']!),
-                          fit: BoxFit.cover,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
+              child: AspectRatio(
+                aspectRatio: 1.0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(35).r,
+                    image: DecorationImage(
+                      image: AssetImage(data['image']!),
+                      fit: BoxFit.cover,
                     ),
+                    // boxShadow: [
+                    //   BoxShadow(
+                    //     color: Colors.black.withOpacity(0.08),
+                    //     blurRadius: 20,
+                    //     offset: const Offset(0, 10),
+                    //   ),
+                    // ],
                   ),
-                  // Overlapping Icon
-                  Positioned(
-                    bottom: 10.r,
-                    child: Container(
-                      width: 60.r,
-                      height: 60.r,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(16).r,
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
-                            blurRadius: 15,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16).r,
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                          child: Container(
-                            alignment: Alignment.center,
-                            child: Icon(
-                              getIcon(data['icon']),
-                              color: Colors.white,
-                              size: 28.sp,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),

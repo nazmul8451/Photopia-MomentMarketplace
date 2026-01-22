@@ -87,6 +87,11 @@ flutter:
     - assets/images/page_viewimg5.png
     - assets/images/filter_icon.png
     - assets/images/provider_order_icon.png
+    - assets/images/onboard_container1.png
+    - assets/images/onboard_container2.png
+    - assets/images/onboard_container3.png
+    - assets/images/onboard_container4.png
+    - assets/images/onboard_container5.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
