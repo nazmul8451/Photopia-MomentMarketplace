@@ -57,12 +57,9 @@ class _ProviderNotificationScreenState extends State<ProviderNotificationScreen>
         backgroundColor: Colors.white,
         elevation: 0,
         toolbarHeight: 60.h,
-        leading: Padding(
-          padding: EdgeInsets.only(top: 10.h),
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
-            onPressed: () => Navigator.pop(context),
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
         ),
         title: Padding(
           padding: EdgeInsets.only(top: 10.h),

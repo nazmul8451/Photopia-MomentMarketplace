@@ -77,17 +77,35 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
               ),
               child: Row(
                 children: [
-                  Expanded(child: _buildNavItem(0, Icons.home_outlined, 'Home')),
                   Expanded(
-                      child: _buildNavItem(
-                          1, Icons.chat_bubble_outline, 'Messages')),
+                    child: _buildNavItem(
+                      index: 0,
+                      iconAsset: 'assets/images/client_home_icon.png',
+                      label: 'Home',
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildNavItem(
+                      index: 1,
+                      iconAsset: 'assets/images/message_icon.png',
+                      label: 'Messages',
+                    ),
+                  ),
                   Expanded(child: _buildSearchButton()),
                   Expanded(
-                      child:
-                          _buildNavItem(3, Icons.favorite_border, 'Favorites')),
+                    child: _buildNavItem(
+                      index: 3,
+                      iconAsset: 'assets/images/client_favorite_icon.png',
+                      label: 'Favorites',
+                    ),
+                  ),
                   Expanded(
-                      child:
-                          _buildNavItem(4, Icons.person_outline, 'Profile')),
+                    child: _buildNavItem(
+                      index: 4,
+                      iconAsset: 'assets/images/client_profile_icon.png',
+                      label: 'Profile',
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -129,7 +147,12 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
+  Widget _buildNavItem({
+    required int index,
+    IconData? icon,
+    String? iconAsset,
+    required String label,
+  }) {
     bool isSelected = _selectedIndex == index;
 
     return GestureDetector(
@@ -137,17 +160,25 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            color: isSelected ? Colors.black : Colors.grey[400],
-            size: 26,
-          ),
+          if (iconAsset != null)
+            Image.asset(
+              iconAsset,
+              width: 22.sp.clamp(20, 24),
+              height: 22.sp.clamp(20, 24),
+              color: isSelected ? Colors.black : Colors.grey,
+            )
+          else if (icon != null)
+            Icon(
+              icon,
+              color: isSelected ? Colors.black : Colors.grey,
+              size: 22.sp.clamp(20, 24),
+            ),
           const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.black : Colors.grey[400],
-              fontSize: 11,
+              color: isSelected ? Colors.black : Colors.grey,
+              fontSize: 11.sp.clamp(10, 12),
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
             ),
           ),

@@ -107,7 +107,12 @@ class _MessagesScreenState extends State<MessagesScreen> {
       padding: EdgeInsets.fromLTRB(20.w, 15.h, 20.w, 10.h),
       child: Row(
         children: [
-          Icon(Icons.chat_bubble_outline, size: 28.sp.clamp(24, 32), color: Colors.black),
+          Image.asset(
+            'assets/images/message_icon.png',
+            width: 28.sp.clamp(24, 32),
+            height: 28.sp.clamp(24, 32),
+            color: Colors.black,
+          ),
           SizedBox(width: 12.w),
           Text(
             'Messages',
@@ -126,7 +131,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
       child: Container(
-        height: 48.h.clamp(48, 50),
+        height: 40.h.clamp(40, 45),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12).r,
@@ -140,9 +145,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
               color: Colors.grey,
               fontSize: 14.sp.clamp(14, 16),
             ),
-            prefixIcon: Icon(Icons.search, color: Colors.grey, size: 20.sp.clamp(18, 24)),
+            prefixIcon:
+                Icon(Icons.search, color: Colors.grey, size: 20.sp.clamp(18, 24)),
             border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: 12.h),
+            contentPadding: EdgeInsets.symmetric(vertical: 8.h),
           ),
         ),
       ),
