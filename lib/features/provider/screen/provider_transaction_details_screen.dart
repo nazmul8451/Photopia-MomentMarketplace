@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
+import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/provider/screen/provider_request_payout_screen.dart';
 
 class ProviderTransactionDetailsScreen extends StatelessWidget {
@@ -204,13 +205,13 @@ class ProviderTransactionDetailsScreen extends StatelessWidget {
             // Buttons
             SizedBox(
               width: double.infinity,
-              height: 50.h,
+              height: AppSizes.fieldHeight,
               child: ElevatedButton.icon(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
+                    borderRadius: BorderRadius.circular(AppSizes.borderRadius),
                   ),
                 ),
                 icon: Icon(Icons.download, color: Colors.white, size: 20.sp),
@@ -227,13 +228,13 @@ class ProviderTransactionDetailsScreen extends StatelessWidget {
             SizedBox(height: 12.h),
             SizedBox(
               width: double.infinity,
-              height: 50.h,
+              height: AppSizes.fieldHeight,
               child: OutlinedButton.icon(
                 onPressed: () {},
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.black),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
+                    borderRadius: BorderRadius.circular(AppSizes.borderRadius),
                   ),
                 ),
                 icon: Icon(Icons.share, color: Colors.black, size: 20.sp),
@@ -250,7 +251,7 @@ class ProviderTransactionDetailsScreen extends StatelessWidget {
             SizedBox(height: 12.h),
             SizedBox(
               width: double.infinity,
-              height: 50.h,
+              height: AppSizes.fieldHeight,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -265,7 +266,7 @@ class ProviderTransactionDetailsScreen extends StatelessWidget {
                       Colors.grey[400], // Disabled look or secondary
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
+                    borderRadius: BorderRadius.circular(AppSizes.borderRadius),
                   ),
                 ),
                 child: Text(

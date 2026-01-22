@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
+import 'package:photopia/core/constants/app_sizes.dart';
+import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   static const String name = '/otp_verification';
@@ -108,25 +110,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               SizedBox(height: 32.h.clamp(32, 40)),
               
               // Submit Button
-              GestureDetector(
+              AuthButton(
+                text: 'Submit',
                 onTap: _submitOtp,
-                child: Container(
-                  width: double.infinity,
-                  height: 50.h.clamp(50, 56),
-                  decoration: BoxDecoration(
-                    color: _isOtpComplete() ? const Color(0xFF1A1A1A) : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Submit',
-                    style: TextStyle(
-                      color: _isOtpComplete() ? Colors.white : Colors.grey.shade500,
-                      fontSize: AppTypography.bodyLarge,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+                isEnabled: _isOtpComplete(),
               ),
               
               SizedBox(height: 16.h.clamp(16, 20)),

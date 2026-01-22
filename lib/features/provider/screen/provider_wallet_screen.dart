@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
+import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/provider/screen/provider_transaction_details_screen.dart';
 import 'package:photopia/features/provider/screen/provider_request_payout_screen.dart';
 
@@ -178,7 +179,7 @@ class ProviderWalletScreen extends StatelessWidget {
           SizedBox(height: 24.h),
           SizedBox(
             width: double.infinity,
-            height: 50.h,
+            height: AppSizes.fieldHeight,
             child: ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -192,7 +193,7 @@ class ProviderWalletScreen extends StatelessWidget {
                 backgroundColor: Colors.white,
                 foregroundColor: Colors.black,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(AppSizes.borderRadius),
                 ),
                 elevation: 0,
               ),
@@ -416,7 +417,7 @@ class ProviderWalletScreen extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: Colors.grey.shade300),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
+                        borderRadius: BorderRadius.circular(AppSizes.borderRadius),
                       ),
                       padding: EdgeInsets.symmetric(vertical: 12.h),
                     ),
@@ -438,7 +439,7 @@ class ProviderWalletScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.r),
+                        borderRadius: BorderRadius.circular(AppSizes.borderRadius),
                       ),
                       padding: EdgeInsets.symmetric(vertical: 12.h),
                     ),

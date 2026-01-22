@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/category_details_screen.dart';
 import 'package:photopia/core/constants/app_typography.dart';
+import 'package:photopia/core/constants/app_sizes.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -63,10 +64,11 @@ class _SearchScreenState extends State<SearchScreen> {
           children: [
             // Search Bar
             Container(
+              height: AppSizes.fieldHeight,
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               decoration: BoxDecoration(
                 color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12.r),
+                borderRadius: BorderRadius.circular(AppSizes.borderRadius),
               ),
               child: TextField(
                 controller: _searchController,

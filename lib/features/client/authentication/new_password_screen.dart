@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
+import 'package:photopia/core/constants/app_sizes.dart';
+import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
 
 class NewPasswordScreen extends StatefulWidget {
   static const String name = '/new_password';
@@ -95,134 +97,39 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
               SizedBox(height: 32.h.clamp(32, 40)),
               
               // New Password Field
-              _buildPasswordField(
+              AuthTextField(
                 label: 'New Password',
                 controller: _newPasswordController,
                 hintText: '••••••••••',
                 isValid: _isNewPasswordValid,
                 onChanged: _validateNewPassword,
-                obscureText: _obscureNewPassword,
-                onToggleVisibility: () {
-                  setState(() {
-                    _obscureNewPassword = !_obscureNewPassword;
-                  });
-                },
+                isPassword: true,
               ),
               
-              SizedBox(height: 20.h.clamp(20, 24)),
+              SizedBox(height: AppSizes.spacingMedium),
               
               // Confirm Password Field
-              _buildPasswordField(
+              AuthTextField(
                 label: 'Confirmed Password',
                 controller: _confirmPasswordController,
                 hintText: '••••••••••',
                 isValid: _isConfirmPasswordValid,
                 onChanged: _validateConfirmPassword,
-                obscureText: _obscureConfirmPassword,
-                onToggleVisibility: () {
-                  setState(() {
-                    _obscureConfirmPassword = !_obscureConfirmPassword;
-                  });
-                },
+                isPassword: true,
               ),
               
               SizedBox(height: 32.h.clamp(32, 40)),
               
               // Submit Button
-              GestureDetector(
+              AuthButton(
+                text: 'Submit',
                 onTap: _submitNewPassword,
-                child: Container(
-                  width: double.infinity,
-                  height: 50.h.clamp(50, 56),
-                  decoration: BoxDecoration(
-                    color: (_isNewPasswordValid && _isConfirmPasswordValid) 
-                        ? const Color(0xFF1A1A1A) 
-                        : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Submit',
-                    style: TextStyle(
-                      color: (_isNewPasswordValid && _isConfirmPasswordValid) 
-                          ? Colors.white 
-                          : Colors.grey.shade500,
-                      fontSize: AppTypography.bodyLarge,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+                isEnabled: (_isNewPasswordValid && _isConfirmPasswordValid),
               ),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildPasswordField({
-    required String label,
-    required TextEditingController controller,
-    required String hintText,
-    required bool isValid,
-    required Function(String) onChanged,
-    required bool obscureText,
-    required VoidCallback onToggleVisibility,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: AppTypography.bodyMedium,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
-        ),
-        SizedBox(height: 8.h.clamp(8, 12)),
-        Container(
-          height: 50.h.clamp(50, 56),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(
-              color: Colors.grey.shade200,
-              width: 1,
-            ),
-          ),
-          child: TextField(
-            controller: controller,
-            obscureText: obscureText,
-            onChanged: onChanged,
-            style: TextStyle(
-              fontSize: AppTypography.bodyMedium,
-              color: Colors.black,
-            ),
-            decoration: InputDecoration(
-              hintText: hintText,
-              hintStyle: TextStyle(
-                fontSize: AppTypography.bodyMedium,
-                color: Colors.grey.shade400,
-              ),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-              ),
-              suffixIcon: controller.text.isNotEmpty
-                  ? IconButton(
-                      icon: Icon(
-                        isValid ? Icons.check : null,
-                        color: Colors.grey.shade400,
-                        size: 20.sp.clamp(20, 24),
-                      ),
-                      onPressed: null,
-                    )
-                  : null,
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

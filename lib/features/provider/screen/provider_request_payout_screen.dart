@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
+import 'package:photopia/core/constants/app_sizes.dart';
 
 class ProviderRequestPayoutScreen extends StatefulWidget {
   const ProviderRequestPayoutScreen({super.key});
@@ -142,7 +143,7 @@ class _ProviderRequestPayoutScreenState extends State<ProviderRequestPayoutScree
                 filled: true,
                 fillColor: Colors.grey[50],
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
+                  borderRadius: BorderRadius.circular(AppSizes.borderRadius),
                   borderSide: BorderSide.none,
                 ),
                 contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
@@ -198,7 +199,7 @@ class _ProviderRequestPayoutScreenState extends State<ProviderRequestPayoutScree
             // Request Button
             SizedBox(
                width: double.infinity,
-               height: 52.h,
+               height: AppSizes.fieldHeight,
                child: ElevatedButton(
                  onPressed: () {
                      // Show success dialog
@@ -206,7 +207,7 @@ class _ProviderRequestPayoutScreenState extends State<ProviderRequestPayoutScree
                  },
                  style: ElevatedButton.styleFrom(
                    backgroundColor: Colors.black,
-                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.borderRadius)),
                  ),
                  child: Text('Request Payout', style: TextStyle(
                    fontSize: AppTypography.bodyLarge,

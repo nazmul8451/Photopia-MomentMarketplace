@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/onboarding/role_selection_screen.dart';
 
 class GetStartedScreen extends StatelessWidget {
@@ -45,10 +46,10 @@ class GetStartedScreen extends StatelessWidget {
                 },
                 child: Container(
                   width: double.infinity,
-                  height: 50.h.clamp(50, 50),
+                  height: AppSizes.fieldHeight,
                   decoration: BoxDecoration(
                     color: const Color(0xFF1A1A1A),
-                    borderRadius: BorderRadius.circular(28).r,
+                    borderRadius: BorderRadius.circular(AppSizes.borderRadius),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.2),

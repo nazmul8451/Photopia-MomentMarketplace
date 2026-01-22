@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
+import 'package:photopia/core/constants/app_sizes.dart';
+import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   static const String name = '/forgot_password';
@@ -87,74 +89,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               SizedBox(height: 32.h.clamp(32, 40)),
               
               // Email Field
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Email',
-                    style: TextStyle(
-                      fontSize: AppTypography.bodyMedium,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    ),
-                  ),
-                  SizedBox(height: 8.h.clamp(8, 12)),
-                  Container(
-                    height: 50.h.clamp(50, 56),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(8.r),
-                      border: Border.all(
-                        color: Colors.grey.shade200,
-                        width: 1,
-                      ),
-                    ),
-                    child: TextField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      onChanged: _validateEmail,
-                      style: TextStyle(
-                        fontSize: AppTypography.bodyMedium,
-                        color: Colors.black,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'your@email.com',
-                        hintStyle: TextStyle(
-                          fontSize: AppTypography.bodyMedium,
-                          color: Colors.grey.shade400,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16.w,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              AuthTextField(
+                label: 'Email',
+                controller: _emailController,
+                hintText: 'your@email.com',
+                isValid: _isEmailValid,
+                onChanged: _validateEmail,
+                keyboardType: TextInputType.emailAddress,
               ),
               
               SizedBox(height: 32.h.clamp(32, 40)),
               
               // Send Button
-              GestureDetector(
+              AuthButton(
+                text: 'Send',
                 onTap: _sendResetLink,
-                child: Container(
-                  width: double.infinity,
-                  height: 50.h.clamp(50, 56),
-                  decoration: BoxDecoration(
-                    color: _isEmailValid ? const Color(0xFF1A1A1A) : Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    'Send',
-                    style: TextStyle(
-                      color: _isEmailValid ? Colors.white : Colors.grey.shade500,
-                      fontSize: AppTypography.bodyLarge,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
+                isEnabled: _isEmailValid,
               ),
               
               SizedBox(height: 16.h.clamp(16, 20)),

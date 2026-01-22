@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
+import 'package:photopia/core/constants/app_sizes.dart';
 
 /// Reusable custom text field for authentication screens
 class AuthTextField extends StatelessWidget {
@@ -38,12 +39,12 @@ class AuthTextField extends StatelessWidget {
             color: Colors.black,
           ),
         ),
-        SizedBox(height: 8.h.clamp(8, 12)),
+        SizedBox(height: AppSizes.spacingSmall),
         Container(
-          height: 50.h.clamp(50, 56),
+          height: AppSizes.fieldHeight,
           decoration: BoxDecoration(
             color: Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(8.r),
+            borderRadius: BorderRadius.circular(AppSizes.borderRadius),
             border: Border.all(
               color: Colors.grey.shade200,
               width: 1,
@@ -102,10 +103,10 @@ class AuthButton extends StatelessWidget {
       onTap: isEnabled ? onTap : null,
       child: Container(
         width: double.infinity,
-        height: 50.h.clamp(50, 56),
+        height: AppSizes.fieldHeight,
         decoration: BoxDecoration(
           color: isEnabled ? const Color(0xFF1A1A1A) : Colors.grey.shade300,
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(AppSizes.borderRadius),
         ),
         alignment: Alignment.center,
         child: Text(
@@ -139,10 +140,10 @@ class SocialButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 50.h.clamp(50, 56),
+        height: AppSizes.fieldHeight,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(8.r),
+          borderRadius: BorderRadius.circular(AppSizes.borderRadius),
           border: Border.all(
             color: Colors.grey.shade300,
             width: 1,
