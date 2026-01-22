@@ -41,7 +41,6 @@ class AuthTextField extends StatelessWidget {
         ),
         SizedBox(height: AppSizes.spacingSmall),
         Container(
-          height: AppSizes.fieldHeight,
           decoration: BoxDecoration(
             color: Colors.grey.shade50,
             borderRadius: BorderRadius.circular(AppSizes.borderRadius),
@@ -55,6 +54,7 @@ class AuthTextField extends StatelessWidget {
             obscureText: isPassword,
             keyboardType: keyboardType,
             onChanged: onChanged,
+            textAlignVertical: TextAlignVertical.center,
             style: TextStyle(
               fontSize: AppTypography.bodyMedium,
               color: Colors.black,
@@ -66,8 +66,10 @@ class AuthTextField extends StatelessWidget {
                 color: Colors.grey.shade400,
               ),
               border: InputBorder.none,
+              isDense: true,
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 16.w,
+                vertical: 12.h,
               ),
               suffixIcon: showValidationIcon && controller.text.isNotEmpty
                   ? Icon(

@@ -45,98 +45,100 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 16.h.clamp(16, 20)),
-              
-              // Back Button
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Icon(
-                  Icons.arrow_back,
-                  size: 24.sp.clamp(24, 28),
-                  color: Colors.black,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 16.h.clamp(16, 20)),
+                
+                // Back Button
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Icon(
+                    Icons.arrow_back,
+                    size: 24.sp.clamp(24, 28),
+                    color: Colors.black,
+                  ),
                 ),
-              ),
-              
-              SizedBox(height: 32.h.clamp(32, 40)),
-              
-              // Title
-              Text(
-                'Forget Password',
-                style: TextStyle(
-                  fontSize: 24.sp.clamp(24, 28),
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                
+                SizedBox(height: 32.h.clamp(32, 40)),
+                
+                // Title
+                Text(
+                  'Forget Password',
+                  style: TextStyle(
+                    fontSize: 24.sp.clamp(24, 28),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
-              ),
-              
-              SizedBox(height: 12.h.clamp(12, 16)),
-              
-              // Subtitle
-              Text(
-                'Enter your email address and we will send\nyou a reset instructions.',
-                style: TextStyle(
-                  fontSize: AppTypography.bodyMedium,
-                  color: Colors.grey.shade600,
-                  height: 1.5,
+                
+                SizedBox(height: 12.h.clamp(12, 16)),
+                
+                // Subtitle
+                Text(
+                  'Enter your email address and we will send\nyou a reset instructions.',
+                  style: TextStyle(
+                    fontSize: AppTypography.bodyMedium,
+                    color: Colors.grey.shade600,
+                    height: 1.5,
+                  ),
                 ),
-              ),
-              
-              SizedBox(height: 32.h.clamp(32, 40)),
-              
-              // Email Field
-              AuthTextField(
-                label: 'Email',
-                controller: _emailController,
-                hintText: 'your@email.com',
-                isValid: _isEmailValid,
-                onChanged: _validateEmail,
-                keyboardType: TextInputType.emailAddress,
-              ),
-              
-              SizedBox(height: 32.h.clamp(32, 40)),
-              
-              // Send Button
-              AuthButton(
-                text: 'Send',
-                onTap: _sendResetLink,
-                isEnabled: _isEmailValid,
-              ),
-              
-              SizedBox(height: 16.h.clamp(16, 20)),
-              
-              // Resend Link
-              Center(
-                child: GestureDetector(
-                  onTap: () {
-                    // TODO: Implement resend logic
-                  },
-                  child: RichText(
-                    text: TextSpan(
-                      text: "Didn't receive code?  ",
-                      style: TextStyle(
-                        fontSize: AppTypography.bodyMedium,
-                        color: Colors.black87,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: 'Resend Again',
-                          style: TextStyle(
-                            fontSize: AppTypography.bodyMedium,
-                            color: const Color(0xFF2196F3),
-                            fontWeight: FontWeight.w600,
-                          ),
+                
+                SizedBox(height: 32.h.clamp(32, 40)),
+                
+                // Email Field
+                AuthTextField(
+                  label: 'Email',
+                  controller: _emailController,
+                  hintText: 'your@email.com',
+                  isValid: _isEmailValid,
+                  onChanged: _validateEmail,
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                
+                SizedBox(height: 32.h.clamp(32, 40)),
+                
+                // Send Button
+                AuthButton(
+                  text: 'Send',
+                  onTap: _sendResetLink,
+                  isEnabled: _isEmailValid,
+                ),
+                
+                SizedBox(height: 16.h.clamp(16, 20)),
+                
+                // Resend Link
+                Center(
+                  child: GestureDetector(
+                    onTap: () {
+                      // TODO: Implement resend logic
+                    },
+                    child: RichText(
+                      text: TextSpan(
+                        text: "Didn't receive code?  ",
+                        style: TextStyle(
+                          fontSize: AppTypography.bodyMedium,
+                          color: Colors.black87,
                         ),
-                      ],
+                        children: [
+                          TextSpan(
+                            text: 'Resend Again',
+                            style: TextStyle(
+                              fontSize: AppTypography.bodyMedium,
+                              color: const Color(0xFF2196F3),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

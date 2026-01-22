@@ -50,20 +50,7 @@ class _LogInScreenState extends State<LogInScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 16.h.clamp(16, 20)),
-                
-                // Back Button
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Icon(
-                    Icons.arrow_back,
-                    size: 24.sp.clamp(24, 28),
-                    color: Colors.black,
-                  ),
-                ),
-                
                 SizedBox(height: 32.h.clamp(32, 40)),
-                
                 // Title
                 Text(
                   'Log in to continue',
