@@ -89,7 +89,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
               children: [
                 // Header Image
                 Container(
-                  height: 300.h,
+                  height: 260.h,
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     image: DecorationImage(
@@ -247,6 +247,8 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                             ],
                           ),
                         ),
+                          SizedBox(height: 15.h),
+
                       ],
                     ),
                   ),
@@ -319,13 +321,14 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
 
   Widget _buildTabBar() {
     return Container(
-      height: 48.h,
+      height: 35.h,
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
+        color: const Color(0xFFF5F5F7),
         borderRadius: BorderRadius.circular(30).r,
       ),
       child: TabBar(
         controller: _tabController,
+        padding: EdgeInsets.all(4.w),
         onTap: (index) {
           setState(() {});
         },
@@ -334,14 +337,14 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
           borderRadius: BorderRadius.circular(30).r,
         ),
         labelColor: Colors.white,
-        unselectedLabelColor: Colors.grey,
+        unselectedLabelColor: const Color(0xFF455A64),
         labelStyle: TextStyle(
-          fontSize: 13.sp.clamp(12, 14),
-          fontWeight: FontWeight.bold,
+          fontSize: 12.sp.clamp(11, 13),
+          fontWeight: FontWeight.w600,
         ),
         unselectedLabelStyle: TextStyle(
-          fontSize: 13.sp.clamp(12, 14),
-          fontWeight: FontWeight.normal,
+          fontSize: 12.sp.clamp(11, 13),
+          fontWeight: FontWeight.w500,
         ),
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,

@@ -14,50 +14,56 @@ class ProviderCustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+      color: Colors.white,
+      child: SafeArea(
+        bottom: true,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: 8.w,
-          vertical: 8.h.clamp(6, 10),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(
-              iconAsset: 'assets/images/provider_order_icon.png',
-              label: 'Orders',
-              index: 0,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 8.w,
+              vertical: 8.h.clamp(6, 10),
             ),
-            _buildNavItem(
-              iconAsset: 'assets/images/calendar_icon.png',
-              label: 'Calendar',
-              index: 1,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(
+                  iconAsset: 'assets/images/provider_order_icon.png',
+                  label: 'Orders',
+                  index: 0,
+                ),
+                _buildNavItem(
+                  iconAsset: 'assets/images/calendar_icon.png',
+                  label: 'Calendar',
+                  index: 1,
+                ),
+                _buildNavItem(
+                  iconAsset: 'assets/images/overview_icon.png',
+                  label: 'Overview',
+                  index: 2,
+                ),
+                _buildNavItem(
+                  iconAsset: 'assets/images/message_icon.png',
+                  label: 'Message',
+                  index: 3,
+                ),
+                _buildNavItem(
+                  iconAsset: 'assets/images/menu_icon.png',
+                  label: 'Menu',
+                  index: 4,
+                ),
+              ],
             ),
-            _buildNavItem(
-              iconAsset: 'assets/images/overview_icon.png',
-              label: 'Overview',
-              index: 2,
-            ),
-            _buildNavItem(
-              iconAsset: 'assets/images/message_icon.png',
-              label: 'Message',
-              index: 3,
-            ),
-            _buildNavItem(
-              iconAsset: 'assets/images/menu_icon.png',
-              label: 'Menu',
-              index: 4,
-            ),
-          ],
+          ),
         ),
       ),
     );

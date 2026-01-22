@@ -105,28 +105,54 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
               child: Container(
                 height: 40.h,
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: const Color(0xFFF5F5F7),
                   borderRadius: BorderRadius.circular(10.r),
                 ),
                 child: TabBar(
                   controller: _tabController,
+                  padding: EdgeInsets.all(4.w),
                   indicator: BoxDecoration(
-                    color: Colors.black,
-                    borderRadius: BorderRadius.circular(10.r),
+                    color: const Color(0xFF1A1A1A),
+                    borderRadius: BorderRadius.circular(8.r),
                   ),
                   indicatorSize: TabBarIndicatorSize.tab,
                   labelColor: Colors.white,
-                  unselectedLabelColor: Colors.grey[600],
+                  unselectedLabelColor: const Color(0xFF455A64),
                   labelStyle: TextStyle(
-                    fontSize: AppTypography.bodyLarge,
+                    fontSize: 12.sp.clamp(11, 13),
                     fontWeight: FontWeight.w600,
                   ),
+                  unselectedLabelStyle: TextStyle(
+                    fontSize: 12.sp.clamp(11, 13),
+                    fontWeight: FontWeight.w500,
+                  ),
                   dividerColor: Colors.transparent,
-                  overlayColor: MaterialStateProperty.all(Colors.transparent),
-                  tabs: const [
-                    Tab(text: 'Today'),
-                    Tab(text: 'Upcoming'),
-                    Tab(text: 'Pending'),
+                  overlayColor: WidgetStateProperty.all(Colors.transparent),
+                  tabs: [
+                    Tab(
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('Today'),
+                        ),
+                      ),
+                    ),
+                    Tab(
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('Upcoming'),
+                        ),
+                      ),
+                    ),
+                    Tab(
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('Pending'),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

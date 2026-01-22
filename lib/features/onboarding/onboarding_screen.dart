@@ -38,7 +38,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       'title': 'Secure & Transparent Payments',
       'description': 'All payments are protected with bank-level security. No unexpected fees, no hidden charges',
-      'image': 'assets/images/pageview_img4.png',
+      'image': 'assets/images/page_viewimg4.png',
       'icon': 'security',
     },
     {

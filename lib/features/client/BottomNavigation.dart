@@ -62,51 +62,57 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
       bottomNavigationBar: isKeyboardVisible
           ? const SizedBox.shrink() // Completely hide when keyboard is open
           : Container(
-              height: 70,
-              clipBehavior: Clip.none,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.3),
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                    offset: const Offset(0, -2),
+              color: Colors.white,
+              child: SafeArea(
+                bottom: true,
+                child: Container(
+                  height: 70,
+                  clipBehavior: Clip.none,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.3),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildNavItem(
-                      index: 0,
-                      iconAsset: 'assets/images/client_home_icon.png',
-                      label: 'Home',
-                    ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildNavItem(
+                          index: 0,
+                          iconAsset: 'assets/images/client_home_icon.png',
+                          label: 'Home',
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildNavItem(
+                          index: 1,
+                          iconAsset: 'assets/images/message_icon.png',
+                          label: 'Messages',
+                        ),
+                      ),
+                      Expanded(child: _buildSearchButton()),
+                      Expanded(
+                        child: _buildNavItem(
+                          index: 3,
+                          iconAsset: 'assets/images/client_favorite_icon.png',
+                          label: 'Favorites',
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildNavItem(
+                          index: 4,
+                          iconAsset: 'assets/images/client_profile_icon.png',
+                          label: 'Profile',
+                        ),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    child: _buildNavItem(
-                      index: 1,
-                      iconAsset: 'assets/images/message_icon.png',
-                      label: 'Messages',
-                    ),
-                  ),
-                  Expanded(child: _buildSearchButton()),
-                  Expanded(
-                    child: _buildNavItem(
-                      index: 3,
-                      iconAsset: 'assets/images/client_favorite_icon.png',
-                      label: 'Favorites',
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildNavItem(
-                      index: 4,
-                      iconAsset: 'assets/images/client_profile_icon.png',
-                      label: 'Profile',
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
     );
