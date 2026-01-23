@@ -24,7 +24,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
           body: SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
             child: Column(
-          children: [
+              children: [
                 _buildHeader(profileController),
                 SizedBox(height: 100.h),
                 _buildBody(profileController),
@@ -43,7 +43,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         // Header Image
         CustomNetworkImage(
           width: double.infinity,
-          height: 260.h,
+          height: 220.h,
           imageUrl: 'assets/images/img5.png',
           fit: BoxFit.cover,
         ),
@@ -61,53 +61,24 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
             ),
           ),
         ),
-        
-        // Edit Button (Stylized top right)
-        Positioned(
-          top: 50.h,
-          right: 20.w,
-          child: GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const ProviderEditProfileScreen(),
-                ),
-              );
-            },
-            child: Container(
-              padding: EdgeInsets.all(8.w),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(color: Colors.white.withOpacity(0.3)),
-              ),
-              child: Icon(
-                Icons.edit_outlined,
-                color: Colors.white,
-                size: 20.sp,
-              ),
-            ),
-          ),
-        ),
 
         // Back Button
-        Positioned(
-          top: 50.h,
-          left: 20.w,
-          child: GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              padding: EdgeInsets.all(8.w),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(color: Colors.white.withOpacity(0.3)),
-              ),
-              child: Icon(Icons.arrow_back, color: Colors.white, size: 20.sp),
-            ),
-          ),
-        ),
+        // Positioned(
+        //   top: 50.h,
+        //   left: 20.w,
+        //   child: GestureDetector(
+        //     onTap: () => Navigator.pop(context),
+        //     child: Container(
+        //       padding: EdgeInsets.all(8.w),
+        //       decoration: BoxDecoration(
+        //         color: Colors.white.withOpacity(0.15),
+        //         borderRadius: BorderRadius.circular(10.r),
+        //         border: Border.all(color: Colors.white.withOpacity(0.3)),
+        //       ),
+        //       child: Icon(Icons.arrow_back, color: Colors.white, size: 20.sp),
+        //     ),
+        //   ),
+        // ),
 
         // Floating Glassmorphism Profile Card
         Positioned(
@@ -135,11 +106,11 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10.r),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 22.w, vertical: 16.h),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.01),
+            color: Colors.black12.withOpacity(0.5),
             borderRadius: BorderRadius.circular(10.r),
             border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
           ),
@@ -147,14 +118,44 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'Profile',
-                style: TextStyle(
-                  fontSize: AppTypography.h1,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 1,
-                ),
+                   // Edit Button (Stylized top right)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Profile',
+                    style: TextStyle(
+                      fontSize: AppTypography.h1,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 1,
+                    ),
+                  ),
+
+                    GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ProviderEditProfileScreen(),
+              ),
+            );
+          },
+          child: Container(
+            padding: EdgeInsets.all(8.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(color: Colors.white.withOpacity(0.3)),
+            ),
+            child: Icon(
+              Icons.edit_outlined,
+              color: Colors.white,
+              size: 20.sp,
+            ),
+          ),
+        ),
+                ],
               ),
               SizedBox(height: 8.h),
               Row(
@@ -210,7 +211,11 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.stars, color: Colors.white, size: 12.sp),
+                              Icon(
+                                Icons.stars,
+                                color: Colors.white,
+                                size: 12.sp,
+                              ),
                               SizedBox(width: 6.w),
                               Text(
                                 'Premium',
@@ -223,7 +228,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                             ],
                           ),
                         ),
-                                                SizedBox(height: 15.h),
+                        SizedBox(height: 15.h),
                       ],
                     ),
                   ),
@@ -322,11 +327,21 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('About Me', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
+        Text(
+          'About Me',
+          style: TextStyle(
+            fontSize: AppTypography.h2,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         SizedBox(height: 12.h),
         Text(
           controller.aboutMe,
-          style: TextStyle(fontSize: AppTypography.bodyLarge, color: Colors.black87, height: 1.5),
+          style: TextStyle(
+            fontSize: AppTypography.bodyLarge,
+            color: Colors.black87,
+            height: 1.5,
+          ),
         ),
       ],
     );
@@ -339,14 +354,22 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Specializations', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
+            Text(
+              'Specializations',
+              style: TextStyle(
+                fontSize: AppTypography.h2,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
         SizedBox(height: 12.h),
         Wrap(
           spacing: 10.w,
           runSpacing: 10.h,
-          children: controller.specializations.map((spec) => _buildChip(spec)).toList(),
+          children: controller.specializations
+              .map((spec) => _buildChip(spec))
+              .toList(),
         ),
       ],
     );
@@ -359,14 +382,22 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Languages', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
+            Text(
+              'Languages',
+              style: TextStyle(
+                fontSize: AppTypography.h2,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
         SizedBox(height: 12.h),
         Wrap(
           spacing: 10.w,
           runSpacing: 10.h,
-          children: controller.languages.map((lang) => _buildChip(lang)).toList(),
+          children: controller.languages
+              .map((lang) => _buildChip(lang))
+              .toList(),
         ),
       ],
     );
@@ -379,7 +410,13 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         color: const Color(0xFFF5F5F7),
         borderRadius: BorderRadius.circular(20.r),
       ),
-      child: Text(label, style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.black87)),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: AppTypography.bodySmall,
+          color: Colors.black87,
+        ),
+      ),
     );
   }
 
@@ -390,7 +427,13 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Recent (${controller.recentWork.length})', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
+            Text(
+              'Recent (${controller.recentWork.length})',
+              style: TextStyle(
+                fontSize: AppTypography.h2,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
         SizedBox(height: 15.h),
@@ -426,20 +469,40 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Client Reviews', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
+            Text(
+              'Client Reviews',
+              style: TextStyle(
+                fontSize: AppTypography.h2,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             Row(
               children: [
                 Icon(Icons.star, color: Colors.amber, size: 16.sp),
                 SizedBox(width: 4.w),
-                Text('4.9 (127 reviews)', style: TextStyle(fontSize: AppTypography.bodySmall, fontWeight: FontWeight.w500)),
+                Text(
+                  '4.9 (127 reviews)',
+                  style: TextStyle(
+                    fontSize: AppTypography.bodySmall,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ],
             ),
           ],
         ),
         SizedBox(height: 20.h),
-        _buildReviewItem('Sarah Johnson', 'Nov 28, 2024', 'Emma was absolutely amazing! She captured every special moment of our wedding perfectly.'),
+        _buildReviewItem(
+          'Sarah Johnson',
+          'Nov 28, 2024',
+          'Emma was absolutely amazing! She captured every special moment of our wedding perfectly.',
+        ),
         SizedBox(height: 20.h),
-        _buildReviewItem('Michael Chen', 'Nov 15, 2024', 'Professional, creative, and easy to work with. Highly recommend!'),
+        _buildReviewItem(
+          'Michael Chen',
+          'Nov 15, 2024',
+          'Professional, creative, and easy to work with. Highly recommend!',
+        ),
         SizedBox(height: 20.h),
         Center(
           child: Container(
@@ -449,7 +512,14 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
               color: const Color(0xFFF5F5F7),
               borderRadius: BorderRadius.circular(10.r),
             ),
-            child: Text('View All Reviews', textAlign: TextAlign.center, style: TextStyle(fontSize: AppTypography.bodyLarge, fontWeight: FontWeight.w500)),
+            child: Text(
+              'View All Reviews',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: AppTypography.bodyLarge,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ),
       ],
@@ -476,17 +546,40 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(name, style: TextStyle(fontSize: AppTypography.bodyLarge, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                    child: Text(
+                      name,
+                      style: TextStyle(
+                        fontSize: AppTypography.bodyLarge,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   SizedBox(width: 8.w),
-                  Text(date, style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.grey)),
+                  Text(
+                    date,
+                    style: TextStyle(
+                      fontSize: AppTypography.bodySmall,
+                      color: Colors.grey,
+                    ),
+                  ),
                 ],
               ),
               Row(
-                children: List.generate(5, (_) => Icon(Icons.star, color: Colors.amber, size: 12.sp)),
+                children: List.generate(
+                  5,
+                  (_) => Icon(Icons.star, color: Colors.amber, size: 12.sp),
+                ),
               ),
               SizedBox(height: 8.h),
-              Text(content, style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.black87, height: 1.4)),
+              Text(
+                content,
+                style: TextStyle(
+                  fontSize: AppTypography.bodyMedium,
+                  color: Colors.black87,
+                  height: 1.4,
+                ),
+              ),
             ],
           ),
         ),

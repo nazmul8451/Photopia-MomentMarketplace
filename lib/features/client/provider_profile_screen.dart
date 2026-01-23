@@ -89,7 +89,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
               children: [
                 // Header Image
                 Container(
-                  height: 260.h,
+                  height: 220.h,
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     image: DecorationImage(
@@ -161,11 +161,11 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
     return ClipRRect(
       borderRadius: BorderRadius.circular(10.r),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 22.w, vertical: 16.h),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.01),
+            color: Colors.black12.withOpacity(0.5),
             borderRadius: BorderRadius.circular(10.r),
             border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
           ),
@@ -176,7 +176,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
               Text(
                 'Profile',
                 style: TextStyle(
-                  fontSize: 18.sp,
+                  fontSize: AppTypography.h1,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                   letterSpacing: 1,

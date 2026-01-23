@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
@@ -70,50 +69,33 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
         // Header Image
         CustomNetworkImage(
           width: double.infinity,
-          height: 300.h,
+          height: 220.h,
           imageUrl: 'assets/images/img5.png',
           fit: BoxFit.cover,
         ),
-          Container(
-            width: double.infinity,
-            height: 300.h,
-            color: Colors.black.withOpacity(0.4),
-            child: Center(
-              child: Icon(Icons.camera_alt_outlined, color: Colors.white, size: 40.sp),
-            ),
-          ),
+          // Container(
+          //   width: double.infinity,
+          //   height: 220.h,
+          //   color: Colors.black.withOpacity(0.4),
+          //   child: Center(
+          //     child: Icon(Icons.camera_alt_outlined, color: Colors.white, size: 40.sp),
+          //   ),
+          // ),
         // Gradient Overlay
-        Container(
-          height: 200.h,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withOpacity(0.1),
-                Colors.black.withOpacity(0.4),
-              ],
-            ),
-          ),
-        ),
-        
-        // Navigation Back Button (on top of cover photo)
-        Positioned(
-          top: 50.h,
-          left: 20.w,
-          child: GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              padding: EdgeInsets.all(8.w),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(color: Colors.white.withOpacity(0.3)),
-              ),
-              child: Icon(Icons.arrow_back, color: Colors.white, size: 20.sp),
-            ),
-          ),
-        ),
+        // Container(
+        //   height: 200.h,
+        //   decoration: BoxDecoration(
+        //     gradient: LinearGradient(
+        //       begin: Alignment.topCenter,
+        //       end: Alignment.bottomCenter,
+        //       colors: [
+        //         Colors.black.withOpacity(0.1),
+        //         Colors.black.withOpacity(0.4),
+        //       ],
+        //     ),
+        //   ),
+        // ),
+      
 
         // Floating Glassmorphism Profile Card
         Positioned(
@@ -141,11 +123,11 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10.r),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 22.w, vertical: 16.h),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.01),
+            color: Colors.black12.withOpacity(0.5),
             borderRadius: BorderRadius.circular(10.r),
             border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
           ),
@@ -173,7 +155,12 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                           color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(10.r),
                         ),
-                        child: Icon(Icons.camera_alt_outlined, color: Colors.white, size: 20.sp),
+                        child: Image.asset(
+                          'assets/images/camera_icon.png',
+                          width: 20.sp,
+                          height: 20.sp,
+                          color: Colors.white,
+                        ),
                       ),
                       SizedBox(width: 12.w),
                       GestureDetector(
@@ -184,7 +171,12 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                             color: const Color(0xFF4C6A5A).withOpacity(0.8),
                             borderRadius: BorderRadius.circular(10.r),
                           ),
-                          child: Icon(Icons.check_circle_outline, color: Colors.white, size: 20.sp),
+                          child: Image.asset(
+                            'assets/images/edit_done_icon.png',
+                            width: 20.sp,
+                            height: 20.sp,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ],
