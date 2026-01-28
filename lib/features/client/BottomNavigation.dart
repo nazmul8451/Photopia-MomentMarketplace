@@ -6,6 +6,9 @@ import 'package:photopia/features/client/user_profile_screen.dart';
 import 'package:photopia/features/client/favorites_screen.dart';
 import 'package:photopia/features/client/messages_screen.dart';
 import 'package:photopia/features/client/search_screen.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:photopia/features/client/authentication/log_in_screen.dart';
+import 'package:photopia/features/client/authentication/sign_up_screen.dart';
 
 class BottomNavigationScreen extends StatefulWidget {
   const BottomNavigationScreen({super.key});
@@ -28,6 +31,22 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
   ];
 
   void _onItemTapped(int index) {
+    // Guest check for restricted tabs: Messages (1), Favorites (3), Profile (4)
+    if (index == 1 || index == 3 || index == 4) {
+      final box = GetStorage();
+      // Assume guest if no user_token or explicitly is_guest (adjust key as needed)
+      // For this flow, we bypassed auth, so usually no token.
+      final hasToken = box.hasData('user_token'); 
+      // NOTE: Since we completely bypassed auth in the new flow, 'user_token' might not be set.
+      // If you have a specific 'is_guest' flag, use that. 
+      // For now, let's assume if 'user_token' is missing, they are a guest.
+      
+      if (!hasToken) {
+        _showGuestDialog(context);
+        return;
+      }
+    }
+
     if (_selectedIndex == index) {
       // If tapping the already selected tab, pop to the first route
       _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
@@ -36,6 +55,45 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
         _selectedIndex = index;
       });
     }
+  }
+
+  void _showGuestDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Authentication Required"),
+          content: const Text("Please log in or sign up to access this feature."),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+            ),
+             TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LogInScreen(userRole: 'client')),
+                );
+              },
+              child: const Text("Log In", style: TextStyle(color: Colors.black)),
+            ),
+            TextButton(
+              onPressed: () {
+                 Navigator.pop(context);
+                 Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SignUpScreen(userRole: 'client')),
+                );
+              },
+              child: const Text("Sign Up", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

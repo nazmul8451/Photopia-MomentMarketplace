@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:photopia/features/client/authentication/log_in_screen.dart';
+import 'package:photopia/features/client/BottomNavigation.dart';
+import 'package:get_storage/get_storage.dart';
 
 class OnboardingScreen extends StatefulWidget {
   final String userRole; // 'client' or 'provider'
@@ -89,10 +90,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           curve: Curves.easeInOut,
                         );
                       } else {
+                        // Mark as seen
+                        final box = GetStorage();
+                        box.write('is_first_time', false);
+
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => LogInScreen(userRole: widget.userRole),
+                            builder: (context) => const BottomNavigationScreen(),
                           ),
                           (route) => false,
                         );

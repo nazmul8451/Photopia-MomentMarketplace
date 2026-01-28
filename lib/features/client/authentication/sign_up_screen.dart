@@ -6,8 +6,9 @@ import 'package:photopia/features/client/authentication/widgets/auth_widgets.dar
 
 class SignUpScreen extends StatefulWidget {
   static const String name = '/sign_up';
+  final String userRole; // 'client' or 'provider'
   
-  const SignUpScreen({super.key});
+  const SignUpScreen({super.key, this.userRole = 'client'});
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();

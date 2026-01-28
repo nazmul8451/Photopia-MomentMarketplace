@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_sizes.dart';
-import 'package:photopia/features/onboarding/role_selection_screen.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:photopia/features/client/BottomNavigation.dart';
+import 'package:photopia/features/onboarding/onboarding_screen.dart';
 
 class GetStartedScreen extends StatelessWidget {
   const GetStartedScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final box = GetStorage();
+    
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -40,12 +44,25 @@ class GetStartedScreen extends StatelessWidget {
                 SizedBox(height: 50.h,),              // Button
                 GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const RoleSelectionScreen(),
-                      ),
-                    );
+                    // Check if first time user
+                    bool isFirstTime = box.read('is_first_time') ?? true;
+                    
+                    if (isFirstTime) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const OnboardingScreen(userRole: 'client'),
+                        ),
+                      );
+                    } else {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const BottomNavigationScreen(),
+                        ),
+                         (route) => false,
+                      );
+                    }
                   },
                   child: Container(
                     width:200.w,
