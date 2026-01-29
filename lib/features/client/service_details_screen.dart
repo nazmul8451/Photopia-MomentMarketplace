@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/book_now_SelectPackage_screen.dart';
 import 'package:photopia/features/client/provider_profile_screen.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:photopia/core/utils/guest_dialog_helper.dart';
 
 class ServiceDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> service;
@@ -202,13 +204,22 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
               ),
               Row(
                 children: [
-                  Container(
-                    padding: EdgeInsets.all(8.w),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
+                  GestureDetector(
+                    onTap: () {
+                      if (!GetStorage().hasData('user_token')) {
+                        GuestDialogHelper.showGuestDialog(context);
+                        return;
+                      }
+                      // Handle bookmarking logic here
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(8.w),
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.bookmark_border, size: 20.sp, color: Colors.black),
                     ),
-                    child: Icon(Icons.bookmark_border, size: 20.sp, color: Colors.black),
                   ),
                   SizedBox(width: 12.w),
                   Container(
@@ -463,23 +474,36 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
       ),
       child: Row(
         children: [
-          Container(
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(12).r,
-            ),
-            child: Image.asset(
-              'assets/images/message_icon.png',
-              width: 24.sp.clamp(24, 24),
-              height: 24.sp.clamp(24, 24),
-              fit: BoxFit.contain,
+          GestureDetector(
+            onTap: () {
+              if (!GetStorage().hasData('user_token')) {
+                GuestDialogHelper.showGuestDialog(context);
+                return;
+              }
+              // Handle chat navigation
+            },
+            child: Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(12).r,
+              ),
+              child: Image.asset(
+                'assets/images/message_icon.png',
+                width: 24.sp.clamp(24, 24),
+                height: 24.sp.clamp(24, 24),
+                fit: BoxFit.contain,
+              ),
             ),
           ),
           SizedBox(width: 15.w),
           Expanded(
             child: GestureDetector(
               onTap: () {
+                if (!GetStorage().hasData('user_token')) {
+                  GuestDialogHelper.showGuestDialog(context);
+                  return;
+                }
                 Navigator.push(
                   context,
                   MaterialPageRoute(

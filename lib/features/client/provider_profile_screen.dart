@@ -6,6 +6,8 @@ import 'package:photopia/features/client/widgets/service_card.dart';
 import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:photopia/core/utils/guest_dialog_helper.dart';
 
 class ProviderProfileScreen extends StatefulWidget {
   final Map<String, dynamic> provider;
@@ -68,6 +70,10 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                   size: 24.sp,
                 ),
                 onPressed: () {
+                   if (!GetStorage().hasData('user_token')) {
+                    GuestDialogHelper.showGuestDialog(context);
+                    return;
+                  }
                   controller.toggleFavoriteProvider(widget.provider);
                 },
               );

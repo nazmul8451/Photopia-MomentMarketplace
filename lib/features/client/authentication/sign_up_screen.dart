@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
+import 'package:get_storage/get_storage.dart';
 
 class SignUpScreen extends StatefulWidget {
   static const String name = '/sign_up';
@@ -21,6 +22,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isNameValid = false;
   bool _isEmailValid = false;
   bool _isPasswordValid = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -111,8 +113,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 // Sign Up Button
                 AuthButton(
                   text: 'Sign Up',
-                  onTap: () {
-                    // TODO: Implement sign up logic
+                  isLoading: _isLoading,
+                  onTap: () async {
+                    setState(() {
+                      _isLoading = true;
+                    });
+
+                    // Simulate authentication delay
+                    await Future.delayed(const Duration(seconds: 2));
+
+                    // Save token to indicate user has created account and is logged in
+                    GetStorage().write('user_token', 'valid_user_session_token');
+                    
+                    if (mounted) {
+                      // Navigate based on user role
+                      if (widget.userRole == 'provider') {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/provider-bottom-navigation',
+                          (route) => false,
+                        );
+                      } else {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/bottom-navigation',
+                          (route) => false,
+                        );
+                      }
+                    }
                   },
                 ),
                 

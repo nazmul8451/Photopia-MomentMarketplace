@@ -91,18 +91,20 @@ class AuthButton extends StatelessWidget {
   final String text;
   final VoidCallback onTap;
   final bool isEnabled;
+  final bool isLoading;
 
   const AuthButton({
     super.key,
     required this.text,
     required this.onTap,
     this.isEnabled = true,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: isEnabled ? onTap : null,
+      onTap: (isEnabled && !isLoading) ? onTap : null,
       child: Container(
         width: double.infinity,
         height: AppSizes.fieldHeight,
@@ -111,14 +113,23 @@ class AuthButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppSizes.borderRadius),
         ),
         alignment: Alignment.center,
-        child: Text(
-          text,
-          style: TextStyle(
-            color: isEnabled ? Colors.white : Colors.grey.shade500,
-            fontSize: AppTypography.bodyLarge,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        child: isLoading
+            ? SizedBox(
+                height: 20.h,
+                width: 20.h,
+                child: const CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : Text(
+                text,
+                style: TextStyle(
+                  color: isEnabled ? Colors.white : Colors.grey.shade500,
+                  fontSize: AppTypography.bodyLarge,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       ),
     );
   }

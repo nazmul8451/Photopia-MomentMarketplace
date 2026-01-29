@@ -34,7 +34,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
   void _onItemTapped(int index) {
     // Guest check for restricted tabs: Messages (1), Favorites (3)
     // Profile (4) is now accessible to guests with restricted functionality
-    if (index == 1 || index == 3) {
+    if (index == 1 || index == 3 || index == 4) {
       final box = GetStorage();
       // Assume guest if no user_token or explicitly is_guest (adjust key as needed)
       // For this flow, we bypassed auth, so usually no token.

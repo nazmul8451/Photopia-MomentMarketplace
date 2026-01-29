@@ -6,6 +6,8 @@ import 'package:photopia/features/client/service_details_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:photopia/core/utils/guest_dialog_helper.dart';
 
 class ServiceCard extends StatelessWidget {
   final String title;
@@ -121,6 +123,10 @@ class ServiceCard extends StatelessWidget {
                       bool isFavorite = controller.isPostFavorite(title);
                       return GestureDetector(
                         onTap: () {
+                           if (!GetStorage().hasData('user_token')) {
+                            GuestDialogHelper.showGuestDialog(context);
+                            return;
+                          }
                           controller.toggleFavoritePost({
                             'title': title,
                             'subtitle': subtitle,

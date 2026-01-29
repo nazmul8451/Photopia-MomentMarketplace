@@ -4,15 +4,12 @@ import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/common/mode_transition_screen.dart';
 import 'package:photopia/core/routes/app_routes.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:photopia/core/utils/guest_dialog_helper.dart';
 
 class UserProfileScreen extends StatelessWidget {
   const UserProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    bool isGuest = !GetStorage().hasData('user_token');
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
@@ -31,11 +28,7 @@ class UserProfileScreen extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.settings_outlined, color: Colors.black, size: 24.sp),
             onPressed: () {
-               if (isGuest) {
-                  GuestDialogHelper.showGuestDialog(context);
-                } else {
-                  // Navigate to settings
-                }
+              // Navigate to settings
             },
           ),
           SizedBox(width: 10.w),
@@ -44,13 +37,13 @@ class UserProfileScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildProfileCard(context, isGuest),
+            _buildProfileCard(context),
             SizedBox(height: 20.h),
-            _buildRecentOrders(isGuest),
+            _buildRecentOrders(),
             SizedBox(height: 20.h),
-            _buildMenuSection(context, isGuest),
+            _buildMenuSection(context),
             SizedBox(height: 30.h),
-            _buildActionButtons(context, isGuest),
+            _buildActionButtons(context),
             SizedBox(height: 100.h), // Spacing for bottom nav
           ],
         ),
@@ -58,7 +51,7 @@ class UserProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileCard(BuildContext context, bool isGuest) {
+  Widget _buildProfileCard(BuildContext context) {
     return Container(
       width: double.infinity,
       color: Colors.white,
@@ -70,38 +63,31 @@ class UserProfileScreen extends StatelessWidget {
               Container(
                 width: 100.w,
                 height: 100.w,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isGuest ? Colors.grey[200] : null,
-                  image: isGuest
-                      ? null
-                      : const DecorationImage(
-                          image: AssetImage('assets/images/img6.png'),
-                          fit: BoxFit.cover,
-                        ),
-                ),
-                child: isGuest
-                    ? Icon(Icons.person, size: 50.sp, color: Colors.grey[400])
-                    : null,
-              ),
-              if (!isGuest)
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    padding: EdgeInsets.all(6.w),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF1A1A1A),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.person_outline, color: Colors.white, size: 14.sp),
+                  image: DecorationImage(
+                    image: AssetImage('assets/images/img6.png'),
+                    fit: BoxFit.cover,
                   ),
                 ),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  padding: EdgeInsets.all(6.w),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF1A1A1A),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.person_outline, color: Colors.white, size: 14.sp),
+                ),
+              ),
             ],
           ),
           SizedBox(height: 15.h),
           Text(
-            isGuest ? 'Guest User' : 'John Doe',
+            'John Doe',
             style: TextStyle(
               fontSize: AppTypography.h1,
               fontWeight: FontWeight.bold,
@@ -109,36 +95,31 @@ class UserProfileScreen extends StatelessWidget {
             ),
           ),
           Text(
-            isGuest ? 'Sign in to see details' : 'john.doe@email.com',
+            'john.doe@email.com',
             style: TextStyle(
               fontSize: AppTypography.bodyMedium,
               color: Colors.grey,
             ),
           ),
           SizedBox(height: 8.h),
-          if (!isGuest)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.location_on, color: Colors.red, size: 14.sp),
-                SizedBox(width: 4.w),
-                Text(
-                  'Barcelona, Spain',
-                  style: TextStyle(
-                    fontSize: AppTypography.bodySmall,
-                    color: Colors.grey[600],
-                  ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.location_on, color: Colors.red, size: 14.sp),
+              SizedBox(width: 4.w),
+              Text(
+                'Barcelona, Spain',
+                style: TextStyle(
+                  fontSize: AppTypography.bodySmall,
+                  color: Colors.grey[600],
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
           SizedBox(height: 20.h),
           GestureDetector(
-             onTap: () {
-              if (isGuest) {
-                GuestDialogHelper.showGuestDialog(context);
-              } else {
-                // Navigate to Edit Profile
-              }
+            onTap: () {
+              // Navigate to Edit Profile
             },
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 25.w, vertical: 10.h),
@@ -161,9 +142,7 @@ class UserProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildRecentOrders(bool isGuest) {
-    if (isGuest) return const SizedBox.shrink(); 
-    
+  Widget _buildRecentOrders() {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       child: Container(
@@ -270,9 +249,7 @@ class UserProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuSection(BuildContext context, bool isGuest) {
-    if (isGuest) return const SizedBox.shrink();
-
+  Widget _buildMenuSection(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       child: Container(
@@ -337,12 +314,12 @@ class UserProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, bool isGuest) {
+  Widget _buildActionButtons(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       child: Column(
         children: [
-           GestureDetector(
+          GestureDetector(
             onTap: () {
               Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute(
@@ -355,67 +332,41 @@ class UserProfileScreen extends StatelessWidget {
             },
             child: Container(
               width: double.infinity,
-              height: 100.h,
-              padding: EdgeInsets.all(20.w),
+              height: 55.h,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)], // Deep Purple to Blue
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20).r,
-                 boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF4A00E0).withOpacity(0.4),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
+                color: const Color(0xFF1A1A1A),
+                borderRadius: BorderRadius.circular(15).r,
               ),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    padding: EdgeInsets.all(12.w),
-                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(15).r,
-                    ),
-                    child: Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 28.sp),
-                  ),
-                  SizedBox(width: 15.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Professional Mode',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 4.h),
-                         Text(
-                          'Manage your services & bookings',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 12.sp,
-                          ),
-                        ),
-                      ],
+                  Icon(Icons.camera_alt_outlined, color: Colors.white, size: 20.sp),
+                  SizedBox(width: 12.w),
+                  Text(
+                    'Switch to Professional',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 18.sp),
                 ],
               ),
             ),
           ),
-          
-          if (!isGuest) ...[
-            SizedBox(height: 15.h),
-            Container(
+          SizedBox(height: 15.h),
+          GestureDetector(
+            onTap: () {
+              // Clear user token
+              GetStorage().erase();
+              // Navigate back to bottom navigation (home)
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                '/bottom-navigation',
+                (route) => false,
+              );
+            },
+            child: Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(vertical: 15.h),
               decoration: BoxDecoration(
@@ -439,7 +390,7 @@ class UserProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-          ],
+          ),
         ],
       ),
     );

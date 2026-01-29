@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
+import 'package:get_storage/get_storage.dart';
 
 class LogInScreen extends StatefulWidget {
   static const String name = '/log_in';
@@ -19,6 +20,7 @@ class _LogInScreenState extends State<LogInScreen> {
   final _passwordController = TextEditingController();
   bool _isEmailValid = false;
   bool _isPasswordValid = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -110,20 +112,33 @@ class _LogInScreenState extends State<LogInScreen> {
                 // Login Button
                 AuthButton(
                   text: 'Login',
-                  onTap: () {
-                    // Navigate based on user role
-                    if (widget.userRole == 'provider') {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/provider-bottom-navigation',
-                        (route) => false,
-                      );
-                    } else {
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/bottom-navigation',
-                        (route) => false,
-                      );
+                  isLoading: _isLoading,
+                  onTap: () async {
+                    setState(() {
+                      _isLoading = true;
+                    });
+
+                    // Simulate authentication delay
+                    await Future.delayed(const Duration(seconds: 2));
+
+                    // Save token to indicate user is logged in
+                    GetStorage().write('user_token', 'valid_user_session_token');
+                    
+                    if (mounted) {
+                      // Navigate based on user role
+                      if (widget.userRole == 'provider') {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/provider-bottom-navigation',
+                          (route) => false,
+                        );
+                      } else {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/bottom-navigation',
+                          (route) => false,
+                        );
+                      }
                     }
                   },
                 ),
