@@ -21,6 +21,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool _isLoading = true;
+  int _selectedCategoryIndex = 0;
   final ScrollController _scrollController = ScrollController();
 
   // Mock data for different sections
@@ -212,7 +213,15 @@ class _MyHomePageState extends State<MyHomePage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const HomeHeader(),
-                  CategoryBar(isLoading: _isLoading),
+                  CategoryBar(
+                    isLoading: _isLoading,
+                    selectedIndex: _selectedCategoryIndex,
+                    onCategorySelected: (index) {
+                      setState(() {
+                        _selectedCategoryIndex = index;
+                      });
+                    },
+                  ),
                   SizedBox(height: 15.h),
                 ],
               ),
@@ -228,20 +237,20 @@ class _MyHomePageState extends State<MyHomePage> {
                       physics: const BouncingScrollPhysics(),
                       child: Column(
                         children: [
-                          SizedBox(height: 20.h),
+                          SizedBox(height: 15.h),
                           // Original Projects Section
                           _buildHorizontalSection(
                             title: 'Original Projects',
                             items: _originalProjects,
                           ),
-                          SizedBox(height: 20.h),
+                          SizedBox(height: 15.h),
                           // Available Right Now Section
                           _buildHorizontalSection(
                             title: 'Available Right Now',
                             items: _availableNow,
                             showAvailability: true,
                           ),
-                          SizedBox(height: 20.h),
+                          SizedBox(height: 15.h),
                           // Trending Projects Section
                           _buildHorizontalSection(
                             title: 'Trending Projects',

@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 
-class CategoryBar extends StatefulWidget {
+class CategoryBar extends StatelessWidget {
   final bool isLoading;
-  const CategoryBar({super.key, this.isLoading = false});
+  final int selectedIndex;
+  final Function(int)? onCategorySelected;
 
-  @override
-  State<CategoryBar> createState() => _CategoryBarState();
-}
+  const CategoryBar({
+    super.key,
+    this.isLoading = false,
+    this.selectedIndex = 0,
+    this.onCategorySelected,
+  });
 
-class _CategoryBarState extends State<CategoryBar> {
-  int _selectedIndex = 0;
-
-  final List<Map<String, dynamic>> categories = [
+  final List<Map<String, dynamic>> categories = const [
     {'icon': Icons.camera_alt_outlined, 'label': 'Photo'},
     {'icon': Icons.videocam_outlined, 'label': 'Video'},
     {'icon': Icons.video_library_outlined, 'label': 'Video Editing'},
@@ -26,19 +27,21 @@ class _CategoryBarState extends State<CategoryBar> {
       child: ListView.builder(
         padding: EdgeInsets.symmetric(horizontal: 20.w),
         scrollDirection: Axis.horizontal,
-        itemCount: widget.isLoading ? 3 : categories.length,
+        itemCount: isLoading ? 3 : categories.length,
         itemBuilder: (context, index) {
-          if (widget.isLoading) {
+          if (isLoading) {
             return Padding(
               padding: EdgeInsets.only(right: 12.w),
               child: const CategoryChipSkeleton(),
             );
           }
           final category = categories[index];
-          bool isSelected = _selectedIndex == index;
+          bool isSelected = selectedIndex == index;
           return GestureDetector(
             onTap: () {
-              setState(() => _selectedIndex = index);
+              if (onCategorySelected != null) {
+                onCategorySelected!(index);
+              }
             },
             child: Container(
               margin: EdgeInsets.only(right: 12.w),
@@ -55,13 +58,13 @@ class _CategoryBarState extends State<CategoryBar> {
               child: Row(
                 children: [
                   Icon(
-                    categories[index]['icon'],
+                    category['icon'],
                     size: 18.sp.clamp(18, 20),
                     color: isSelected ? Colors.white : Colors.black,
                   ),
                   SizedBox(width: 8.w),
                   Text(
-                    categories[index]['label'],
+                    category['label'],
                     style: TextStyle(
                       fontSize: 14.sp.clamp(14, 15),
                       fontWeight: FontWeight.w600,

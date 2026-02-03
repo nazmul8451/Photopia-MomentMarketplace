@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/category_details_screen.dart';
 import 'package:photopia/core/constants/app_typography.dart';
-import 'package:photopia/core/constants/app_sizes.dart';
+import 'package:photopia/features/client/widgets/category_bar.dart';
+import 'package:photopia/features/client/widgets/search_header.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -12,7 +13,6 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final TextEditingController _searchController = TextEditingController();
   int _selectedCategoryIndex = 0;
 
   final List<String> _categoryTabs = ['Photo', 'Video', 'Video Editing'];
@@ -45,12 +45,6 @@ class _SearchScreenState extends State<SearchScreen> {
     ],
   };
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
   void _navigateToCategoryDetails() {
     Navigator.push(
       context,
@@ -66,107 +60,41 @@ class _SearchScreenState extends State<SearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(
-          'Search',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: AppTypography.h1,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Search Bar
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: Container(
-              height: AppSizes.fieldHeight,
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+          Container(
+            padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(15.r),
               ),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search for photographers...',
-                  hintStyle: TextStyle(
-                    color: Colors.grey[500],
-                    fontSize: AppTypography.bodyMedium,
-                  ),
-                  border: InputBorder.none,
-                  icon: Icon(
-                    Icons.search,
-                    color: Colors.grey[500],
-                    size: 24.sp,
-                  ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 12,
+                  spreadRadius: 2,
+                  offset: const Offset(0, 6),
                 ),
-              ),
+              ],
             ),
-          ),
-          SizedBox(height: 16.h),
-
-          // Category Tabs
-          SizedBox(
-            height: 35.h.clamp(35, 45),
-            child: ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              scrollDirection: Axis.horizontal,
-              itemCount: _categoryTabs.length,
-              itemBuilder: (context, index) {
-                bool isSelected = _selectedCategoryIndex == index;
-                return GestureDetector(
-                  onTap: () {
-                    setState(() => _selectedCategoryIndex = index);
+            child: Column(
+              children: [
+                const SearchHeader(),
+                CategoryBar(
+                  selectedIndex: _selectedCategoryIndex,
+                  onCategorySelected: (index) {
+                    setState(() {
+                      _selectedCategoryIndex = index;
+                    });
                   },
-                  child: Container(
-                    margin: EdgeInsets.only(right: 12.w),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 8.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected ? Colors.black : Colors.white,
-                      borderRadius: BorderRadius.circular(25.r),
-                      border: Border.all(
-                        color: isSelected
-                            ? Colors.black
-                            : Colors.grey.withOpacity(0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          index == 0
-                              ? Icons.camera_alt_outlined
-                              : index == 1
-                              ? Icons.videocam_outlined
-                              : Icons.video_library_outlined,
-                          size: 18.sp.clamp(18, 20),
-                          color: isSelected ? Colors.white : Colors.black,
-                        ),
-                        SizedBox(width: 8.w),
-                        Text(
-                          _categoryTabs[index],
-                          style: TextStyle(
-                            fontSize: 14.sp.clamp(14, 15),
-                            fontWeight: FontWeight.w600,
-                            color: isSelected ? Colors.white : Colors.black,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                ),
+                SizedBox(height: 15.h),
+              ],
             ),
           ),
+
           SizedBox(height: 20.h),
 
           // Categories Header
@@ -188,6 +116,7 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: GridView.builder(
+                padding: EdgeInsets.zero,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   crossAxisSpacing: 16.w,

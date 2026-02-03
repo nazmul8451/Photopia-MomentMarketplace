@@ -15,12 +15,12 @@ class SearchHeader extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 20.w),
           child: Text(
             'Search',
-           style: TextStyle(
-                  fontSize: 20.sp.clamp(20, 22),
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                  letterSpacing: -0.5,
-                ),
+            style: TextStyle(
+              fontSize: 20.sp.clamp(20, 22),
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+              letterSpacing: -0.5,
+            ),
           ),
         ),
         SizedBox(height: 15.h),
@@ -28,7 +28,7 @@ class SearchHeader extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 20.w),
           child: Row(
             children: [
-             Expanded(
+              Expanded(
                 child: Container(
                   height: 40.h.clamp(40, 42),
                   decoration: BoxDecoration(
@@ -96,43 +96,8 @@ class SearchHeader extends StatelessWidget {
             ],
           ),
         ),
-        SizedBox(height: 15.h),
-        SizedBox(
-          height: 35.h,
-          child: ListView(
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
-            scrollDirection: Axis.horizontal,
-            children: [
-              _buildHashTag('#Wedding'),
-              _buildHashTag('#Portrait'),
-              _buildHashTag('#Corporate'),
-              _buildHashTag('#ProductPhotography'),
-            ],
-          ),
-        ),
         SizedBox(height: 10.h),
       ],
-    );
-  }
-
-  Widget _buildHashTag(String tag) {
-    return Container(
-      margin: EdgeInsets.only(right: 8.w),
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 5.h),
-      decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20).r,
-      ),
-      child: Center(
-        child: Text(
-          tag,
-          style: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w600,
-            fontSize: 12.sp.clamp(12, 14),
-          ),
-        ),
-      ),
     );
   }
 }
