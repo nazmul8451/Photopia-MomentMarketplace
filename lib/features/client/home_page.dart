@@ -6,6 +6,7 @@ import 'package:photopia/features/client/widgets/section_header.dart';
 import 'package:photopia/features/client/widgets/horizontal_project_card.dart';
 import 'package:photopia/features/client/category_details_screen.dart';
 
+import 'package:photopia/features/client/service_details_screen.dart';
 import 'package:flutter/services.dart';
 
 import 'dart:async';
@@ -31,24 +32,28 @@ class _MyHomePageState extends State<MyHomePage> {
       'imageUrl': 'assets/images/img1.png',
       'providerName': 'Sarah Photography',
       'rating': 4.8,
+      'subtitle': 'Sarah Photography',
     },
     {
       'title': 'Portrait Session',
       'imageUrl': 'assets/images/img2.png',
       'providerName': 'John Studios',
       'rating': 4.9,
+      'subtitle': 'John Studios',
     },
     {
       'title': 'Home Decor Shoots',
       'imageUrl': 'assets/images/img3.png',
       'providerName': 'Creative Lens',
       'rating': 4.7,
+      'subtitle': 'Creative Lens',
     },
     {
       'title': 'Product Photography',
       'imageUrl': 'assets/images/img4.png',
       'providerName': 'Pro Shots',
       'rating': 4.6,
+      'subtitle': 'Pro Shots',
     },
   ];
 
@@ -59,6 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
       'providerName': 'Quick Capture',
       'rating': 4.5,
       'isAvailable': true,
+      'subtitle': 'Quick Capture',
     },
     {
       'title': 'Fashion Photography',
@@ -66,6 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
       'providerName': 'Style Shots',
       'rating': 4.8,
       'isAvailable': true,
+      'subtitle': 'Style Shots',
     },
     {
       'title': 'Corporate Headshots',
@@ -73,6 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
       'providerName': 'Business Pro',
       'rating': 4.7,
       'isAvailable': true,
+      'subtitle': 'Business Pro',
     },
   ];
 
@@ -83,6 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
       'providerName': 'Nature Lens',
       'rating': 4.9,
       'likeCount': 1250,
+      'subtitle': 'Nature Lens',
     },
     {
       'title': 'Baby Photography',
@@ -90,6 +99,7 @@ class _MyHomePageState extends State<MyHomePage> {
       'providerName': 'Little Moments',
       'rating': 4.8,
       'likeCount': 980,
+      'subtitle': 'Little Moments',
     },
     {
       'title': 'Food Photography',
@@ -97,6 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
       'providerName': 'Tasty Shots',
       'rating': 4.7,
       'likeCount': 2100,
+      'subtitle': 'Tasty Shots',
     },
     {
       'title': 'Architecture Photography',
@@ -104,6 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
       'providerName': 'Urban Views',
       'rating': 4.6,
       'likeCount': 750,
+      'subtitle': 'Urban Views',
     },
   ];
 
@@ -136,9 +148,20 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _navigateToDetails(BuildContext context) {
+  void _navigateToCategoryDetails(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => const CategoryDetailsScreen()),
+    );
+  }
+
+  void _navigateToServiceDetails(
+    BuildContext context,
+    Map<String, dynamic> service,
+  ) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ServiceDetailsScreen(service: service),
+      ),
     );
   }
 
@@ -153,7 +176,7 @@ class _MyHomePageState extends State<MyHomePage> {
       children: [
         SectionHeader(
           title: title,
-          onSeeAllTap: () => _navigateToDetails(context),
+          onSeeAllTap: () => _navigateToCategoryDetails(context),
         ),
         SizedBox(
           height: 245.h,
@@ -171,7 +194,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 rating: item['rating'],
                 isAvailable: showAvailability && (item['isAvailable'] ?? false),
                 likeCount: showLikes ? item['likeCount'] : null,
-                onTap: () => _navigateToDetails(context),
+                onTap: () => _navigateToServiceDetails(context, item),
               );
             },
           ),

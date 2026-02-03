@@ -20,28 +20,28 @@ class _SearchScreenState extends State<SearchScreen> {
   // Categories organized by type
   final Map<String, List<Map<String, dynamic>>> _categoriesByType = {
     'Photo': [
-      {'name': 'Wedding', 'icon': Icons.favorite, 'color': 0xFFFFE4E1},
-      {'name': 'Portrait', 'icon': Icons.person, 'color': 0xFFE0F7FA},
-      {'name': 'Events', 'icon': Icons.event, 'color': 0xFFF3E5F5},
-      {'name': 'Fashion', 'icon': Icons.checkroom, 'color': 0xFFFFF3E0},
-      {'name': 'Baby', 'icon': Icons.child_care, 'color': 0xFFFCE4EC},
-      {'name': 'Food', 'icon': Icons.restaurant, 'color': 0xFFF1F8E9},
+      {'name': 'Interior Photography', 'image': 'assets/images/img1.png'},
+      {'name': 'Portrait Photography', 'image': 'assets/images/img2.png'},
+      {'name': 'Home Decor Shoots', 'image': 'assets/images/img3.png'},
+      {'name': 'Product Photography', 'image': 'assets/images/img4.png'},
+      {'name': 'Outdoor Photography', 'image': 'assets/images/img5.png'},
+      {'name': 'Fashion Photography', 'image': 'assets/images/img6.png'},
+      {'name': 'Wedding Photography', 'image': 'assets/images/img4.png'},
+      {'name': 'Studio Photography', 'image': 'assets/images/img2.png'},
     ],
     'Video': [
-      {'name': 'Music Video', 'icon': Icons.music_video, 'color': 0xFFE3F2FD},
-      {'name': 'Documentary', 'icon': Icons.movie, 'color': 0xFFF3E5F5},
-      {'name': 'Commercial', 'icon': Icons.business, 'color': 0xFFE8F5E9},
-      {'name': 'Event Coverage', 'icon': Icons.videocam, 'color': 0xFFFFE4E1},
-      {'name': 'Travel Vlog', 'icon': Icons.flight, 'color': 0xFFFFF3E0},
-      {'name': 'Interview', 'icon': Icons.mic, 'color': 0xFFE0F7FA},
+      {'name': 'Music Video', 'image': 'assets/images/img3.png'},
+      {'name': 'Documentary', 'image': 'assets/images/img5.png'},
+      {'name': 'Commercial', 'image': 'assets/images/img1.png'},
+      {'name': 'Event Coverage', 'image': 'assets/images/img6.png'},
+      {'name': 'Travel Vlog', 'image': 'assets/images/img2.png'},
+      {'name': 'Interview', 'image': 'assets/images/img4.png'},
     ],
     'Video Editing': [
-      {'name': 'Color Grading', 'icon': Icons.palette, 'color': 0xFFFCE4EC},
-      {'name': 'Motion Graphics', 'icon': Icons.animation, 'color': 0xFFF1F8E9},
-      {'name': 'VFX', 'icon': Icons.auto_awesome, 'color': 0xFFE3F2FD},
-      {'name': 'Sound Design', 'icon': Icons.graphic_eq, 'color': 0xFFF3E5F5},
-      {'name': 'Transitions', 'icon': Icons.swap_horiz, 'color': 0xFFE8F5E9},
-      {'name': 'Subtitles', 'icon': Icons.subtitles, 'color': 0xFFFFE4E1},
+      {'name': 'Color Grading', 'image': 'assets/images/img5.png'},
+      {'name': 'Motion Graphics', 'image': 'assets/images/img3.png'},
+      {'name': 'VFX', 'image': 'assets/images/img1.png'},
+      {'name': 'Sound Design', 'image': 'assets/images/img4.png'},
     ],
   };
 
@@ -113,49 +113,48 @@ class _SearchScreenState extends State<SearchScreen> {
 
           // Categories Grid
           Expanded(
-            child: Padding(
+            child: GridView.builder(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: GridView.builder(
-                padding: EdgeInsets.zero,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16.w,
-                  mainAxisSpacing: 16.h,
-                  childAspectRatio: 1.5,
-                ),
-                itemCount: _currentCategories.length,
-                itemBuilder: (context, index) {
-                  final category = _currentCategories[index];
-                  return GestureDetector(
-                    onTap: _navigateToCategoryDetails,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Color(category['color']),
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            category['icon'],
-                            size: 32.sp,
-                            color: Colors.black87,
-                          ),
-                          SizedBox(height: 8.h),
-                          Text(
-                            category['name'],
-                            style: TextStyle(
-                              fontSize: AppTypography.bodyMedium,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16.w,
+                mainAxisSpacing: 20.h,
+                childAspectRatio: 0.85,
+              ),
+              itemCount: _currentCategories.length,
+              itemBuilder: (context, index) {
+                final category = _currentCategories[index];
+                return GestureDetector(
+                  onTap: _navigateToCategoryDetails,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16.r),
+                            image: DecorationImage(
+                              image: AssetImage(category['image']),
+                              fit: BoxFit.cover,
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
+                      SizedBox(height: 8.h),
+                      Text(
+                        category['name'],
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: AppTypography.bodySmall,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ],
