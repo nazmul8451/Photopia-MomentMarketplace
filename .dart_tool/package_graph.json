@@ -184,7 +184,7 @@
     },
     {
       "name": "test_api",
-      "version": "0.7.9",
+      "version": "0.7.8",
       "dependencies": [
         "async",
         "boolean_selector",
@@ -284,7 +284,7 @@
     },
     {
       "name": "characters",
-      "version": "1.4.1",
+      "version": "1.4.0",
       "dependencies": []
     },
     {

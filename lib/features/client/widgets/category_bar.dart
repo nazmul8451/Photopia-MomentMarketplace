@@ -14,11 +14,9 @@ class _CategoryBarState extends State<CategoryBar> {
   int _selectedIndex = 0;
 
   final List<Map<String, dynamic>> categories = [
-    {'icon': Icons.grid_view_rounded, 'label': 'All'},
-    {'icon': Icons.favorite_border_rounded, 'label': 'Wedding'},
-    {'icon': Icons.person_outline_rounded, 'label': 'Portrait'},
-    {'icon': Icons.business_center_outlined, 'label': 'Corporate'},
-    {'icon': Icons.camera_alt_outlined, 'label': 'Product'},
+    {'icon': Icons.camera_alt_outlined, 'label': 'Photo'},
+    {'icon': Icons.videocam_outlined, 'label': 'Video'},
+    {'icon': Icons.video_library_outlined, 'label': 'Video Editing'},
   ];
 
   @override
@@ -28,7 +26,7 @@ class _CategoryBarState extends State<CategoryBar> {
       child: ListView.builder(
         padding: EdgeInsets.symmetric(horizontal: 20.w),
         scrollDirection: Axis.horizontal,
-        itemCount: widget.isLoading ? 5 : categories.length,
+        itemCount: widget.isLoading ? 3 : categories.length,
         itemBuilder: (context, index) {
           if (widget.isLoading) {
             return Padding(
@@ -49,7 +47,9 @@ class _CategoryBarState extends State<CategoryBar> {
                 color: isSelected ? Colors.black : Colors.white,
                 borderRadius: BorderRadius.circular(25).r,
                 border: Border.all(
-                  color: isSelected ? Colors.black : Colors.grey.withOpacity(0.3),
+                  color: isSelected
+                      ? Colors.black
+                      : Colors.grey.withOpacity(0.3),
                 ),
               ),
               child: Row(

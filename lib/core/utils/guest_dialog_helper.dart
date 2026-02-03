@@ -16,19 +16,21 @@ class GuestDialogHelper {
       },
       transitionBuilder: (context, a1, a2, widget) {
         return ScaleTransition(
-          scale: Tween<double>(begin: 0.5, end: 1.0).animate(CurvedAnimation(
-            parent: a1,
-            curve: Curves.fastOutSlowIn,
-          )),
+          scale: Tween<double>(
+            begin: 0.5,
+            end: 1.0,
+          ).animate(CurvedAnimation(parent: a1, curve: Curves.fastOutSlowIn)),
           child: FadeTransition(
             opacity: Tween<double>(begin: 0.5, end: 1.0).animate(a1),
             child: Dialog(
               backgroundColor: Colors.transparent,
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.r),
+              ),
               child: Container(
-                width: 320.w,
-                padding: EdgeInsets.all(24.w),
+                width: 280.w,
+                padding: EdgeInsets.all(20.w),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20.r),
@@ -44,46 +46,46 @@ class GuestDialogHelper {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding: EdgeInsets.all(15.w),
+                      padding: EdgeInsets.all(12.w),
                       decoration: const BoxDecoration(
                         color: Color(0xFFF5F7FA),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.lock_person_rounded,
-                        size: 32.sp,
+                        size: 28.sp,
                         color: Colors.black87,
                       ),
                     ),
-                    SizedBox(height: 20.h),
+                    SizedBox(height: 16.h),
                     Text(
                       "Authentication Required",
                       style: TextStyle(
-                        fontSize: 20.sp,
+                        fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
                         letterSpacing: 0.5,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    SizedBox(height: 12.h),
+                    SizedBox(height: 10.h),
                     Text(
                       "Join Photopia to unlock full access to\nmessages, favorites, and profile.",
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 14.sp,
+                        fontSize: 13.sp,
                         color: Colors.grey[600],
                         height: 1.4,
                       ),
                     ),
-                    SizedBox(height: 25.h),
+                    SizedBox(height: 20.h),
                     Row(
                       children: [
                         Expanded(
                           child: TextButton(
                             onPressed: () => Navigator.pop(context),
                             style: TextButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: 12.h),
+                              padding: EdgeInsets.symmetric(vertical: 10.h),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12.r),
                                 side: BorderSide(color: Colors.grey[300]!),
@@ -93,7 +95,7 @@ class GuestDialogHelper {
                               "Cancel",
                               style: TextStyle(
                                 color: Colors.grey[700],
-                                fontSize: 14.sp,
+                                fontSize: 13.sp,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -106,14 +108,17 @@ class GuestDialogHelper {
                               Navigator.pop(context);
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => const SignUpScreen(userRole: 'client')),
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const SignUpScreen(userRole: 'client'),
+                                ),
                               );
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black,
                               foregroundColor: Colors.white,
                               elevation: 0,
-                              padding: EdgeInsets.symmetric(vertical: 12.h),
+                              padding: EdgeInsets.symmetric(vertical: 10.h),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12.r),
                               ),
@@ -121,7 +126,7 @@ class GuestDialogHelper {
                             child: Text(
                               "Sign Up",
                               style: TextStyle(
-                                fontSize: 14.sp,
+                                fontSize: 13.sp,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -129,13 +134,16 @@ class GuestDialogHelper {
                         ),
                       ],
                     ),
-                    SizedBox(height: 16.h),
+                    SizedBox(height: 12.h),
                     GestureDetector(
                       onTap: () {
                         Navigator.pop(context);
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const LogInScreen(userRole: 'client')),
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const LogInScreen(userRole: 'client'),
+                          ),
                         );
                       },
                       child: RichText(
@@ -143,7 +151,7 @@ class GuestDialogHelper {
                           text: "Already have an account? ",
                           style: TextStyle(
                             color: Colors.grey[600],
-                            fontSize: 12.sp,
+                            fontSize: 11.sp,
                           ),
                           children: [
                             TextSpan(
@@ -151,7 +159,7 @@ class GuestDialogHelper {
                               style: TextStyle(
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 12.sp,
+                                fontSize: 11.sp,
                               ),
                             ),
                           ],

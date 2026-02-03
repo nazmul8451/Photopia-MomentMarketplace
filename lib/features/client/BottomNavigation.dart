@@ -85,7 +85,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
         ],
       ),
       bottomNavigationBar: isKeyboardVisible
-          ? const SizedBox.shrink() // Completely hide when keyboard is open
+          ? const SizedBox.            shrink() // Completely hide when keyboard is open
           : Container(
               color: Colors.white,
               child: SafeArea(
