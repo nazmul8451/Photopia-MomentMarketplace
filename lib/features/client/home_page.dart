@@ -179,9 +179,9 @@ class _MyHomePageState extends State<MyHomePage> {
           onSeeAllTap: () => _navigateToCategoryDetails(context),
         ),
         SizedBox(
-          height: 245.h,
+          height: 230.h,
           child: ListView.builder(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 5.h),
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
             itemCount: items.length,
@@ -260,20 +260,20 @@ class _MyHomePageState extends State<MyHomePage> {
                       physics: const BouncingScrollPhysics(),
                       child: Column(
                         children: [
-                          SizedBox(height: 15.h),
+                          SizedBox(height: 10.h),
                           // Original Projects Section
                           _buildHorizontalSection(
                             title: 'Original Projects',
                             items: _originalProjects,
                           ),
-                          SizedBox(height: 15.h),
+                          SizedBox(height: 10.h),
                           // Available Right Now Section
                           _buildHorizontalSection(
                             title: 'Available Right Now',
                             items: _availableNow,
                             showAvailability: true,
                           ),
-                          SizedBox(height: 15.h),
+                          SizedBox(height: 10.h),
                           // Trending Projects Section
                           _buildHorizontalSection(
                             title: 'Trending Projects',
