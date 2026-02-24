@@ -146,6 +146,18 @@
       "languageVersion": "3.9"
     },
     {
+      "name": "http",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/http-1.6.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "http_parser",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/http_parser-4.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "intl",
       "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/intl-0.20.2",
       "packageUri": "lib/",
