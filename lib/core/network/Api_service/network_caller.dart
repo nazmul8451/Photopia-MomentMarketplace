@@ -79,36 +79,36 @@ class NetworkCaller {
   }
 
   // post Request for api post call
-  static Future<NetworkResponse> postRequest({
-    
-    required String url,
-    Map<String, dynamic>? body,
-    bool requireAuth = true,
-    bool isFromLogin = false,
-    String? token,
+  // static Future<NetworkResponse> postRequest({
 
-  }) async {
-    try {
-      final Uri uri = Uri.parse(url);
-      final Map<String, String> headers = {'Accept': 'application/json'};
-      // _logRequest("POST", url,, headers)
+  //   required String url,
+  //   Map<String, dynamic>? body,
+  //   bool requireAuth = true,
+  //   bool isFromLogin = false,
+  //   String? token,
 
-      //handle Authorization token
-      // if(token!=null && token.isNotEmpty){
-      //   if(token.contains(".")){
-      //     headers['Authorization'] = 'Bearer $token';
-      //     debugPrint("JWT TOKEN ADDED :  $token");
+  // }) async {
+  //   try {
+  //     final Uri uri = Uri.parse(url);
+  //     final Map<String, String> headers = {'Accept': 'application/json'};
+  //     // _logRequest("POST", url,, headers)
 
-      //   }else{
-      //     headers['Authorization']  = token;
-      //     headers['token'] = token;
-      //     debugPrint("TOKEN ADDED :  $token");
-      //   }
-      // }else if(requireAuth ){
-      //   // final String? token = await
-      // }
-    } catch (e) {}
-  }
+  //     //handle Authorization token
+  //     // if(token!=null && token.isNotEmpty){
+  //     //   if(token.contains(".")){
+  //     //     headers['Authorization'] = 'Bearer $token';
+  //     //     debugPrint("JWT TOKEN ADDED :  $token");
+
+  //     //   }else{
+  //     //     headers['Authorization']  = token;
+  //     //     headers['token'] = token;
+  //     //     debugPrint("TOKEN ADDED :  $token");
+  //     //   }
+  //     // }else if(requireAuth ){
+  //     //   // final String? token = await
+  //     // }
+  //   } catch (e) {}
+  // }
 
   //debug print classs
 
