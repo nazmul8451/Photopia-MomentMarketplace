@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
 import 'package:photopia/controller/provider/provider_profile_controller.dart';
 import 'package:photopia/core/routes/app_routes.dart';
-
 import 'package:photopia/features/onboarding/get_started.dart';
 
 class Photopia extends StatelessWidget {
@@ -27,12 +26,9 @@ class Photopia extends StatelessWidget {
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
             useInheritedMediaQuery: true,
-            // locale: DevicePreview.locale(context),
-            // builder: DevicePreview.appBuilder,
             theme: ThemeData(
               primaryColor: Colors.blue,
               useMaterial3: true,
-  
               textSelectionTheme: const TextSelectionThemeData(
                 cursorColor: Colors.black54,
               ),
