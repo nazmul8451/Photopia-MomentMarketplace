@@ -28,48 +28,91 @@ class NetworkCaller {
       "You are not authorized to access this resource.";
   // Resolve token from AuthController or secure storage
 
-  // static Future<String?> _getToken() async {
-  //   final storage = const FlutterSecureStorage();
-  //   final tokenFromController = AuthController().accessToken;
-  //   if (tokenFromController != null && tokenFromController.isNotEmpty)
-  //     return tokenFromController;
-  //   return await storage.read(key: 'access_token');
-  // }
+  // Centralized header management
+  static Future<Map<String, String>> _getHeaders({
+    bool requireAuth = true,
+    String? token,
+  }) async {
+    final Map<String, String> headers = {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+    };
 
-  //get request for api call
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = token.contains(".")
+          ? 'Bearer $token'
+          : 'Bearer $token';
+      debugPrint("Auth token added from parameter.");
+    } else if (requireAuth) {
+      const storage = FlutterSecureStorage();
+      final String? storedToken = await storage.read(key: 'access_token');
+      if (storedToken != null && storedToken.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $storedToken';
+        debugPrint("Auth token added from secure storage.");
+      }
+    }
+    return headers;
+  }
+
+  // Unified response handling
+  static NetworkResponse _handleResponse(
+    Response response,
+    String url,
+    String method,
+  ) {
+    _logResponse(method, url, response);
+
+    final int statusCode = response.statusCode;
+    Map<String, dynamic>? decodedBody;
+
+    try {
+      if (response.body.isNotEmpty) {
+        decodedBody = jsonDecode(response.body);
+      }
+    } catch (e) {
+      debugPrint("Error decoding response body: $e");
+    }
+
+    if (statusCode >= 200 && statusCode < 300) {
+      return NetworkResponse(
+        issSuccess: true,
+        statusCode: statusCode,
+        body: decodedBody,
+      );
+    } else if (statusCode == 401) {
+      return NetworkResponse(
+        issSuccess: false,
+        statusCode: statusCode,
+        errorMessage: _unAuthorizedErrorMessage,
+        body: decodedBody,
+      );
+    } else {
+      return NetworkResponse(
+        issSuccess: false,
+        statusCode: statusCode,
+        errorMessage: decodedBody?['message'] ?? _defaultErrorMessage,
+        body: decodedBody,
+      );
+    }
+  }
+
+  // GET Request
   static Future<NetworkResponse> getRequest({
     required String url,
     String? token,
+    bool requireAuth = true,
   }) async {
     try {
       final Uri uri = Uri.parse(url);
-      final Map<String, String> headers = {'Accept': "application/json"};
+      final Map<String, String> headers = await _getHeaders(
+        requireAuth: requireAuth,
+        token: token,
+      );
 
       final Response response = await get(uri, headers: headers);
-      _logResponse("GET", url, response);
-      if (response.statusCode == 200) {
-        final decodeJson = jsonDecode(response.body);
-        return NetworkResponse(
-          issSuccess: true,
-          statusCode: response.statusCode,
-          body: decodeJson,
-        );
-      } else if (response.statusCode == 401) {
-        final decodeJson = jsonDecode(response.body);
-        return NetworkResponse(
-          issSuccess: false,
-          errorMessage: _unAuthorizedErrorMessage,
-          statusCode: response.statusCode,
-        );
-      } else {
-        final decodeJson = jsonDecode(response.body);
-        return NetworkResponse(
-          issSuccess: false,
-          statusCode: response.statusCode,
-          errorMessage: decodeJson['message'] ?? _defaultErrorMessage,
-        );
-      }
+      return _handleResponse(response, url, "GET");
     } catch (e) {
+      debugPrint("GET request error: $e");
       return NetworkResponse(
         issSuccess: false,
         statusCode: -1,
@@ -78,40 +121,40 @@ class NetworkCaller {
     }
   }
 
-  // post Request for api post call
-  // static Future<NetworkResponse> postRequest({
+  // POST Request
+  static Future<NetworkResponse> postRequest({
+    required String url,
+    Map<String, dynamic>? body,
+    bool requireAuth = true,
+    String? token,
+  }) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      final Map<String, String> headers = await _getHeaders(
+        requireAuth: requireAuth,
+        token: token,
+      );
 
-  //   required String url,
-  //   Map<String, dynamic>? body,
-  //   bool requireAuth = true,
-  //   bool isFromLogin = false,
-  //   String? token,
+      _logRequest("POST", url, body ?? {}, headers);
 
-  // }) async {
-  //   try {
-  //     final Uri uri = Uri.parse(url);
-  //     final Map<String, String> headers = {'Accept': 'application/json'};
-  //     // _logRequest("POST", url,, headers)
+      final Response response = await post(
+        uri,
+        headers: headers,
+        body: body != null ? jsonEncode(body) : null,
+      );
 
-  //     //handle Authorization token
-  //     // if(token!=null && token.isNotEmpty){
-  //     //   if(token.contains(".")){
-  //     //     headers['Authorization'] = 'Bearer $token';
-  //     //     debugPrint("JWT TOKEN ADDED :  $token");
+      return _handleResponse(response, url, "POST");
+    } catch (e) {
+      debugPrint("POST request error: $e");
+      return NetworkResponse(
+        issSuccess: false,
+        statusCode: -1,
+        errorMessage: e.toString(),
+      );
+    }
+  }
 
-  //     //   }else{
-  //     //     headers['Authorization']  = token;
-  //     //     headers['token'] = token;
-  //     //     debugPrint("TOKEN ADDED :  $token");
-  //     //   }
-  //     // }else if(requireAuth ){
-  //     //   // final String? token = await
-  //     // }
-  //   } catch (e) {}
-  // }
-
-  //debug print classs
-
+  // Logging
   static void _logRequest(
     String method,
     String url,
@@ -120,8 +163,8 @@ class NetworkCaller {
   ) {
     debugPrint('🚀 ===== $method API Request ===== 🚀');
     debugPrint('🌐 URL: $url');
-    debugPrint('📦 Body: $body');
-    debugPrint('📤 Headers: $headers');
+    debugPrint('� Headers: $headers');
+    debugPrint('� Body: $body');
     debugPrint('====================================');
   }
 
