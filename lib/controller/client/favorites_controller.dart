@@ -10,7 +10,9 @@ class FavoritesController extends ChangeNotifier {
   List<Map<String, dynamic>> get favoriteProviders => _favoriteProviders;
 
   void toggleFavoritePost(Map<String, dynamic> service) {
-    final index = _favoritePosts.indexWhere((element) => element['title'] == service['title']);
+    final index = _favoritePosts.indexWhere(
+      (element) => element['title'] == service['title'],
+    );
     if (index >= 0) {
       _favoritePosts.removeAt(index);
     } else {
@@ -20,7 +22,9 @@ class FavoritesController extends ChangeNotifier {
   }
 
   void toggleFavoriteProvider(Map<String, dynamic> provider) {
-    final index = _favoriteProviders.indexWhere((element) => element['name'] == provider['name']);
+    final index = _favoriteProviders.indexWhere(
+      (element) => element['name'] == provider['name'],
+    );
     if (index >= 0) {
       _favoriteProviders.removeAt(index);
     } else {

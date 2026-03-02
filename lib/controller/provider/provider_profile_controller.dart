@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 class ProviderProfileController extends ChangeNotifier {
   String _name = 'Michael Photographer';
-  String _aboutMe = 'Professional wedding and event photographer with 10+ years of experience. Specialized in capturing authentic moments and emotions.';
+  String _aboutMe =
+      'Professional wedding and event photographer with 10+ years of experience. Specialized in capturing authentic moments and emotions.';
   List<String> _specializations = ['Wedding', 'Event', 'Portrait'];
   List<String> _languages = ['English', 'Spanish', 'Catalan'];
   List<String> _recentWork = [
@@ -66,6 +67,23 @@ class ProviderProfileController extends ChangeNotifier {
 
   void removeRecentWork(String url) {
     _recentWork.remove(url);
+    notifyListeners();
+  }
+
+  void reset() {
+    _name = 'Michael Photographer';
+    _aboutMe =
+        'Professional wedding and event photographer with 10+ years of experience. Specialized in capturing authentic moments and emotions.';
+    _specializations = ['Wedding', 'Event', 'Portrait'];
+    _languages = ['English', 'Spanish', 'Catalan'];
+    _recentWork = [
+      'assets/images/img1.png',
+      'assets/images/img2.png',
+      'assets/images/img3.png',
+      'assets/images/img4.png',
+      'assets/images/img5.png',
+      'assets/images/img6.png',
+    ];
     notifyListeners();
   }
 }

@@ -411,30 +411,20 @@ class UserProfileScreen extends StatelessWidget {
                     ? null
                     : () async {
                         // Call logout API
-                        // Using empty password as none is provided in UI
                         final result = await logOutController.logOut('');
 
-                        // Direct sob kichu muce dibe as per user request
-                        await AuthController.clearAuthData();
+                        if (result && context.mounted) {
+                          // 1. Clear Local Auth Data
+                          await context.read<AuthController>().logoutAndClear();
 
-                        if (result) {
-                          // Navigate back to login
-                          if (context.mounted) {
-                            Navigator.pushNamedAndRemoveUntil(
-                              context,
-                              '/log_in',
-                              (route) => false,
-                            );
-                          }
-                        } else {
-                          // Even if API fails, we already cleared local data as per "direct muce dibe"
-                          if (context.mounted) {
-                            Navigator.pushNamedAndRemoveUntil(
-                              context,
-                              '/log_in',
-                              (route) => false,
-                            );
-                          }
+                          // 2. Navigate back to login
+                          Navigator.of(
+                            context,
+                            rootNavigator: true,
+                          ).pushNamedAndRemoveUntil(
+                            '/log_in',
+                            (route) => false,
+                          );
                         }
                       },
                 child: Container(

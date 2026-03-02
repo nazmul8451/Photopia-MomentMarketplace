@@ -21,11 +21,11 @@ class AuthController extends ChangeNotifier {
   static Future<void> saveUserToken(String token) async {
     _accessToken = token;
     await _secureStorage.write(key: _tokenKey, value: token);
-    await _getStorage.write(
-      'user_token',
-      token,
-    ); // Keep GetStorage for backward compatibility if needed
+    await _getStorage.write('user_token', token);
   }
+
+  // Instance method for reactive UI checks
+  bool get isLoggedIn => _accessToken != null && _accessToken!.isNotEmpty;
 
   // Save user role
   static Future<void> saveUserRole(String role) async {
@@ -37,14 +37,18 @@ class AuthController extends ChangeNotifier {
     return _getStorage.read(_userRoleKey);
   }
 
-  // Check if logged in
-  static bool get isLoggedIn =>
-      _accessToken != null && _accessToken!.isNotEmpty;
-
   // Clear all auth data (Logout)
   static Future<void> clearAuthData() async {
     _accessToken = null;
     await _secureStorage.delete(key: _tokenKey);
-    await _getStorage.erase();
+    await _getStorage.remove(_tokenKey);
+    await _getStorage.remove('user_token');
+    await _getStorage.remove(_userRoleKey);
+  }
+
+  // Instance method to trigger clear and notify listeners
+  Future<void> logoutAndClear() async {
+    await clearAuthData();
+    notifyListeners();
   }
 }
