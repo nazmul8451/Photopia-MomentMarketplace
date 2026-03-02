@@ -24,11 +24,12 @@ class AppRoutes {
   static const String forgot_password = ForgotPasswordScreen.name;
   static const String otp_verification = OtpVerificationScreen.name;
   static const String new_password = NewPasswordScreen.name;
-  static const String provider_bottom_navigation = ProviderBottomNavigationScreen.name;
+  static const String provider_bottom_navigation =
+      ProviderBottomNavigationScreen.name;
   static const String booking_details = BookingDetailsScreen.name;
   static const String provider_subscription = ProviderSubscriptionScreen.name;
 
-  static final routes = {
+  static final Map<String, WidgetBuilder> routes = {
     home_page: (context) => const MyHomePage(),
     category_details: (context) => const CategoryDetailsScreen(),
     search_filter: (context) => const SearchFilterScreen(),

@@ -7,15 +7,11 @@ import 'package:photopia/features/client/home_page.dart';
 
 import 'package:get_storage/get_storage.dart';
 
+import 'package:photopia/controller/auth_controller.dart';
+
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
-  runApp(
-    DevicePreview(
-      enabled: false,
-      builder: (context) => const Photopia(),
-    ),
-  );
+  await AuthController.initialize();
+  runApp(DevicePreview(enabled: false, builder: (context) => const Photopia()));
 }
-
-
-

@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/sign_in_controller.dart';
 
@@ -135,12 +134,6 @@ class _LogInScreenState extends State<LogInScreen> {
 
                         if (result) {
                           if (mounted) {
-                            // Save token to indicate user is logged in
-                            GetStorage().write(
-                              'user_token',
-                              'valid_user_session_token',
-                            );
-
                             // Navigate based on user role
                             if (widget.userRole == 'provider') {
                               Navigator.pushNamedAndRemoveUntil(

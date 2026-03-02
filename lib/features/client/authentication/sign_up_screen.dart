@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/sign_up_controller.dart';
 
@@ -137,24 +136,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                         if (result) {
                           if (mounted) {
-                            GetStorage().write(
-                              'user_token',
-                              'valid_user_session_token',
+                            Navigator.pushNamed(
+                              context,
+                              '/otp_verification',
+                              arguments: _emailController.text.trim(),
                             );
-                            // Navigate based on user role
-                            if (widget.userRole == 'provider') {
-                              Navigator.pushNamedAndRemoveUntil(
-                                context,
-                                '/provider-bottom-navigation',
-                                (route) => false,
-                              );
-                            } else {
-                              Navigator.pushNamedAndRemoveUntil(
-                                context,
-                                '/bottom-navigation',
-                                (route) => false,
-                              );
-                            }
                           }
                         } else {
                           if (mounted) {

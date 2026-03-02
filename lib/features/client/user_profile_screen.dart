@@ -3,7 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/common/mode_transition_screen.dart';
 import 'package:photopia/core/routes/app_routes.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:photopia/controller/auth_controller.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/controller/client/log_out_controller.dart';
 
 class UserProfileScreen extends StatelessWidget {
   const UserProfileScreen({super.key});
@@ -26,7 +28,11 @@ class UserProfileScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.settings_outlined, color: Colors.black, size: 24.sp),
+            icon: Icon(
+              Icons.settings_outlined,
+              color: Colors.black,
+              size: 24.sp,
+            ),
             onPressed: () {
               // Navigate to settings
             },
@@ -80,7 +86,11 @@ class UserProfileScreen extends StatelessWidget {
                     color: Color(0xFF1A1A1A),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.person_outline, color: Colors.white, size: 14.sp),
+                  child: Icon(
+                    Icons.person_outline,
+                    color: Colors.white,
+                    size: 14.sp,
+                  ),
                 ),
               ),
             ],
@@ -163,9 +173,21 @@ class UserProfileScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 15.h),
-            _buildOrderItem('Wedding Photography', 'Emma Wilson', '2024-06-15', '€1,500', 'Completed'),
+            _buildOrderItem(
+              'Wedding Photography',
+              'Emma Wilson',
+              '2024-06-15',
+              '€1,500',
+              'Completed',
+            ),
             const Divider(),
-            _buildOrderItem('Corporate Video', 'Tech Media Studio', '2024-05-20', '€2,800', 'Completed'),
+            _buildOrderItem(
+              'Corporate Video',
+              'Tech Media Studio',
+              '2024-05-20',
+              '€2,800',
+              'Completed',
+            ),
             SizedBox(height: 15.h),
             Center(
               child: Text(
@@ -184,7 +206,13 @@ class UserProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderItem(String title, String provider, String date, String price, String status) {
+  Widget _buildOrderItem(
+    String title,
+    String provider,
+    String date,
+    String price,
+    String status,
+  ) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 10.h),
       child: Row(
@@ -259,8 +287,16 @@ class UserProfileScreen extends StatelessWidget {
         ),
         child: Column(
           children: [
-            _buildMenuItem(Icons.shopping_bag_outlined, 'Order History', badge: '3'),
-            _buildMenuItem(Icons.notifications_none, 'Notifications', badge: '5'),
+            _buildMenuItem(
+              Icons.shopping_bag_outlined,
+              'Order History',
+              badge: '3',
+            ),
+            _buildMenuItem(
+              Icons.notifications_none,
+              'Notifications',
+              badge: '5',
+            ),
             _buildMenuItem(Icons.lock_outline, 'Privacy & Security'),
             _buildMenuItem(Icons.language, 'Language', value: 'English'),
             _buildMenuItem(Icons.settings_outlined, 'Settings', isLast: true),
@@ -270,7 +306,13 @@ class UserProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, {String? badge, String? value, bool isLast = false}) {
+  Widget _buildMenuItem(
+    IconData icon,
+    String title, {
+    String? badge,
+    String? value,
+    bool isLast = false,
+  }) {
     return Column(
       children: [
         Padding(
@@ -302,7 +344,10 @@ class UserProfileScreen extends StatelessWidget {
               if (value != null)
                 Text(
                   value,
-                  style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.grey),
+                  style: TextStyle(
+                    fontSize: AppTypography.bodyMedium,
+                    color: Colors.grey,
+                  ),
                 ),
               SizedBox(width: 10.w),
               Icon(Icons.arrow_forward_ios, size: 14.sp, color: Colors.grey),
@@ -340,7 +385,11 @@ class UserProfileScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.camera_alt_outlined, color: Colors.white, size: 20.sp),
+                  Icon(
+                    Icons.camera_alt_outlined,
+                    color: Colors.white,
+                    size: 20.sp,
+                  ),
                   SizedBox(width: 12.w),
                   Text(
                     'Switch to Professional',
@@ -355,41 +404,76 @@ class UserProfileScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: 15.h),
-          GestureDetector(
-            onTap: () {
-              // Clear user token
-              GetStorage().erase();
-              // Navigate back to bottom navigation (home)
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                '/bottom-navigation',
-                (route) => false,
+          Consumer<LogOutController>(
+            builder: (context, logOutController, child) {
+              return GestureDetector(
+                onTap: logOutController.inProgress
+                    ? null
+                    : () async {
+                        // Call logout API
+                        // Using empty password as none is provided in UI
+                        final result = await logOutController.logOut('');
+
+                        // Direct sob kichu muce dibe as per user request
+                        await AuthController.clearAuthData();
+
+                        if (result) {
+                          // Navigate back to login
+                          if (context.mounted) {
+                            Navigator.pushNamedAndRemoveUntil(
+                              context,
+                              '/log_in',
+                              (route) => false,
+                            );
+                          }
+                        } else {
+                          // Even if API fails, we already cleared local data as per "direct muce dibe"
+                          if (context.mounted) {
+                            Navigator.pushNamedAndRemoveUntil(
+                              context,
+                              '/log_in',
+                              (route) => false,
+                            );
+                          }
+                        }
+                      },
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(vertical: 15.h),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15).r,
+                    border: Border.all(color: Colors.red.withOpacity(0.1)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (logOutController.inProgress)
+                        SizedBox(
+                          height: 20.h,
+                          width: 20.h,
+                          child: const CircularProgressIndicator(
+                            color: Colors.red,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      else ...[
+                        Icon(Icons.logout, color: Colors.red, size: 20.sp),
+                        SizedBox(width: 10.w),
+                        Text(
+                          'Log Out',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: AppTypography.bodyLarge,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               );
             },
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: 15.h),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15).r,
-                border: Border.all(color: Colors.red.withOpacity(0.1)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.logout, color: Colors.red, size: 20.sp),
-                  SizedBox(width: 10.w),
-                  Text(
-                    'Log Out',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: AppTypography.bodyLarge,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
         ],
       ),

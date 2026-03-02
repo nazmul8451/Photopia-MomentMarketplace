@@ -1,8 +1,8 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
-
-import 'dart:convert';
+import 'package:photopia/controller/auth_controller.dart';
 
 class NetworkResponse {
   final bool isSuccess;
@@ -26,7 +26,6 @@ class NetworkCaller {
       "Something went wrong. Please try again later.";
   static const String _unAuthorizedErrorMessage =
       "You are not authorized to access this resource.";
-  // Resolve token from AuthController or secure storage
 
   // Centralized header management
   static Future<Map<String, String>> _getHeaders({
@@ -39,16 +38,22 @@ class NetworkCaller {
     };
 
     if (token != null && token.isNotEmpty) {
-      headers['Authorization'] = token.contains(".")
-          ? 'Bearer $token'
-          : 'Bearer $token';
+      headers['Authorization'] = 'Bearer $token';
       debugPrint("Auth token added from parameter.");
     } else if (requireAuth) {
-      const storage = FlutterSecureStorage();
-      final String? storedToken = await storage.read(key: 'access_token');
-      if (storedToken != null && storedToken.isNotEmpty) {
-        headers['Authorization'] = 'Bearer $storedToken';
-        debugPrint("Auth token added from secure storage.");
+      // Use AuthController.accessToken as primary source
+      final String? authControllerToken = AuthController.accessToken;
+      if (authControllerToken != null && authControllerToken.isNotEmpty) {
+        headers['Authorization'] = 'Bearer $authControllerToken';
+        debugPrint("Auth token added from AuthController.");
+      } else {
+        // Fallback to secure storage
+        const storage = FlutterSecureStorage();
+        final String? storedToken = await storage.read(key: 'access_token');
+        if (storedToken != null && storedToken.isNotEmpty) {
+          headers['Authorization'] = 'Bearer $storedToken';
+          debugPrint("Auth token added from secure storage fallback.");
+        }
       }
     }
     return headers;
@@ -163,8 +168,8 @@ class NetworkCaller {
   ) {
     debugPrint('🚀 ===== $method API Request ===== 🚀');
     debugPrint('🌐 URL: $url');
-    debugPrint('� Headers: $headers');
-    debugPrint('� Body: $body');
+    debugPrint(' Headers: $headers');
+    debugPrint(' Body: $body');
     debugPrint('====================================');
   }
 

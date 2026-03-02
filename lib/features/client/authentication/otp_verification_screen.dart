@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
-import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/controller/client/verify_otp_controller.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   static const String name = '/otp_verification';
   final String email;
-  
+
   const OtpVerificationScreen({super.key, required this.email});
 
   @override
@@ -16,8 +17,11 @@ class OtpVerificationScreen extends StatefulWidget {
 }
 
 class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
-  final List<TextEditingController> _otpControllers = List.generate(4, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
+  final List<TextEditingController> _otpControllers = List.generate(
+    6,
+    (_) => TextEditingController(),
+  );
+  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
   @override
   void dispose() {
@@ -34,11 +38,40 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     return _otpControllers.every((controller) => controller.text.isNotEmpty);
   }
 
-  void _submitOtp() {
+  Future<void> _submitOtp() async {
     if (_isOtpComplete()) {
       String otp = _otpControllers.map((c) => c.text).join();
-      // TODO: Implement OTP verification logic
-      Navigator.pushNamed(context, '/new_password');
+      final verifyOtpController = Provider.of<VerifyOtpController>(
+        context,
+        listen: false,
+      );
+
+      final result = await verifyOtpController.verifyOtp(widget.email, otp);
+
+      if (result) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Verification successful! Please log in.'),
+            ),
+          );
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/log_in',
+            (route) => false,
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                verifyOtpController.errorMessage ?? 'Verification failed',
+              ),
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -53,7 +86,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 16.h.clamp(16, 20)),
-              
+
               // Back Button
               GestureDetector(
                 onTap: () => Navigator.pop(context),
@@ -63,21 +96,21 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   color: Colors.black,
                 ),
               ),
-              
+
               SizedBox(height: 32.h.clamp(32, 40)),
-              
+
               // Title
               Text(
-                'Forget Password',
+                'OTP Verification',
                 style: TextStyle(
                   fontSize: 24.sp.clamp(24, 28),
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),
-              
+
               SizedBox(height: 12.h.clamp(12, 16)),
-              
+
               // Subtitle
               Text(
                 'Code Submit',
@@ -87,37 +120,42 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                   color: Colors.black,
                 ),
               ),
-              
+
               SizedBox(height: 8.h.clamp(8, 12)),
-              
+
               Text(
-                'Enter the 4-Digit code sent to you at\n${widget.email}',
+                'Enter the 6-Digit code sent to you at\n${widget.email}',
                 style: TextStyle(
                   fontSize: AppTypography.bodyMedium,
                   color: Colors.grey.shade600,
                   height: 1.5,
                 ),
               ),
-              
+
               SizedBox(height: 32.h.clamp(32, 40)),
-              
+
               // OTP Input Boxes
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(4, (index) => _buildOtpBox(index)),
+                children: List.generate(6, (index) => _buildOtpBox(index)),
               ),
-              
+
               SizedBox(height: 32.h.clamp(32, 40)),
-              
+
               // Submit Button
-              AuthButton(
-                text: 'Submit',
-                onTap: _submitOtp,
-                isEnabled: _isOtpComplete(),
+              Consumer<VerifyOtpController>(
+                builder: (context, controller, child) {
+                  return AuthButton(
+                    text: 'Submit',
+                    isLoading: controller.inProgress,
+                    onTap: _submitOtp,
+                    isEnabled: _isOtpComplete() && !controller.inProgress,
+                  );
+                },
               ),
-              
+
               SizedBox(height: 16.h.clamp(16, 20)),
-              
+
               // Resend Link
               Center(
                 child: GestureDetector(
@@ -154,14 +192,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
   Widget _buildOtpBox(int index) {
     return Container(
-      width: 60.w.clamp(50, 70),
-      height: 60.h.clamp(50, 70),
+      width: 45.w.clamp(40, 60),
+      height: 55.h.clamp(45, 65),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: _otpControllers[index].text.isNotEmpty 
-              ? const Color(0xFF1A1A1A) 
+          color: _otpControllers[index].text.isNotEmpty
+              ? const Color(0xFF1A1A1A)
               : Colors.grey.shade300,
           width: 1.5,
         ),
@@ -177,16 +215,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           fontWeight: FontWeight.bold,
           color: Colors.black,
         ),
-        inputFormatters: [
-          FilteringTextInputFormatter.digitsOnly,
-        ],
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         decoration: const InputDecoration(
           border: InputBorder.none,
           counterText: '',
         ),
         onChanged: (value) {
           setState(() {});
-          if (value.isNotEmpty && index < 3) {
+          if (value.isNotEmpty && index < 5) {
             _focusNodes[index + 1].requestFocus();
           } else if (value.isEmpty && index > 0) {
             _focusNodes[index - 1].requestFocus();
