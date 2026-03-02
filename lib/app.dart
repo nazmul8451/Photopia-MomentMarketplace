@@ -5,6 +5,8 @@ import 'package:photopia/features/client/BottomNavigation.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
 import 'package:photopia/controller/provider/provider_profile_controller.dart';
+import 'package:photopia/controller/client/sign_up_controller.dart';
+import 'package:photopia/controller/client/sign_in_controller.dart';
 import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/features/onboarding/get_started.dart';
 
@@ -22,6 +24,8 @@ class Photopia extends StatelessWidget {
           providers: [
             ChangeNotifierProvider(create: (_) => FavoritesController()),
             ChangeNotifierProvider(create: (_) => ProviderProfileController()),
+            ChangeNotifierProvider(create: (_) => SignUpController()),
+            ChangeNotifierProvider(create: (_) => SignInController()),
           ],
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
@@ -34,7 +38,7 @@ class Photopia extends StatelessWidget {
               ),
             ),
             routes: AppRoutes.routes,
-            home: const GetStartedScreen(), 
+            home: const GetStartedScreen(),
           ),
         );
       },

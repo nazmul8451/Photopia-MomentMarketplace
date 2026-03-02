@@ -4,11 +4,13 @@ import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/controller/client/sign_up_controller.dart';
 
 class SignUpScreen extends StatefulWidget {
   static const String name = '/sign_up';
   final String userRole; // 'client' or 'provider'
-  
+
   const SignUpScreen({super.key, this.userRole = 'client'});
 
   @override
@@ -22,7 +24,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _isNameValid = false;
   bool _isEmailValid = false;
   bool _isPasswordValid = false;
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -62,7 +63,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 32.h.clamp(32, 40)),
-                
+
                 // Title
                 Text(
                   'Create Account',
@@ -72,9 +73,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     color: Colors.black,
                   ),
                 ),
-                
+
                 SizedBox(height: 32.h.clamp(32, 40)),
-                
+
                 // Name Field
                 AuthTextField(
                   label: 'Name',
@@ -83,9 +84,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   isValid: _isNameValid,
                   onChanged: _validateName,
                 ),
-                
+
                 SizedBox(height: AppSizes.spacingMedium),
-                
+
                 // Email Field
                 AuthTextField(
                   label: 'Email',
@@ -95,9 +96,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   onChanged: _validateEmail,
                   keyboardType: TextInputType.emailAddress,
                 ),
-                
+
                 SizedBox(height: AppSizes.spacingMedium),
-                
+
                 // Password Field
                 AuthTextField(
                   label: 'Password',
@@ -107,45 +108,73 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   onChanged: _validatePassword,
                   isPassword: true,
                 ),
-                
+
                 SizedBox(height: AppSizes.spacingLarge),
-                
+
                 // Sign Up Button
-                AuthButton(
-                  text: 'Sign Up',
-                  isLoading: _isLoading,
-                  onTap: () async {
-                    setState(() {
-                      _isLoading = true;
-                    });
+                Consumer<SignUpController>(
+                  builder: (context, signUpController, child) {
+                    return AuthButton(
+                      text: 'Sign Up',
+                      isLoading: signUpController.inProgress,
+                      onTap: () async {
+                        if (!_isNameValid ||
+                            !_isEmailValid ||
+                            !_isPasswordValid) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please fill all fields correctly'),
+                            ),
+                          );
+                          return;
+                        }
 
-                    // Simulate authentication delay
-                    await Future.delayed(const Duration(seconds: 2));
+                        final result = await signUpController.signUp(
+                          _emailController.text.trim(),
+                          _nameController.text.trim(),
+                          _passwordController.text,
+                        );
 
-                    // Save token to indicate user has created account and is logged in
-                    GetStorage().write('user_token', 'valid_user_session_token');
-                    
-                    if (mounted) {
-                      // Navigate based on user role
-                      if (widget.userRole == 'provider') {
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          '/provider-bottom-navigation',
-                          (route) => false,
-                        );
-                      } else {
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          '/bottom-navigation',
-                          (route) => false,
-                        );
-                      }
-                    }
+                        if (result) {
+                          if (mounted) {
+                            GetStorage().write(
+                              'user_token',
+                              'valid_user_session_token',
+                            );
+                            // Navigate based on user role
+                            if (widget.userRole == 'provider') {
+                              Navigator.pushNamedAndRemoveUntil(
+                                context,
+                                '/provider-bottom-navigation',
+                                (route) => false,
+                              );
+                            } else {
+                              Navigator.pushNamedAndRemoveUntil(
+                                context,
+                                '/bottom-navigation',
+                                (route) => false,
+                              );
+                            }
+                          }
+                        } else {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  signUpController.errorMessage ??
+                                      'Registration failed',
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                    );
                   },
                 ),
-                
+
                 SizedBox(height: 24.h.clamp(24, 28)),
-                
+
                 // OR CONTINUE WITH
                 Row(
                   children: [
@@ -164,9 +193,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Expanded(child: Divider(color: Colors.grey.shade300)),
                   ],
                 ),
-                
+
                 SizedBox(height: 24.h.clamp(24, 28)),
-                
+
                 // Social Sign Up Buttons
                 Row(
                   children: [
@@ -191,9 +220,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ],
                 ),
-                
+
                 SizedBox(height: 32.h.clamp(32, 40)),
-                
+
                 // Log In Link
                 Center(
                   child: GestureDetector(
@@ -221,7 +250,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                 ),
-                
+
                 SizedBox(height: 24.h.clamp(24, 32)),
               ],
             ),

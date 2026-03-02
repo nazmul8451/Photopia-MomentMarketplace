@@ -5,13 +5,13 @@ import 'package:http/http.dart';
 import 'dart:convert';
 
 class NetworkResponse {
-  final bool issSuccess;
+  final bool isSuccess;
   final String? errorMessage;
   final int statusCode;
   final Map<String, dynamic>? body;
 
   NetworkResponse({
-    required this.issSuccess,
+    required this.isSuccess,
     required this.statusCode,
     this.body,
     this.errorMessage,
@@ -75,20 +75,20 @@ class NetworkCaller {
 
     if (statusCode >= 200 && statusCode < 300) {
       return NetworkResponse(
-        issSuccess: true,
+        isSuccess: true,
         statusCode: statusCode,
         body: decodedBody,
       );
     } else if (statusCode == 401) {
       return NetworkResponse(
-        issSuccess: false,
+        isSuccess: false,
         statusCode: statusCode,
         errorMessage: _unAuthorizedErrorMessage,
         body: decodedBody,
       );
     } else {
       return NetworkResponse(
-        issSuccess: false,
+        isSuccess: false,
         statusCode: statusCode,
         errorMessage: decodedBody?['message'] ?? _defaultErrorMessage,
         body: decodedBody,
@@ -114,7 +114,7 @@ class NetworkCaller {
     } catch (e) {
       debugPrint("GET request error: $e");
       return NetworkResponse(
-        issSuccess: false,
+        isSuccess: false,
         statusCode: -1,
         errorMessage: e.toString(),
       );
@@ -147,7 +147,7 @@ class NetworkCaller {
     } catch (e) {
       debugPrint("POST request error: $e");
       return NetworkResponse(
-        issSuccess: false,
+        isSuccess: false,
         statusCode: -1,
         errorMessage: e.toString(),
       );

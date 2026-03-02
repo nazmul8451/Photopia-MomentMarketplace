@@ -4,11 +4,13 @@ import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/controller/client/sign_in_controller.dart';
 
 class LogInScreen extends StatefulWidget {
   static const String name = '/log_in';
   final String userRole; // 'client' or 'provider'
-  
+
   const LogInScreen({super.key, this.userRole = 'client'});
 
   @override
@@ -20,7 +22,6 @@ class _LogInScreenState extends State<LogInScreen> {
   final _passwordController = TextEditingController();
   bool _isEmailValid = false;
   bool _isPasswordValid = false;
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -62,9 +63,9 @@ class _LogInScreenState extends State<LogInScreen> {
                     color: Colors.black,
                   ),
                 ),
-                
+
                 SizedBox(height: 32.h.clamp(32, 40)),
-                
+
                 // Email Field
                 AuthTextField(
                   label: 'Email',
@@ -74,9 +75,9 @@ class _LogInScreenState extends State<LogInScreen> {
                   onChanged: _validateEmail,
                   keyboardType: TextInputType.emailAddress,
                 ),
-                
+
                 SizedBox(height: AppSizes.spacingMedium),
-                
+
                 // Password Field
                 AuthTextField(
                   label: 'Password',
@@ -86,9 +87,9 @@ class _LogInScreenState extends State<LogInScreen> {
                   onChanged: _validatePassword,
                   isPassword: true,
                 ),
-                
+
                 SizedBox(height: 12.h.clamp(12, 16)),
-                
+
                 // Forgot Password
                 Align(
                   alignment: Alignment.centerRight,
@@ -106,45 +107,74 @@ class _LogInScreenState extends State<LogInScreen> {
                     ),
                   ),
                 ),
-                
+
                 SizedBox(height: AppSizes.spacingLarge),
-                
+
                 // Login Button
-                AuthButton(
-                  text: 'Login',
-                  isLoading: _isLoading,
-                  onTap: () async {
-                    setState(() {
-                      _isLoading = true;
-                    });
+                Consumer<SignInController>(
+                  builder: (context, signInController, child) {
+                    return AuthButton(
+                      text: 'Login',
+                      isLoading: signInController.inProgress,
+                      onTap: () async {
+                        if (!_isEmailValid || !_isPasswordValid) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Please enter valid email and password',
+                              ),
+                            ),
+                          );
+                          return;
+                        }
 
-                    // Simulate authentication delay
-                    await Future.delayed(const Duration(seconds: 2));
+                        final result = await signInController.signIn(
+                          _emailController.text.trim(),
+                          _passwordController.text,
+                        );
 
-                    // Save token to indicate user is logged in
-                    GetStorage().write('user_token', 'valid_user_session_token');
-                    
-                    if (mounted) {
-                      // Navigate based on user role
-                      if (widget.userRole == 'provider') {
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          '/provider-bottom-navigation',
-                          (route) => false,
-                        );
-                      } else {
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          '/bottom-navigation',
-                          (route) => false,
-                        );
-                      }
-                    }
+                        if (result) {
+                          if (mounted) {
+                            // Save token to indicate user is logged in
+                            GetStorage().write(
+                              'user_token',
+                              'valid_user_session_token',
+                            );
+
+                            // Navigate based on user role
+                            if (widget.userRole == 'provider') {
+                              Navigator.pushNamedAndRemoveUntil(
+                                context,
+                                '/provider-bottom-navigation',
+                                (route) => false,
+                              );
+                            } else {
+                              Navigator.pushNamedAndRemoveUntil(
+                                context,
+                                '/bottom-navigation',
+                                (route) => false,
+                              );
+                            }
+                          }
+                        } else {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  signInController.errorMessage ??
+                                      'Login failed',
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                    );
                   },
                 ),
-                
+
                 SizedBox(height: 24.h.clamp(24, 28)),
-                
+
                 // OR CONTINUE WITH
                 Row(
                   children: [
@@ -163,9 +193,9 @@ class _LogInScreenState extends State<LogInScreen> {
                     Expanded(child: Divider(color: Colors.grey.shade300)),
                   ],
                 ),
-                
+
                 SizedBox(height: 24.h.clamp(24, 28)),
-                
+
                 // Social Login Buttons
                 Row(
                   children: [
@@ -190,14 +220,18 @@ class _LogInScreenState extends State<LogInScreen> {
                     ),
                   ],
                 ),
-                
+
                 SizedBox(height: 32.h.clamp(32, 40)),
-                
+
                 // Sign Up Link
                 Center(
                   child: GestureDetector(
                     onTap: () {
-                      Navigator.pushNamed(context, '/sign_up', arguments: widget.userRole);
+                      Navigator.pushNamed(
+                        context,
+                        '/sign_up',
+                        arguments: widget.userRole,
+                      );
                     },
                     child: RichText(
                       text: TextSpan(
@@ -220,7 +254,7 @@ class _LogInScreenState extends State<LogInScreen> {
                     ),
                   ),
                 ),
-                
+
                 SizedBox(height: 24.h.clamp(24, 32)),
               ],
             ),
