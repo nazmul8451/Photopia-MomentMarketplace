@@ -10,6 +10,8 @@ import 'package:photopia/features/client/home_page.dart';
 import 'package:photopia/features/client/favorites_screen.dart';
 import 'package:photopia/features/client/search_screen.dart';
 import 'package:photopia/features/client/notification_screen.dart';
+import 'package:photopia/features/client/edit_profile_screen.dart';
+import 'package:photopia/features/client/view_profile_screen.dart';
 import 'package:photopia/features/common/mode_transition_screen.dart';
 import 'package:photopia/features/onboarding/onboarding_screen.dart';
 import 'package:photopia/features/onboarding/get_started.dart';
@@ -24,6 +26,8 @@ class AppRoutes {
   static const String log_in = LogInScreen.name;
   static const String bottom_navigation = BottomNavigationScreen.name;
   static const String user_profile = UserProfileScreen.name;
+  static const String edit_profile = EditProfileScreen.name;
+  static const String view_profile = ViewProfileScreen.name;
   static const String home = "/home";
   static const String search = SearchScreen.name;
   static const String favorites = FavoritesScreen.name;
@@ -53,6 +57,8 @@ class AppRoutes {
     },
     bottom_navigation: (context) => const BottomNavigationScreen(),
     user_profile: (context) => const UserProfileScreen(),
+    view_profile: (context) => const ViewProfileScreen(),
+    edit_profile: (context) => const EditProfileScreen(),
     home: (context) => const MyHomePage(),
     search: (context) => const SearchScreen(),
     favorites: (context) => const FavoritesScreen(),

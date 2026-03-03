@@ -7,6 +7,7 @@ import 'package:photopia/controller/auth_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/log_out_controller.dart';
 import 'package:photopia/controller/client/user_profile_controller.dart';
+import 'package:photopia/features/client/widgets/auth_profile_image.dart';
 
 class UserProfileScreen extends StatefulWidget {
   static const String name = '/user_profile';
@@ -100,24 +101,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         children: [
           Stack(
             children: [
-              Container(
-                width: 100.w,
-                height: 100.w,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: (imageUrl != null && imageUrl.isNotEmpty)
-                        ? NetworkImage(
-                                imageUrl.startsWith('http')
-                                    ? imageUrl
-                                    : 'https://keecs.com$imageUrl',
-                              )
-                              as ImageProvider // Replace placeholder if necessary later based on domains
-                        : const AssetImage('assets/images/img6.png'),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
+              AuthProfileImage(imageUrl: imageUrl, size: 100.w),
               Positioned(
                 bottom: 0,
                 right: 0,
@@ -172,7 +156,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           SizedBox(height: 20.h),
           GestureDetector(
             onTap: () {
-              // Navigate to Edit Profile
+              Navigator.of(
+                context,
+                rootNavigator: true,
+              ).pushNamed(AppRoutes.view_profile);
             },
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 25.w, vertical: 10.h),
@@ -181,7 +168,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 borderRadius: BorderRadius.circular(10).r,
               ),
               child: Text(
-                'Edit Profile',
+                'View All',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: AppTypography.bodyMedium,

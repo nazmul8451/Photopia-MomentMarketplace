@@ -2,6 +2,7 @@ class UserProfileModel {
   final String? id;
   final String? fullName;
   final String? email;
+  final String? phone;
   final String? profile;
   final String? location;
   final String? role;
@@ -10,6 +11,7 @@ class UserProfileModel {
     this.id,
     this.fullName,
     this.email,
+    this.phone,
     this.profile,
     this.location,
     this.role,
@@ -29,10 +31,11 @@ class UserProfileModel {
 
     return UserProfileModel(
       id: json['_id'],
-      fullName: json['name'],
+      fullName: json['name'] ?? json['fullName'],
       email: json['email'],
+      phone: json['phone'],
       profile: json['profile'],
-      location: tempLocation,
+      location: tempLocation ?? json['location']?.toString(), // Ensure fallback
       role: json['activeRole'] ?? json['role'],
     );
   }
@@ -42,6 +45,7 @@ class UserProfileModel {
       '_id': id,
       'fullName': fullName,
       'email': email,
+      'phone': phone,
       'profile': profile,
       'location': location,
       'role': role,

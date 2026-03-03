@@ -36,4 +36,44 @@ class UserProfileController extends ChangeNotifier {
     _inProgress = false;
     notifyListeners();
   }
+
+  bool _isUpdateInProgress = false;
+  bool get isUpdateInProgress => _isUpdateInProgress;
+
+  Future<bool> updateProfile({
+    String? name,
+    String? phoneNumber,
+    String? location,
+    String? imagePath,
+  }) async {
+    _isUpdateInProgress = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    Map<String, String> fields = {};
+    if (name != null) fields['name'] = name;
+    if (phoneNumber != null) fields['phone'] = phoneNumber;
+    if (location != null) fields['location'] = location;
+
+    NetworkResponse response = await NetworkCaller.multipartRequest(
+      url: Urls.updateUserProfile,
+      method: 'PATCH',
+      fields: fields.isNotEmpty ? fields : null,
+      fileKey: 'images', // API expects 'images' as the multipart field key
+      filePath: imagePath,
+      requireAuth: true,
+    );
+
+    _isUpdateInProgress = false;
+
+    if (response.isSuccess) {
+      // Re-fetch user profile to update the UI with new data
+      await getUserProfile();
+      return true;
+    } else {
+      _errorMessage = response.errorMessage;
+      notifyListeners();
+      return false;
+    }
+  }
 }

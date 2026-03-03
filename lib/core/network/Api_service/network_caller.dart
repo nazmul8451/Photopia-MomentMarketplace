@@ -174,6 +174,58 @@ class NetworkCaller {
     }
   }
 
+  static Future<NetworkResponse> multipartRequest({
+    String? token,
+    required String url,
+    required String method,
+    Map<String, String>? fields,
+    String? fileKey,
+    String? filePath,
+    bool requireAuth = true,
+  }) async {
+    try {
+      final Uri uri = Uri.parse(url);
+
+      final request = MultipartRequest(method, uri);
+
+      // Add headers
+      final Map<String, String> headers = await _getHeaders(
+        requireAuth: requireAuth,
+        token: token,
+        addBearer: true,
+      );
+      request.headers.addAll(headers);
+
+      // Add text fields if any
+      if (fields != null) {
+        request.fields.addAll(fields);
+      }
+
+      // Add file if fileKey and filePath are provided
+      if (fileKey != null && filePath != null && filePath.isNotEmpty) {
+        final file = await MultipartFile.fromPath(fileKey, filePath);
+        request.files.add(file);
+      }
+
+      _logRequest(method, url, fields ?? {}, headers);
+
+      // Send the request
+      final StreamedResponse streamedResponse = await request.send();
+
+      // Convert StreamedResponse to Response to use the existing _handleResponse method
+      final Response response = await Response.fromStream(streamedResponse);
+
+      return _handleResponse(response, url, method);
+    } catch (e) {
+      debugPrint("Multipart request error: $e");
+      return NetworkResponse(
+        isSuccess: false,
+        statusCode: -1,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
   // Logging
   static void _logRequest(
     String method,
