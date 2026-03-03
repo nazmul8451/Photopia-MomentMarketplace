@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:photopia/core/widgets/custom_snacbar.dart';
 import 'package:photopia/controller/client/user_profile_controller.dart';
 import 'package:photopia/core/constants/app_typography.dart';
@@ -43,17 +44,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1024,
-      maxHeight: 1024,
-      imageQuality: 80,
-      requestFullMetadata:
-          false, // Disabling full metadata removes EXIF, forcing image picker to flatten the rotation natively
-    );
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      final targetPath =
+          '${Directory.systemTemp.path}/temp_profile_img_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      final XFile? compressedFile =
+          await FlutterImageCompress.compressAndGetFile(
+            image.path,
+            targetPath,
+            quality: 80,
+            minWidth: 1024,
+            minHeight: 1024,
+            autoCorrectionAngle: true,
+          );
+
       setState(() {
-        _selectedImage = File(image.path);
+        _selectedImage = File(compressedFile?.path ?? image.path);
       });
     }
   }
