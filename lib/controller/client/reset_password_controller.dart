@@ -28,6 +28,8 @@ class ResetPasswordController extends ChangeNotifier {
     NetworkResponse response = await NetworkCaller.postRequest(
       url: Urls.resetPassword,
       body: requestBody,
+      token: token,
+      addBearer: false,
     );
 
     _inProgress = false;

@@ -110,12 +110,14 @@ class NetworkCaller {
     required String url,
     String? token,
     bool requireAuth = true,
+    bool addBearer = true,
   }) async {
     try {
       final Uri uri = Uri.parse(url);
       final Map<String, String> headers = await _getHeaders(
         requireAuth: requireAuth,
         token: token,
+        addBearer: addBearer,
       );
 
       final Response response = await get(uri, headers: headers);
@@ -136,12 +138,14 @@ class NetworkCaller {
     Map<String, dynamic>? body,
     bool requireAuth = true,
     String? token,
+    bool addBearer = true,
   }) async {
     try {
       final Uri uri = Uri.parse(url);
       final Map<String, String> headers = await _getHeaders(
         requireAuth: requireAuth,
         token: token,
+        addBearer: addBearer,
       );
 
       _logRequest("POST", url, body ?? {}, headers);
