@@ -58,6 +58,7 @@ class ViewProfileScreen extends StatelessWidget {
           final String? imageUrl = user.profile;
 
           return SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             padding: EdgeInsets.all(20.w),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -67,7 +68,7 @@ class ViewProfileScreen extends StatelessWidget {
                 SizedBox(height: 30.h),
                 _buildInfoTile(
                   Icons.person_outline,
-                  'Full Name',
+                  'Name',
                   user.fullName ?? 'Not Set',
                 ),
                 _buildInfoTile(

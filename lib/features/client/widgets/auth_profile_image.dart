@@ -62,9 +62,13 @@ class _AuthProfileImageState extends State<AuthProfileImage> {
         token = await storage.read(key: 'access_token');
       }
 
-      final String fullUrl = widget.imageUrl!.startsWith('http')
+      final String baseFullUrl = widget.imageUrl!.startsWith('http')
           ? widget.imageUrl!
           : '${Urls.baseUrl}${widget.imageUrl}';
+
+      // Bypass cache by appending timestamp
+      final String fullUrl =
+          '$baseFullUrl?t=${DateTime.now().millisecondsSinceEpoch}';
 
       final response = await http.get(
         Uri.parse(fullUrl),

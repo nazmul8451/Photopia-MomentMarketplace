@@ -135,6 +135,11 @@ class _LogInScreenState extends State<LogInScreen> {
                           if (mounted) {
                             // Navigate based on user role
                             if (widget.userRole == 'provider') {
+                              CustomSnackBar.show(
+                                context: context,
+                                message: 'Login successful',
+                                isError: false,
+                              );
                               Navigator.pushNamedAndRemoveUntil(
                                 context,
                                 '/provider-bottom-navigation',

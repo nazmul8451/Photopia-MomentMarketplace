@@ -20,15 +20,15 @@ class CustomSnackBar {
         margin: EdgeInsets.only(bottom: 12.h, left: 16.w, right: 16.w),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(
-            100.r,
-          ), // Highly rounded pill shape
+            20.r,
+          ), // Gently rounded rectangle shape
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
               decoration: BoxDecoration(
                 color: const Color.fromARGB(255, 65, 64, 64).withOpacity(0.85),
-                borderRadius: BorderRadius.circular(100.r),
+                borderRadius: BorderRadius.circular(20.r),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.3),
