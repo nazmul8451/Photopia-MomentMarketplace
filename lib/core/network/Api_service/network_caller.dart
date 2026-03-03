@@ -37,28 +37,35 @@ class NetworkCaller {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
     };
-    if (token != null && token.isNotEmpty) {
-      headers['Authorization'] = addBearer ? 'Bearer $token' : token;
-      debugPrint("Auth token added from parameter.");
-    } else if (requireAuth) {
-      // Use AuthController.accessToken as primary source
-      final String? authControllerToken = AuthController.accessToken;
-      if (authControllerToken != null && authControllerToken.isNotEmpty) {
-        headers['Authorization'] = addBearer
-            ? 'Bearer $authControllerToken'
-            : authControllerToken;
-        debugPrint("Auth token added from AuthController.");
-      } else {
-        // Fallback to secure storage
-        const storage = FlutterSecureStorage();
-        final String? storedToken = await storage.read(key: 'access_token');
-        if (storedToken != null && storedToken.isNotEmpty) {
-          headers['Authorization'] = addBearer
-              ? 'Bearer $storedToken'
-              : storedToken;
-          debugPrint("Auth token added from secure storage fallback.");
+
+    String? tokenToUse = token;
+
+    if (tokenToUse == null || tokenToUse.isEmpty) {
+      if (requireAuth) {
+        tokenToUse = AuthController.accessToken;
+        if (tokenToUse == null || tokenToUse.isEmpty) {
+          const storage = FlutterSecureStorage();
+          tokenToUse = await storage.read(key: 'access_token');
         }
       }
+    }
+
+    if (tokenToUse != null && tokenToUse.isNotEmpty) {
+      if (addBearer) {
+        if (!tokenToUse.startsWith('Bearer ')) {
+          headers['Authorization'] = 'Bearer $tokenToUse';
+        } else {
+          headers['Authorization'] = tokenToUse;
+        }
+      } else {
+        // Remove Bearer if it's there but addBearer is false
+        if (tokenToUse.startsWith('Bearer ')) {
+          headers['Authorization'] = tokenToUse.replaceFirst('Bearer ', '');
+        } else {
+          headers['Authorization'] = tokenToUse;
+        }
+      }
+      debugPrint("Auth token added to headers.");
     }
     return headers;
   }

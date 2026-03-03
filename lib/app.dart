@@ -12,6 +12,7 @@ import 'package:photopia/controller/client/log_out_controller.dart';
 import 'package:photopia/controller/client/verify_otp_controller.dart';
 import 'package:photopia/controller/client/forgot_pass_controller.dart';
 import 'package:photopia/controller/client/reset_password_controller.dart';
+import 'package:photopia/controller/client/user_profile_controller.dart';
 import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/features/onboarding/get_started.dart';
 
@@ -36,6 +37,7 @@ class Photopia extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => VerifyOtpController()),
             ChangeNotifierProvider(create: (_) => ForgotPassController()),
             ChangeNotifierProvider(create: (_) => ResetPasswordController()),
+            ChangeNotifierProvider(create: (_) => UserProfileController()),
           ],
           child: MaterialApp(
             debugShowCheckedModeBanner: false,

@@ -7,5 +7,7 @@ class Urls {
   static const String verifyOtp = '$baseUrl/api/v1/auth/verify-account';
   static const String forgotPassword = '$baseUrl/api/v1/auth/forget-password';
   static const String resetPassword = '$baseUrl/api/v1/auth/reset-password';
-
+  //user profile api
+  static const String userProfile = '$baseUrl/api/v1/users/profile';
+  static const String updateUserProfile = '$baseUrl/api/v1/user/profile';//PATCH
 }

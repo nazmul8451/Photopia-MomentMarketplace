@@ -6,10 +6,24 @@ import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/log_out_controller.dart';
+import 'package:photopia/controller/client/user_profile_controller.dart';
 
-class UserProfileScreen extends StatelessWidget {
+class UserProfileScreen extends StatefulWidget {
   static const String name = '/user_profile';
   const UserProfileScreen({super.key});
+
+  @override
+  State<UserProfileScreen> createState() => _UserProfileScreenState();
+}
+
+class _UserProfileScreenState extends State<UserProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<UserProfileController>().getUserProfile();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,24 +55,43 @@ class UserProfileScreen extends StatelessWidget {
           SizedBox(width: 10.w),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildProfileCard(context),
-            SizedBox(height: 20.h),
-            _buildRecentOrders(),
-            SizedBox(height: 20.h),
-            _buildMenuSection(context),
-            SizedBox(height: 30.h),
-            _buildActionButtons(context),
-            SizedBox(height: 100.h), // Spacing for bottom nav
-          ],
-        ),
+      body: Consumer<UserProfileController>(
+        builder: (context, controller, child) {
+          if (controller.inProgress) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final user = controller.userProfile;
+
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildProfileCard(context, user),
+                SizedBox(height: 20.h),
+                _buildRecentOrders(),
+                SizedBox(height: 20.h),
+                _buildMenuSection(context),
+                SizedBox(height: 30.h),
+                _buildActionButtons(context),
+                SizedBox(height: 100.h), // Spacing for bottom nav
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildProfileCard(BuildContext context) {
+  Widget _buildProfileCard(BuildContext context, user) {
+    // Construct valid profile image URL from API format
+    String? imageUrl = user?.profile;
+    if (imageUrl != null && !imageUrl.startsWith('http')) {
+      // Assuming a base URL needs to be prepended, typically something like Urls.baseUrl,
+      // but if api structure just sends /images path, handle fallback or base domain logic here.
+      // E.g 'https://api.example.com' + imageUrl
+      // For now we check if it's usable directly or fallback
+    }
+
     return Container(
       width: double.infinity,
       color: Colors.white,
@@ -70,10 +103,17 @@ class UserProfileScreen extends StatelessWidget {
               Container(
                 width: 100.w,
                 height: 100.w,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   image: DecorationImage(
-                    image: AssetImage('assets/images/img6.png'),
+                    image: (imageUrl != null && imageUrl.isNotEmpty)
+                        ? NetworkImage(
+                                imageUrl.startsWith('http')
+                                    ? imageUrl
+                                    : 'https://keecs.com$imageUrl',
+                              )
+                              as ImageProvider // Replace placeholder if necessary later based on domains
+                        : const AssetImage('assets/images/img6.png'),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -98,7 +138,7 @@ class UserProfileScreen extends StatelessWidget {
           ),
           SizedBox(height: 15.h),
           Text(
-            'John Doe',
+            user?.fullName ?? 'Loading...',
             style: TextStyle(
               fontSize: AppTypography.h1,
               fontWeight: FontWeight.bold,
@@ -106,27 +146,29 @@ class UserProfileScreen extends StatelessWidget {
             ),
           ),
           Text(
-            'john.doe@email.com',
+            user?.email ?? 'Loading...',
             style: TextStyle(
               fontSize: AppTypography.bodyMedium,
               color: Colors.grey,
             ),
           ),
           SizedBox(height: 8.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.location_on, color: Colors.red, size: 14.sp),
-              SizedBox(width: 4.w),
-              Text(
-                'Barcelona, Spain',
+          if (user?.role?.isNotEmpty ?? false)
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+              decoration: BoxDecoration(
+                color: Colors.blue.withAlpha(25),
+                borderRadius: BorderRadius.circular(5).r,
+              ),
+              child: Text(
+                user!.role!.toUpperCase(),
                 style: TextStyle(
-                  fontSize: AppTypography.bodySmall,
-                  color: Colors.grey[600],
+                  color: Colors.blue,
+                  fontSize: 10.sp,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ],
-          ),
+            ),
           SizedBox(height: 20.h),
           GestureDetector(
             onTap: () {
@@ -251,7 +293,7 @@ class UserProfileScreen extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
+                  color: Colors.green.withAlpha(25),
                   borderRadius: BorderRadius.circular(5).r,
                 ),
                 child: Text(
@@ -415,14 +457,17 @@ class UserProfileScreen extends StatelessWidget {
                         final result = await logOutController.logOut('');
 
                         if (result && context.mounted) {
+                          final navigator = Navigator.of(
+                            context,
+                            rootNavigator: true,
+                          );
                           // 1. Clear Local Auth Data
                           await context.read<AuthController>().logoutAndClear();
 
+                          if (!context.mounted) return;
+
                           // 2. Navigate back to login
-                          Navigator.of(
-                            context,
-                            rootNavigator: true,
-                          ).pushNamedAndRemoveUntil(
+                          navigator.pushNamedAndRemoveUntil(
                             '/log_in',
                             (route) => false,
                           );
@@ -434,7 +479,7 @@ class UserProfileScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(15).r,
-                    border: Border.all(color: Colors.red.withOpacity(0.1)),
+                    border: Border.all(color: Colors.red.withAlpha(25)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
