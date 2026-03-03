@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/book_now_SelectPackage_screen.dart';
 import 'package:photopia/features/client/provider_profile_screen.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
 
 class ServiceDetailsScreen extends StatefulWidget {
@@ -32,7 +32,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
               children: [
                 // Top Media Section
                 _buildTopMedia(),
-                
+
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20.w),
                   child: Column(
@@ -41,14 +41,15 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                       SizedBox(height: 20.h),
                       // Title
                       Text(
-                        widget.service['title'] ?? 'Romantic Wedding Photography',
+                        widget.service['title'] ??
+                            'Romantic Wedding Photography',
                         style: TextStyle(
                           fontSize: 20.sp.clamp(20, 22),
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
                         ),
                       ),
-                      
+
                       SizedBox(height: 20.h),
                       // Provider Section
                       Text(
@@ -61,11 +62,11 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                       ),
                       SizedBox(height: 12.h),
                       _buildProviderCard(),
-                      
+
                       SizedBox(height: 20.h),
                       // Stats Row
                       _buildStatsRow(),
-                      
+
                       SizedBox(height: 25.h),
                       // About Section
                       _buildSectionTitle('About'),
@@ -78,29 +79,33 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                           height: 1.5,
                         ),
                       ),
-                      
+
                       SizedBox(height: 25.h),
                       // Equipment Section
                       Row(
                         children: [
-                          Icon(Icons.camera_alt_outlined, size: 20.sp, color: Colors.black87),
+                          Icon(
+                            Icons.camera_alt_outlined,
+                            size: 20.sp,
+                            color: Colors.black87,
+                          ),
                           SizedBox(width: 8.w),
                           _buildSectionTitle('Equipment'),
                         ],
                       ),
                       SizedBox(height: 12.h),
                       _buildEquipmentTags(),
-                      
+
                       SizedBox(height: 25.h),
                       // Portfolio Section
                       _buildSectionTitle('Portfolio'),
                       SizedBox(height: 12.h),
                       _buildPortfolioGrid(),
-                      
+
                       SizedBox(height: 25.h),
                       // Extra Tags Section
                       _buildBottomTags(),
-                      
+
                       SizedBox(height: 120.h), // Space for sticky bottom bar
                     ],
                   ),
@@ -108,14 +113,9 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
               ],
             ),
           ),
-          
+
           // Sticky Bottom Bar
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _buildBottomBar(),
-          ),
+          Positioned(bottom: 0, left: 0, right: 0, child: _buildBottomBar()),
         ],
       ),
     );
@@ -143,10 +143,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
             itemCount: images.length,
             itemBuilder: (context, index) {
               final String path = images[index];
-              return CustomNetworkImage(
-                imageUrl: path,
-                fit: BoxFit.cover,
-              );
+              return CustomNetworkImage(imageUrl: path, fit: BoxFit.cover);
             },
           ),
         ),
@@ -177,7 +174,9 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                 height: 8.w,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _currentPage == index ? Colors.white : Colors.white.withOpacity(0.5),
+                  color: _currentPage == index
+                      ? Colors.white
+                      : Colors.white.withOpacity(0.5),
                 ),
               );
             }),
@@ -199,14 +198,18 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                     color: Colors.white,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.arrow_back, size: 20.sp, color: Colors.black),
+                  child: Icon(
+                    Icons.arrow_back,
+                    size: 20.sp,
+                    color: Colors.black,
+                  ),
                 ),
               ),
               Row(
                 children: [
                   GestureDetector(
                     onTap: () {
-                      if (!GetStorage().hasData('user_token')) {
+                      if (!AuthController.isLoggedIn) {
                         GuestDialogHelper.showGuestDialog(context);
                         return;
                       }
@@ -218,7 +221,11 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                         color: Colors.white,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.bookmark_border, size: 20.sp, color: Colors.black),
+                      child: Icon(
+                        Icons.bookmark_border,
+                        size: 20.sp,
+                        color: Colors.black,
+                      ),
                     ),
                   ),
                   SizedBox(width: 12.w),
@@ -228,7 +235,11 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                       color: Colors.white,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.flag_outlined, size: 20.sp, color: Colors.red),
+                    child: Icon(
+                      Icons.flag_outlined,
+                      size: 20.sp,
+                      color: Colors.red,
+                    ),
                   ),
                 ],
               ),
@@ -277,7 +288,10 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                     ),
                     SizedBox(width: 8.w),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 4.h,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black,
                         borderRadius: BorderRadius.circular(20).r,
@@ -324,13 +338,9 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
   Widget _buildStatsRow() {
     return Row(
       children: [
-        Expanded(
-          child: _buildStatBox('Response Time', '~1 hour'),
-        ),
+        Expanded(child: _buildStatBox('Response Time', '~1 hour')),
         SizedBox(width: 12.w),
-        Expanded(
-          child: _buildStatBox('Completed Projects', '245'),
-        ),
+        Expanded(child: _buildStatBox('Completed Projects', '245')),
       ],
     );
   }
@@ -348,10 +358,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
         children: [
           Text(
             label,
-            style: TextStyle(
-              fontSize: 11.sp.clamp(11, 12),
-              color: Colors.grey,
-            ),
+            style: TextStyle(fontSize: 11.sp.clamp(11, 12), color: Colors.grey),
           ),
           SizedBox(height: 4.h),
           Text(
@@ -379,25 +386,34 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
   }
 
   Widget _buildEquipmentTags() {
-    final tags = ['Canon EOS R5', 'Sony A7 III', 'DJI Mavic 3', 'Professional Lighting'];
+    final tags = [
+      'Canon EOS R5',
+      'Sony A7 III',
+      'DJI Mavic 3',
+      'Professional Lighting',
+    ];
     return Wrap(
       spacing: 8.w,
       runSpacing: 8.h,
-      children: tags.map((tag) => Container(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-        decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(8).r,
-        ),
-        child: Text(
-          tag,
-          style: TextStyle(
-            fontSize: 11.sp.clamp(11, 12),
-            color: Colors.black87,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      )).toList(),
+      children: tags
+          .map(
+            (tag) => Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8).r,
+              ),
+              child: Text(
+                tag,
+                style: TextStyle(
+                  fontSize: 11.sp.clamp(11, 12),
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -426,10 +442,10 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
           itemBuilder: (context, index) {
             final String path = images[index];
             return CustomNetworkImage(
-                imageUrl: path,
-                fit: BoxFit.cover,
-                borderRadius: BorderRadius.circular(12).r,
-              );
+              imageUrl: path,
+              fit: BoxFit.cover,
+              borderRadius: BorderRadius.circular(12).r,
+            );
           },
         ),
       ],
@@ -437,25 +453,31 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
   }
 
   Widget _buildBottomTags() {
-    final tags = widget.service['tags'] as List<String>? ?? ['#Wedding', '#Outdoor', '#Candid', '#Portrait'];
+    final tags =
+        widget.service['tags'] as List<String>? ??
+        ['#Wedding', '#Outdoor', '#Candid', '#Portrait'];
     return Wrap(
       spacing: 8.w,
       runSpacing: 8.h,
-      children: tags.map((tag) => Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-        decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(20).r,
-        ),
-        child: Text(
-          tag.startsWith('#') ? tag : '#$tag',
-          style: TextStyle(
-            fontSize: 12.sp.clamp(12, 13),
-            color: Colors.black87,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      )).toList(),
+      children: tags
+          .map(
+            (tag) => Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(20).r,
+              ),
+              child: Text(
+                tag.startsWith('#') ? tag : '#$tag',
+                style: TextStyle(
+                  fontSize: 12.sp.clamp(12, 13),
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -476,7 +498,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
         children: [
           GestureDetector(
             onTap: () {
-              if (!GetStorage().hasData('user_token')) {
+              if (!AuthController.isLoggedIn) {
                 GuestDialogHelper.showGuestDialog(context);
                 return;
               }
@@ -500,7 +522,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
           Expanded(
             child: GestureDetector(
               onTap: () {
-                if (!GetStorage().hasData('user_token')) {
+                if (!AuthController.isLoggedIn) {
                   GuestDialogHelper.showGuestDialog(context);
                   return;
                 }

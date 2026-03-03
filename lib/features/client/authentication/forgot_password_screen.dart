@@ -3,10 +3,12 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/controller/client/forgot_pass_controller.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   static const String name = '/forgot_password';
-  
+
   const ForgotPasswordScreen({super.key});
 
   @override
@@ -29,14 +31,29 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     });
   }
 
-  void _sendResetLink() {
+  Future<void> _sendResetLink() async {
     if (_isEmailValid) {
-      // TODO: Implement send reset link logic
-      Navigator.pushNamed(
-        context,
-        '/otp_verification',
-        arguments: _emailController.text,
+      final forgotPassController = context.read<ForgotPassController>();
+      final result = await forgotPassController.forgotPassword(
+        _emailController.text,
       );
+
+      if (result && mounted) {
+        Navigator.pushNamed(
+          context,
+          '/otp_verification',
+          arguments: _emailController.text,
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              forgotPassController.errorMessage ?? 'Something went wrong',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -52,7 +69,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 SizedBox(height: 16.h.clamp(16, 20)),
-                
+
                 // Back Button
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
@@ -62,9 +79,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     color: Colors.black,
                   ),
                 ),
-                
+
                 SizedBox(height: 32.h.clamp(32, 40)),
-                
+
                 // Title
                 Text(
                   'Forget Password',
@@ -74,9 +91,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     color: Colors.black,
                   ),
                 ),
-                
+
                 SizedBox(height: 12.h.clamp(12, 16)),
-                
+
                 // Subtitle
                 Text(
                   'Enter your email address and we will send\nyou a reset instructions.',
@@ -86,9 +103,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     height: 1.5,
                   ),
                 ),
-                
+
                 SizedBox(height: 32.h.clamp(32, 40)),
-                
+
                 // Email Field
                 AuthTextField(
                   label: 'Email',
@@ -98,18 +115,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   onChanged: _validateEmail,
                   keyboardType: TextInputType.emailAddress,
                 ),
-                
+
                 SizedBox(height: 32.h.clamp(32, 40)),
-                
+
                 // Send Button
-                AuthButton(
-                  text: 'Send',
-                  onTap: _sendResetLink,
-                  isEnabled: _isEmailValid,
+                Consumer<ForgotPassController>(
+                  builder: (context, forgotPassController, child) {
+                    return AuthButton(
+                      text: 'Send',
+                      onTap: _sendResetLink,
+                      isEnabled: _isEmailValid,
+                      isLoading: forgotPassController.inProgress,
+                    );
+                  },
                 ),
-                
+
                 SizedBox(height: 16.h.clamp(16, 20)),
-                
+
                 // Resend Link
                 Center(
                   child: GestureDetector(

@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/onboarding/onboarding_screen.dart';
 
 class RoleSelectionScreen extends StatefulWidget {
+  static const String name = '/role_selection';
   const RoleSelectionScreen({super.key});
 
   @override
@@ -11,8 +12,6 @@ class RoleSelectionScreen extends StatefulWidget {
 
 class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   String _selectedRole = 'client';
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -53,13 +52,10 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               Text(
                 'Select your role to get started',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: Colors.grey,
-                ),
+                style: TextStyle(fontSize: 14.sp, color: Colors.grey),
               ),
               SizedBox(height: 40.h),
-              
+
               // Client Box
               _buildRoleBox(
                 id: 'client',
@@ -73,14 +69,15 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const OnboardingScreen(userRole: 'client'),
+                      builder: (context) =>
+                          const OnboardingScreen(userRole: 'client'),
                     ),
                   );
                 },
               ),
-              
+
               SizedBox(height: 20.h),
-              
+
               // Professional Box
               _buildRoleBox(
                 id: 'professional',
@@ -94,7 +91,8 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const OnboardingScreen(userRole: 'provider'),
+                      builder: (context) =>
+                          const OnboardingScreen(userRole: 'provider'),
                     ),
                   );
                 },
@@ -175,7 +173,9 @@ class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? Colors.blue : Colors.grey.withOpacity(0.3),
+                  color: isSelected
+                      ? Colors.blue
+                      : Colors.grey.withOpacity(0.3),
                   width: isSelected ? 6 : 2,
                 ),
               ),

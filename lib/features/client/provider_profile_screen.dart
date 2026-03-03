@@ -6,7 +6,7 @@ import 'package:photopia/features/client/widgets/service_card.dart';
 import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
 
 class ProviderProfileScreen extends StatefulWidget {
@@ -61,8 +61,9 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
         actions: [
           Consumer<FavoritesController>(
             builder: (context, controller, child) {
-              bool isFavorite = controller
-                  .isProviderFavorite(widget.provider['name'] ?? '');
+              bool isFavorite = controller.isProviderFavorite(
+                widget.provider['name'] ?? '',
+              );
               return IconButton(
                 icon: Icon(
                   isFavorite ? Icons.bookmark : Icons.bookmark_border,
@@ -70,7 +71,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                   size: 24.sp,
                 ),
                 onPressed: () {
-                   if (!GetStorage().hasData('user_token')) {
+                  if (!AuthController.isLoggedIn) {
                     GuestDialogHelper.showGuestDialog(context);
                     return;
                   }
@@ -99,9 +100,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                   width: double.infinity,
                   decoration: const BoxDecoration(
                     image: DecorationImage(
-                      image: AssetImage(
-                        'assets/images/img5.png',
-                      ),
+                      image: AssetImage('assets/images/img5.png'),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -120,7 +119,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                     ),
                   ),
                 ),
-                
+
                 // Floating Glassmorphism Profile Card
                 Positioned(
                   bottom: -5.h,
@@ -141,10 +140,10 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                 ),
               ],
             ),
-            
+
             // Padding for the overlapping stats cards
             SizedBox(height: 100.h),
-            
+
             // TabBar and Content
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -199,8 +198,9 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2.5.w),
                       image: DecorationImage(
-                        image: AssetImage(widget.provider['avatar'] ??
-                            'assets/images/img6.png'),
+                        image: AssetImage(
+                          widget.provider['avatar'] ?? 'assets/images/img6.png',
+                        ),
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -240,7 +240,11 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.stars, color: Colors.white, size: 12.sp),
+                              Icon(
+                                Icons.stars,
+                                color: Colors.white,
+                                size: 12.sp,
+                              ),
                               SizedBox(width: 6.w),
                               Text(
                                 'Premium',
@@ -253,8 +257,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                             ],
                           ),
                         ),
-                          SizedBox(height: 15.h),
-
+                        SizedBox(height: 15.h),
                       ],
                     ),
                   ),
@@ -356,10 +359,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
         dividerColor: Colors.transparent,
         tabs: [
           Tab(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text('Portfolio'),
-            ),
+            child: FittedBox(fit: BoxFit.scaleDown, child: Text('Portfolio')),
           ),
           Tab(
             child: FittedBox(
@@ -368,10 +368,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
             ),
           ),
           Tab(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text('About'),
-            ),
+            child: FittedBox(fit: BoxFit.scaleDown, child: Text('About')),
           ),
         ],
       ),
@@ -499,7 +496,14 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                         Row(
                           children: [
                             Row(
-                              children: List.generate(5, (i) => Icon(Icons.star, color: Colors.orange, size: 14.sp)),
+                              children: List.generate(
+                                5,
+                                (i) => Icon(
+                                  Icons.star,
+                                  color: Colors.orange,
+                                  size: 14.sp,
+                                ),
+                              ),
                             ),
                             SizedBox(width: 8.w),
                             Text(

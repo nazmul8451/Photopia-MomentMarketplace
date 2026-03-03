@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/log_out_controller.dart';
 
 class UserProfileScreen extends StatelessWidget {
+  static const String name = '/user_profile';
   const UserProfileScreen({super.key});
 
   @override

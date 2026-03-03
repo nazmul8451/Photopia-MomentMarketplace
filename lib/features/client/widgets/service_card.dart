@@ -6,7 +6,7 @@ import 'package:photopia/features/client/service_details_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
 
 class ServiceCard extends StatelessWidget {
@@ -80,8 +80,9 @@ class ServiceCard extends StatelessWidget {
                 AspectRatio(
                   aspectRatio: 1.1, // Fixed aspect ratio for the image
                   child: ClipRRect(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(16).r),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(16).r,
+                    ),
                     child: CustomNetworkImage(
                       imageUrl: imageUrl,
                       fit: BoxFit.cover,
@@ -93,8 +94,10 @@ class ServiceCard extends StatelessWidget {
                     top: 8.h,
                     left: 8.w,
                     child: Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 6.w,
+                        vertical: 3.h,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.7),
                         borderRadius: BorderRadius.circular(20).r,
@@ -123,7 +126,7 @@ class ServiceCard extends StatelessWidget {
                       bool isFavorite = controller.isPostFavorite(title);
                       return GestureDetector(
                         onTap: () {
-                           if (!GetStorage().hasData('user_token')) {
+                          if (!AuthController.isLoggedIn) {
                             GuestDialogHelper.showGuestDialog(context);
                             return;
                           }
@@ -159,7 +162,9 @@ class ServiceCard extends StatelessWidget {
                                 ],
                               ),
                               child: Icon(
-                                isFavorite ? Icons.favorite : Icons.favorite_border,
+                                isFavorite
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
                                 color: Colors.red,
                                 size: 18.sp.clamp(18, 20),
                               ),
@@ -206,7 +211,11 @@ class ServiceCard extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        Icon(Icons.star, color: Colors.orange, size: 12.sp.clamp(12, 13)),
+                        Icon(
+                          Icons.star,
+                          color: Colors.orange,
+                          size: 12.sp.clamp(12, 13),
+                        ),
                         SizedBox(width: 4.w),
                         Text(
                           rating.toString(),
@@ -232,21 +241,25 @@ class ServiceCard extends StatelessWidget {
                       runSpacing: 4.h,
                       children: tags
                           .take(2)
-                          .map((tag) => Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 4.w, vertical: 2.h),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(4).r,
+                          .map(
+                            (tag) => Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 4.w,
+                                vertical: 2.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(4).r,
+                              ),
+                              child: Text(
+                                '#$tag',
+                                style: TextStyle(
+                                  fontSize: 9.sp.clamp(9, 10),
+                                  color: Colors.grey[700],
                                 ),
-                                child: Text(
-                                  '#$tag',
-                                  style: TextStyle(
-                                    fontSize: 9.sp.clamp(9, 10),
-                                    color: Colors.grey[700],
-                                  ),
-                                ),
-                              ))
+                              ),
+                            ),
+                          )
                           .toList(),
                     ),
                     Text(

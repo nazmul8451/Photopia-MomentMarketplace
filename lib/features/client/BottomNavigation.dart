@@ -6,9 +6,9 @@ import 'package:photopia/features/client/user_profile_screen.dart';
 import 'package:photopia/features/client/favorites_screen.dart';
 import 'package:photopia/features/client/messages_screen.dart';
 import 'package:photopia/features/client/search_screen.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:photopia/features/client/authentication/log_in_screen.dart';
 import 'package:photopia/features/client/authentication/sign_up_screen.dart';
+import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
 
 class BottomNavigationScreen extends StatefulWidget {
@@ -35,15 +35,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
     // Guest check for restricted tabs: Messages (1), Favorites (3)
     // Profile (4) is now accessible to guests with restricted functionality
     if (index == 1 || index == 3 || index == 4) {
-      final box = GetStorage();
-      // Assume guest if no user_token or explicitly is_guest (adjust key as needed)
-      // For this flow, we bypassed auth, so usually no token.
-      final hasToken = box.hasData('user_token'); 
-      // NOTE: Since we completely bypassed auth in the new flow, 'user_token' might not be set.
-      // If you have a specific 'is_guest' flag, use that. 
-      // For now, let's assume if 'user_token' is missing, they are a guest.
-      
-      if (!hasToken) {
+      if (!AuthController.isLoggedIn) {
         GuestDialogHelper.showGuestDialog(context);
         return;
       }
@@ -78,14 +70,14 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
 
           //now i change this screen when client change any UI so i update that
           _buildTabNavigator(2, const SearchScreen()),
-          //now i change this screen when client change any UI so i update that
 
+          //now i change this screen when client change any UI so i update that
           _buildTabNavigator(3, const FavoritesScreen()),
           _buildTabNavigator(4, const UserProfileScreen()),
         ],
       ),
       bottomNavigationBar: isKeyboardVisible
-          ? const SizedBox.            shrink() // Completely hide when keyboard is open
+          ? const SizedBox.shrink() // Completely hide when keyboard is open
           : Container(
               color: Colors.white,
               child: SafeArea(
@@ -147,9 +139,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
     return Navigator(
       key: _navigatorKeys[index],
       onGenerateRoute: (routeSettings) {
-        return MaterialPageRoute(
-          builder: (context) => rootPage,
-        );
+        return MaterialPageRoute(builder: (context) => rootPage);
       },
     );
   }
@@ -168,11 +158,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white, width: 4),
           ),
-          child: const Icon(
-            Icons.search,
-            color: Colors.grey,
-            size: 28,
-          ),
+          child: const Icon(Icons.search, color: Colors.grey, size: 28),
         ),
       ),
     );

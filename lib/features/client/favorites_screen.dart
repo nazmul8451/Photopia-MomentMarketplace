@@ -7,13 +7,15 @@ import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:provider/provider.dart';
 
 class FavoritesScreen extends StatefulWidget {
+  static const String name = '/favorites';
   const FavoritesScreen({super.key});
 
   @override
   State<FavoritesScreen> createState() => _FavoritesScreenState();
 }
 
-class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProviderStateMixin {
+class _FavoritesScreenState extends State<FavoritesScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isLoading = true;
 
@@ -49,10 +51,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
             Expanded(
               child: TabBarView(
                 controller: _tabController,
-                children: [
-                  _buildPostsList(),
-                  _buildProvidersList(),
-                ],
+                children: [_buildPostsList(), _buildProvidersList()],
               ),
             ),
           ],
@@ -107,7 +106,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> with SingleTickerProv
           ),
           Consumer<FavoritesController>(
             builder: (context, controller, child) {
-              return Tab(text: 'Providers (${controller.favoriteProviders.length})');
+              return Tab(
+                text: 'Providers (${controller.favoriteProviders.length})',
+              );
             },
           ),
         ],

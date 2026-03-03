@@ -31,27 +31,31 @@ class NetworkCaller {
   static Future<Map<String, String>> _getHeaders({
     bool requireAuth = true,
     String? token,
+    bool addBearer = true,
   }) async {
     final Map<String, String> headers = {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
     };
-
     if (token != null && token.isNotEmpty) {
-      headers['Authorization'] = 'Bearer $token';
+      headers['Authorization'] = addBearer ? 'Bearer $token' : token;
       debugPrint("Auth token added from parameter.");
     } else if (requireAuth) {
       // Use AuthController.accessToken as primary source
       final String? authControllerToken = AuthController.accessToken;
       if (authControllerToken != null && authControllerToken.isNotEmpty) {
-        headers['Authorization'] = 'Bearer $authControllerToken';
+        headers['Authorization'] = addBearer
+            ? 'Bearer $authControllerToken'
+            : authControllerToken;
         debugPrint("Auth token added from AuthController.");
       } else {
         // Fallback to secure storage
         const storage = FlutterSecureStorage();
         final String? storedToken = await storage.read(key: 'access_token');
         if (storedToken != null && storedToken.isNotEmpty) {
-          headers['Authorization'] = 'Bearer $storedToken';
+          headers['Authorization'] = addBearer
+              ? 'Bearer $storedToken'
+              : storedToken;
           debugPrint("Auth token added from secure storage fallback.");
         }
       }

@@ -55,10 +55,13 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               content: Text('Verification successful! Please log in.'),
             ),
           );
-          Navigator.pushNamedAndRemoveUntil(
+          Navigator.pushNamed(
             context,
-            '/log_in',
-            (route) => false,
+            '/new_password',
+            arguments: {
+              'email': widget.email,
+              'token': verifyOtpController.resetToken,
+            },
           );
         }
       } else {

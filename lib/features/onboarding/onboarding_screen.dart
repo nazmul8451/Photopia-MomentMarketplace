@@ -5,8 +5,9 @@ import 'package:photopia/features/client/BottomNavigation.dart';
 import 'package:get_storage/get_storage.dart';
 
 class OnboardingScreen extends StatefulWidget {
+  static const String name = '/onboarding';
   final String userRole; // 'client' or 'provider'
-  
+
   const OnboardingScreen({super.key, this.userRole = 'client'});
 
   @override
@@ -20,27 +21,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final List<Map<String, String>> _onboardingData = [
     {
       'title': 'Find Top Photography & Video Professionals',
-      'description': 'Connect with thousands of talented photographers and videographers for any occasion',
+      'description':
+          'Connect with thousands of talented photographers and videographers for any occasion',
       'image': 'assets/images/onboard_container1.png',
     },
     {
       'title': 'Browse & Discover Creative Services',
-      'description': 'Explore an inspiring feed of stunning portfolios and find the perfect match for your project',
+      'description':
+          'Explore an inspiring feed of stunning portfolios and find the perfect match for your project',
       'image': 'assets/images/onboard_container2.png',
     },
     {
       'title': 'Book & Collaborate Seamlessly',
-      'description': 'Chat in real-time, schedule sessions, and manage everything from one simple platform',
+      'description':
+          'Chat in real-time, schedule sessions, and manage everything from one simple platform',
       'image': 'assets/images/onboard_container3.png',
     },
     {
       'title': 'Secure & Transparent Payments',
-      'description': 'All payments are protected with bank-level security. No unexpected fees, no hidden charges',
+      'description':
+          'All payments are protected with bank-level security. No unexpected fees, no hidden charges',
       'image': 'assets/images/onboard_container5.png',
     },
     {
       'title': 'Premium Quality, Trusted Results',
-      'description': 'Read reviews, check ratings, and hire verified professionals with confidence',
+      'description':
+          'Read reviews, check ratings, and hire verified professionals with confidence',
       'image': 'assets/images/onboard_container4.png',
     },
   ];
@@ -65,7 +71,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 },
               ),
             ),
-            
+
             // Fixed Bottom Section (Dots + Button)
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 20.h),
@@ -97,7 +103,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const BottomNavigationScreen(),
+                            builder: (context) =>
+                                const BottomNavigationScreen(),
                           ),
                           (route) => false,
                         );
@@ -105,7 +112,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     },
                     child: Container(
                       width: double.infinity,
-                      height:  50.h.clamp(50, 50),
+                      height: 50.h.clamp(50, 50),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1E1E1E),
                         borderRadius: BorderRadius.circular(28).r,
@@ -122,17 +129,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            _currentPage == _onboardingData.length - 1 
-                              ? 'Get Started' 
-                              : 'Next',
+                            _currentPage == _onboardingData.length - 1
+                                ? 'Get Started'
+                                : 'Next',
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 16.sp.clamp(16,17),
+                              fontSize: 16.sp.clamp(16, 17),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           SizedBox(width: 8.w),
-                          Icon(Icons.arrow_forward_ios, size: 12.sp, color: Colors.white),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 12.sp,
+                            color: Colors.white,
+                          ),
                         ],
                       ),
                     ),
@@ -178,9 +189,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ),
-          
+
           SizedBox(height: 60.h),
-          
+
           // Text Content Section (Fixed Flex)
           Expanded(
             flex: 5,

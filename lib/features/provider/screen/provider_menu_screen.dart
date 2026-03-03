@@ -6,6 +6,8 @@ import 'package:photopia/features/provider/screen/provider_subscription_screen.d
 import 'package:photopia/features/provider/screen/provider_profile_screen.dart';
 import 'package:photopia/features/provider/screen/provider_wallet_screen.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
+import 'package:photopia/controller/client/log_out_controller.dart';
+import 'package:provider/provider.dart';
 
 class ProviderMenuScreen extends StatelessWidget {
   const ProviderMenuScreen({super.key});
@@ -23,15 +25,15 @@ class ProviderMenuScreen extends StatelessWidget {
                 // Profile Section
                 _buildProfileSection(context),
                 SizedBox(height: 16.h.clamp(12, 20)),
-                
+
                 // Stats Grid
                 _buildStatsGrid(),
                 SizedBox(height: 16.h.clamp(12, 20)),
-                
+
                 // Premium Member Card
                 _buildPremiumCard(context),
                 SizedBox(height: 16.h.clamp(12, 20)),
-                
+
                 // Menu Items
                 _buildMenuItem(
                   icon: Icons.payment,
@@ -46,7 +48,7 @@ class ProviderMenuScreen extends StatelessWidget {
                   },
                 ),
                 SizedBox(height: 12.h.clamp(8, 16)),
-                
+
                 _buildMenuItem(
                   icon: Icons.bar_chart,
                   title: 'Detailed Statistics',
@@ -54,14 +56,14 @@ class ProviderMenuScreen extends StatelessWidget {
                   onTap: () {},
                 ),
                 SizedBox(height: 12.h.clamp(8, 16)),
-                
+
                 _buildMenuItem(
                   icon: Icons.settings,
                   title: 'Account Settings',
                   onTap: () {},
                 ),
                 SizedBox(height: 12.h.clamp(8, 16)),
-                
+
                 _buildMenuItem(
                   icon: Icons.notifications_outlined,
                   title: 'Notifications',
@@ -69,22 +71,22 @@ class ProviderMenuScreen extends StatelessWidget {
                   onTap: () {},
                 ),
                 SizedBox(height: 12.h.clamp(8, 16)),
-                
+
                 _buildMenuItem(
                   icon: Icons.help_outline,
                   title: 'Help & Support',
                   onTap: () {},
                 ),
                 SizedBox(height: 24.h.clamp(20, 28)),
-                
+
                 // Switch to Client Button
                 _buildSwitchButton(context),
                 SizedBox(height: 12.h.clamp(8, 16)),
-                
+
                 // Sign Out Button
-                _buildSignOutButton(),
+                _buildSignOutButton(context),
                 SizedBox(height: 16.h.clamp(12, 20)),
-                
+
                 // App Version
                 Text(
                   'Photopia Pro v1.0.4',
@@ -118,9 +120,7 @@ class ProviderMenuScreen extends StatelessWidget {
               Container(
                 width: 60.w.clamp(55, 65),
                 height: 60.w.clamp(55, 65),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                ),
+                decoration: const BoxDecoration(shape: BoxShape.circle),
                 child: CustomNetworkImage(
                   imageUrl: 'assets/images/img8.jpg',
                   shape: BoxShape.circle,
@@ -150,7 +150,10 @@ class ProviderMenuScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 6.h),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 4.h,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black,
                         borderRadius: BorderRadius.circular(14.r),
@@ -158,10 +161,7 @@ class ProviderMenuScreen extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            '👑',
-                            style: TextStyle(fontSize: 10.sp),
-                          ),
+                          Text('👑', style: TextStyle(fontSize: 10.sp)),
                           SizedBox(width: 4.w),
                           Text(
                             'Premium',
@@ -364,7 +364,7 @@ class ProviderMenuScreen extends StatelessWidget {
             ),
           ),
           SizedBox(height: 12.h.clamp(10, 14)),
-            SizedBox(
+          SizedBox(
             width: double.infinity,
             height: 48.h.clamp(44, 52),
             child: OutlinedButton(
@@ -492,7 +492,11 @@ class ProviderMenuScreen extends StatelessWidget {
           ),
           elevation: 0,
         ),
-        icon: Icon(Icons.camera_alt, size: 20.sp.clamp(18, 22), color: Colors.white),
+        icon: Icon(
+          Icons.camera_alt,
+          size: 20.sp.clamp(18, 22),
+          color: Colors.white,
+        ),
         label: Text(
           'Switch to Client',
           style: TextStyle(
@@ -505,12 +509,22 @@ class ProviderMenuScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSignOutButton() {
+  Widget _buildSignOutButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       height: 48.h.clamp(44, 52),
       child: OutlinedButton.icon(
-        onPressed: () {},
+        onPressed: () async {
+          final logOutController = context.read<LogOutController>();
+          final result = await logOutController.logOut("dummy_token");
+          if (result && context.mounted) {
+            Navigator.pushNamedAndRemoveUntil(
+              context,
+              AppRoutes.log_in,
+              (route) => false,
+            );
+          }
+        },
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Colors.red, width: 1.5),
           shape: RoundedRectangleBorder(

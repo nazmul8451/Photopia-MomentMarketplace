@@ -6,12 +6,13 @@ import 'package:photopia/features/client/BottomNavigation.dart';
 import 'package:photopia/features/onboarding/onboarding_screen.dart';
 
 class GetStartedScreen extends StatelessWidget {
+  static const String name = '/get_started';
   const GetStartedScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     final box = GetStorage();
-    
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -29,7 +30,7 @@ class GetStartedScreen extends StatelessWidget {
                   height: 50.h,
                   fit: BoxFit.contain,
                 ),
-                SizedBox(height: 50.h,),              // Button
+                SizedBox(height: 50.h), // Button
                 // Subtitle
                 Text(
                   'Connect with the world\'s best\nphotography & video professionals',
@@ -41,17 +42,18 @@ class GetStartedScreen extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                SizedBox(height: 50.h,),              // Button
+                SizedBox(height: 50.h), // Button
                 GestureDetector(
                   onTap: () {
                     // Check if first time user
                     bool isFirstTime = box.read('is_first_time') ?? true;
-                    
+
                     if (isFirstTime) {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const OnboardingScreen(userRole: 'client'),
+                          builder: (context) =>
+                              const OnboardingScreen(userRole: 'client'),
                         ),
                       );
                     } else {
@@ -60,12 +62,12 @@ class GetStartedScreen extends StatelessWidget {
                         MaterialPageRoute(
                           builder: (context) => const BottomNavigationScreen(),
                         ),
-                         (route) => false,
+                        (route) => false,
                       );
                     }
                   },
                   child: Container(
-                    width:200.w,
+                    width: 200.w,
                     height: AppSizes.fieldHeight,
                     decoration: BoxDecoration(
                       color: const Color(0xFF1A1A1A),

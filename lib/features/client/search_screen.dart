@@ -6,6 +6,7 @@ import 'package:photopia/features/client/widgets/category_bar.dart';
 import 'package:photopia/features/client/widgets/search_header.dart';
 
 class SearchScreen extends StatefulWidget {
+  static const String name = '/search';
   const SearchScreen({super.key});
 
   @override
