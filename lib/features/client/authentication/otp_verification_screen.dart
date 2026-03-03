@@ -5,6 +5,7 @@ import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/verify_otp_controller.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
   static const String name = '/otp_verification';
@@ -50,10 +51,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
       if (result) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Verification successful! Please log in.'),
-            ),
+          CustomSnackBar.show(
+            context: context,
+            message: 'Verification successful! Please log in.',
+            isError: false,
           );
           Navigator.pushNamed(
             context,
@@ -66,12 +67,10 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                verifyOtpController.errorMessage ?? 'Verification failed',
-              ),
-            ),
+          CustomSnackBar.show(
+            context: context,
+            message: verifyOtpController.errorMessage ?? 'Verification failed',
+            isError: true,
           );
         }
       }

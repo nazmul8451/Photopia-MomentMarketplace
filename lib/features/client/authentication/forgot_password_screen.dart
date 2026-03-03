@@ -5,6 +5,7 @@ import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/forgot_pass_controller.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   static const String name = '/forgot_password';
@@ -45,13 +46,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           arguments: _emailController.text,
         );
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              forgotPassController.errorMessage ?? 'Something went wrong',
-            ),
-            backgroundColor: Colors.red,
-          ),
+        CustomSnackBar.show(
+          context: context,
+          message: forgotPassController.errorMessage ?? 'Something went wrong',
+          isError: true,
         );
       }
     }

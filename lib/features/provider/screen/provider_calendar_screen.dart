@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:intl/intl.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
 
 class ProviderCalendarScreen extends StatefulWidget {
   const ProviderCalendarScreen({super.key});
@@ -17,8 +18,12 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
 
   // Automation Settings State
   String _selectedPricingModel = 'By Hour';
-  final TextEditingController _defaultRateController = TextEditingController(text: '100');
-  final TextEditingController _weekendRateController = TextEditingController(text: '120');
+  final TextEditingController _defaultRateController = TextEditingController(
+    text: '100',
+  );
+  final TextEditingController _weekendRateController = TextEditingController(
+    text: '120',
+  );
   List<String> _blockedDays = [];
 
   @override
@@ -73,7 +78,11 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.settings_outlined, color: Colors.black, size: 24.sp),
+            icon: Icon(
+              Icons.settings_outlined,
+              color: Colors.black,
+              size: 24.sp,
+            ),
             onPressed: () {},
           ),
           SizedBox(width: 8.w),
@@ -184,17 +193,19 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-              .map((day) => Expanded(
-                    child: Text(
-                      day,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: AppTypography.bodySmall,
-                        color: Colors.grey[400],
-                        fontWeight: FontWeight.w500,
-                      ),
+              .map(
+                (day) => Expanded(
+                  child: Text(
+                    day,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: AppTypography.bodySmall,
+                      color: Colors.grey[400],
+                      fontWeight: FontWeight.w500,
                     ),
-                  ))
+                  ),
+                ),
+              )
               .toList(),
         ),
         SizedBox(height: 10.h),
@@ -222,11 +233,15 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
   }
 
   Widget _buildCalendarGrid() {
-    final daysInMonth = DateTime(_currentDate.year, _currentDate.month + 1, 0).day;
+    final daysInMonth = DateTime(
+      _currentDate.year,
+      _currentDate.month + 1,
+      0,
+    ).day;
     final firstDayOfMonth = DateTime(_currentDate.year, _currentDate.month, 1);
     // Adjusted weekday: (firstDayOfMonth.weekday - 1) makes Mon=0, Sun=6
     final firstWeekday = firstDayOfMonth.weekday - 1;
-    
+
     final totalItems = daysInMonth + firstWeekday;
     final rowCount = (totalItems / 7).ceil();
     final gridItems = rowCount * 7;
@@ -243,11 +258,12 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
       itemBuilder: (context, index) {
         int dayNum = index - firstWeekday + 1;
         if (dayNum < 1 || dayNum > daysInMonth) return const SizedBox();
-        
-        bool isSelected = _selectedDate?.day == dayNum && 
-                         _selectedDate?.month == _currentDate.month && 
-                         _selectedDate?.year == _currentDate.year;
-        
+
+        bool isSelected =
+            _selectedDate?.day == dayNum &&
+            _selectedDate?.month == _currentDate.month &&
+            _selectedDate?.year == _currentDate.year;
+
         // Mocked indicators for demonstration
         bool hasBlocked = dayNum == 21;
         bool hasPending = dayNum == 22;
@@ -255,7 +271,11 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
         return GestureDetector(
           onTap: () {
             setState(() {
-              _selectedDate = DateTime(_currentDate.year, _currentDate.month, dayNum);
+              _selectedDate = DateTime(
+                _currentDate.year,
+                _currentDate.month,
+                dayNum,
+              );
             });
           },
           child: Container(
@@ -324,7 +344,10 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
               Expanded(
                 child: Text(
                   title,
-                  style: TextStyle(fontSize: AppTypography.bodyLarge, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: AppTypography.bodyLarge,
+                    fontWeight: FontWeight.bold,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -351,7 +374,13 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
             children: [
               Icon(Icons.person_outline, size: 14.sp, color: Colors.grey),
               SizedBox(width: 5.w),
-              Text(client, style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.grey)),
+              Text(
+                client,
+                style: TextStyle(
+                  fontSize: AppTypography.bodySmall,
+                  color: Colors.grey,
+                ),
+              ),
             ],
           ),
           SizedBox(height: 8.h),
@@ -363,14 +392,27 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                   children: [
                     Icon(Icons.access_time, size: 14.sp, color: Colors.grey),
                     SizedBox(width: 5.w),
-                    Text(time, style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.grey)),
+                    Text(
+                      time,
+                      style: TextStyle(
+                        fontSize: AppTypography.bodySmall,
+                        color: Colors.grey,
+                      ),
+                    ),
                     SizedBox(width: 15.w),
-                    Icon(Icons.location_on_outlined, size: 14.sp, color: Colors.grey),
+                    Icon(
+                      Icons.location_on_outlined,
+                      size: 14.sp,
+                      color: Colors.grey,
+                    ),
                     SizedBox(width: 5.w),
                     Expanded(
                       child: Text(
                         location,
-                        style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: AppTypography.bodySmall,
+                          color: Colors.grey,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -380,7 +422,10 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
               SizedBox(width: 10.w),
               Text(
                 cost,
-                style: TextStyle(fontSize: AppTypography.bodyLarge, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: AppTypography.bodyLarge,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -410,7 +455,10 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                   Flexible(
                     child: Text(
                       'Automation Settings',
-                      style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: AppTypography.h2,
+                        fontWeight: FontWeight.bold,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -421,11 +469,23 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                 ],
               ),
               SizedBox(height: 15.h),
-              Text('Block Days', style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.grey[700])),
+              Text(
+                'Block Days',
+                style: TextStyle(
+                  fontSize: AppTypography.bodyMedium,
+                  color: Colors.grey[700],
+                ),
+              ),
               SizedBox(height: 8.h),
               _buildBlockDaysDropdown(),
               SizedBox(height: 15.h),
-              Text('Pricing Model', style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.grey[700])),
+              Text(
+                'Pricing Model',
+                style: TextStyle(
+                  fontSize: AppTypography.bodyMedium,
+                  color: Colors.grey[700],
+                ),
+              ),
               SizedBox(height: 10.h),
               Row(
                 children: [
@@ -437,18 +497,32 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                 ],
               ),
               SizedBox(height: 15.h),
-              Text('Default Rate (\$/hour)', style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.grey[700])),
+              Text(
+                'Default Rate (\$/hour)',
+                style: TextStyle(
+                  fontSize: AppTypography.bodyMedium,
+                  color: Colors.grey[700],
+                ),
+              ),
               SizedBox(height: 8.h),
               _buildEditableRateField(_defaultRateController),
               SizedBox(height: 15.h),
-              Text('Weekend Rate (\$/hour)', style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.grey[700])),
+              Text(
+                'Weekend Rate (\$/hour)',
+                style: TextStyle(
+                  fontSize: AppTypography.bodyMedium,
+                  color: Colors.grey[700],
+                ),
+              ),
               SizedBox(height: 8.h),
               _buildEditableRateField(_weekendRateController),
               SizedBox(height: 20.h),
               ElevatedButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Settings saved successfully!')),
+                  CustomSnackBar.show(
+                    context: context,
+                    message: 'Settings saved successfully!',
+                    isError: false,
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -458,7 +532,13 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                     borderRadius: BorderRadius.circular(10.r),
                   ),
                 ),
-                child: Text('Save Settings', style: TextStyle(color: Colors.white, fontSize: AppTypography.bodyLarge)),
+                child: Text(
+                  'Save Settings',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: AppTypography.bodyLarge,
+                  ),
+                ),
               ),
             ],
           ),
@@ -466,33 +546,43 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
         SizedBox(height: 30.h),
         // Day Labels for Week View
         Row(
-           mainAxisAlignment: MainAxisAlignment.spaceAround,
-           children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-               .map((day) => Expanded(
-                     child: Text(
-                       day,
-                       textAlign: TextAlign.center,
-                       style: TextStyle(
-                         fontSize: 12.sp,
-                         color: Colors.grey[400],
-                         fontWeight: FontWeight.w500,
-                       ),
-                     ),
-                   ))
-               .toList(),
-         ),
-         SizedBox(height: 10.h),
-         Row(
-           mainAxisAlignment: MainAxisAlignment.spaceAround,
-           children: List.generate(7, (index) => _buildWeekDayItem(index + 1)),
-         ),
-         SizedBox(height: 20.h),
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+              .map(
+                (day) => Expanded(
+                  child: Text(
+                    day,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: Colors.grey[400],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+        SizedBox(height: 10.h),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(7, (index) => _buildWeekDayItem(index + 1)),
+        ),
+        SizedBox(height: 20.h),
       ],
     );
   }
 
   Widget _buildBlockDaysDropdown() {
-    final allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final allDays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 15.w),
       decoration: BoxDecoration(
@@ -504,8 +594,13 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
         child: DropdownButton<String>(
           isExpanded: true,
           hint: Text(
-            _blockedDays.isEmpty ? 'Select days to block' : _blockedDays.join(', '),
-            style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.grey[600]),
+            _blockedDays.isEmpty
+                ? 'Select days to block'
+                : _blockedDays.join(', '),
+            style: TextStyle(
+              fontSize: AppTypography.bodyMedium,
+              color: Colors.grey[600],
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -516,7 +611,10 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                 builder: (context, setSubState) {
                   bool isChecked = _blockedDays.contains(day);
                   return CheckboxListTile(
-                    title: Text(day, style: TextStyle(fontSize: AppTypography.bodyLarge)),
+                    title: Text(
+                      day,
+                      style: TextStyle(fontSize: AppTypography.bodyLarge),
+                    ),
                     value: isChecked,
                     onChanged: (val) {
                       setState(() {
@@ -550,7 +648,9 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
           decoration: BoxDecoration(
             color: isSelected ? Colors.black : Colors.white,
             borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(color: isSelected ? Colors.black : Colors.grey[300]!),
+            border: Border.all(
+              color: isSelected ? Colors.black : Colors.grey[300]!,
+            ),
           ),
           child: FittedBox(
             fit: BoxFit.scaleDown,
@@ -585,7 +685,10 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
           isDense: true,
           contentPadding: EdgeInsets.symmetric(vertical: 12),
         ),
-        style: TextStyle(fontSize: AppTypography.bodyLarge, color: Colors.black),
+        style: TextStyle(
+          fontSize: AppTypography.bodyLarge,
+          color: Colors.black,
+        ),
       ),
     );
   }
@@ -605,7 +708,10 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
           children: [
             Text(
               dayOffset.toString(),
-              style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: AppTypography.h2,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             SizedBox(height: 5.h),
             const SizedBox(height: 12),
@@ -653,8 +759,10 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
           ),
           itemCount: 12,
           itemBuilder: (context, index) {
-            String monthName = DateFormat('MMMM').format(DateTime(_currentDate.year, index + 1));
-            
+            String monthName = DateFormat(
+              'MMMM',
+            ).format(DateTime(_currentDate.year, index + 1));
+
             return GestureDetector(
               onTap: () {
                 setState(() {
@@ -682,13 +790,20 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                   children: [
                     Text(
                       monthName,
-                      style: TextStyle(fontSize: AppTypography.bodyLarge, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: AppTypography.bodyLarge,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                    if (index == 11) ...[ // Mock example for December
+                    if (index == 11) ...[
+                      // Mock example for December
                       SizedBox(height: 5.h),
                       Text(
                         '2 bookings',
-                        style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.grey[400]),
+                        style: TextStyle(
+                          fontSize: AppTypography.bodySmall,
+                          color: Colors.grey[400],
+                        ),
                       ),
                     ],
                   ],
@@ -702,8 +817,13 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
     );
   }
 
-  void _showSetAvailabilityDialog(BuildContext context, {required DateTime date}) {
-    final TextEditingController rateController = TextEditingController(text: _defaultRateController.text);
+  void _showSetAvailabilityDialog(
+    BuildContext context, {
+    required DateTime date,
+  }) {
+    final TextEditingController rateController = TextEditingController(
+      text: _defaultRateController.text,
+    );
     bool isUnavailable = false;
 
     showDialog(
@@ -727,69 +847,123 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                   children: [
                     Text(
                       'Set Availability',
-                      style: TextStyle(fontSize: AppTypography.h1, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: AppTypography.h1,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     GestureDetector(
                       onTap: () => Navigator.pop(context),
-                      child: Icon(Icons.close, size: 24.sp, color: Colors.black),
+                      child: Icon(
+                        Icons.close,
+                        size: 24.sp,
+                        color: Colors.black,
+                      ),
                     ),
                   ],
                 ),
                 SizedBox(height: 20.h),
-                Text('Date', style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.grey[700])),
+                Text(
+                  'Date',
+                  style: TextStyle(
+                    fontSize: AppTypography.bodyMedium,
+                    color: Colors.grey[700],
+                  ),
+                ),
                 SizedBox(height: 8.h),
                 _buildDropdown(DateFormat('EEE MMM dd yyyy').format(date)),
                 SizedBox(height: 15.h),
-                Text('Hourly Rate (\$/)', style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.grey[700])),
+                Text(
+                  'Hourly Rate (\$/)',
+                  style: TextStyle(
+                    fontSize: AppTypography.bodyMedium,
+                    color: Colors.grey[700],
+                  ),
+                ),
                 SizedBox(height: 8.h),
                 _buildEditableRateField(rateController),
                 SizedBox(height: 15.h),
-                Text('Available Hours', style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.grey[700])),
+                Text(
+                  'Available Hours',
+                  style: TextStyle(
+                    fontSize: AppTypography.bodyMedium,
+                    color: Colors.grey[700],
+                  ),
+                ),
                 SizedBox(height: 8.h),
                 Row(
                   children: [
-                    Expanded(child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('From', style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.grey)),
-                        SizedBox(height: 4.h),
-                        _buildTextField('09:00 AM'),
-                      ],
-                    )),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'From',
+                            style: TextStyle(
+                              fontSize: AppTypography.bodySmall,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          _buildTextField('09:00 AM'),
+                        ],
+                      ),
+                    ),
                     SizedBox(width: 15.w),
-                    Expanded(child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('To', style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.grey)),
-                        SizedBox(height: 4.h),
-                        _buildTextField('05:00 PM'),
-                      ],
-                    )),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'To',
+                            style: TextStyle(
+                              fontSize: AppTypography.bodySmall,
+                              color: Colors.grey,
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          _buildTextField('05:00 PM'),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
                 SizedBox(height: 15.h),
                 GestureDetector(
-                  onTap: () => setDialogState(() => isUnavailable = !isUnavailable),
+                  onTap: () =>
+                      setDialogState(() => isUnavailable = !isUnavailable),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Mark as unavailable', style: TextStyle(fontSize: AppTypography.bodyLarge, fontWeight: FontWeight.w500)),
+                      Text(
+                        'Mark as unavailable',
+                        style: TextStyle(
+                          fontSize: AppTypography.bodyLarge,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                       Container(
                         width: 20.w,
                         height: 20.w,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: isUnavailable ? Colors.black : Colors.grey[400]!),
+                          border: Border.all(
+                            color: isUnavailable
+                                ? Colors.black
+                                : Colors.grey[400]!,
+                          ),
                         ),
                         child: Center(
-                          child: isUnavailable ? Container(
-                            width: 10.w,
-                            height: 10.w,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.black,
-                            ),
-                          ) : null,
+                          child: isUnavailable
+                              ? Container(
+                                  width: 10.w,
+                                  height: 10.w,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.black,
+                                  ),
+                                )
+                              : null,
                         ),
                       ),
                     ],
@@ -808,7 +982,13 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                             borderRadius: BorderRadius.circular(10.r),
                           ),
                         ),
-                        child: Text('Cancel', style: TextStyle(color: Colors.black, fontSize: AppTypography.bodyLarge)),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: AppTypography.bodyLarge,
+                          ),
+                        ),
                       ),
                     ),
                     SizedBox(width: 15.w),
@@ -816,8 +996,11 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Availability set for ${DateFormat('MMM dd').format(date)}')),
+                          CustomSnackBar.show(
+                            context: context,
+                            message:
+                                'Availability set for ${DateFormat('MMM dd').format(date)}',
+                            isError: false,
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -827,7 +1010,13 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                             borderRadius: BorderRadius.circular(10.r),
                           ),
                         ),
-                        child: Text('Save', style: TextStyle(color: Colors.white, fontSize: 14.sp)),
+                        child: Text(
+                          'Save',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14.sp,
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -852,7 +1041,10 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(text, style: TextStyle(fontSize: 13.sp, color: Colors.grey[600])),
+          Text(
+            text,
+            style: TextStyle(fontSize: 13.sp, color: Colors.grey[600]),
+          ),
           Icon(Icons.keyboard_arrow_down, size: 20.sp, color: Colors.grey),
         ],
       ),
@@ -868,8 +1060,10 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
         borderRadius: BorderRadius.circular(10.r),
         border: Border.all(color: Colors.grey[200]!),
       ),
-      child: Text(value, style: TextStyle(fontSize: 14.sp, color: Colors.black)),
+      child: Text(
+        value,
+        style: TextStyle(fontSize: 14.sp, color: Colors.black),
+      ),
     );
   }
 }
-

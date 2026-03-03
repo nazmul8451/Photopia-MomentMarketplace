@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
+import 'package:http_parser/http_parser.dart';
 import 'package:photopia/controller/auth_controller.dart';
 
 class NetworkResponse {
@@ -174,6 +175,41 @@ class NetworkCaller {
     }
   }
 
+  // PATCH Request (JSON body, no file)
+  static Future<NetworkResponse> patchRequest({
+    required String url,
+    Map<String, dynamic>? body,
+    bool requireAuth = true,
+    String? token,
+    bool addBearer = true,
+  }) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      final Map<String, String> headers = await _getHeaders(
+        requireAuth: requireAuth,
+        token: token,
+        addBearer: addBearer,
+      );
+
+      _logRequest("PATCH", url, body ?? {}, headers);
+
+      final Response response = await patch(
+        uri,
+        headers: headers,
+        body: body != null ? jsonEncode(body) : null,
+      );
+
+      return _handleResponse(response, url, "PATCH");
+    } catch (e) {
+      debugPrint("PATCH request error: $e");
+      return NetworkResponse(
+        isSuccess: false,
+        statusCode: -1,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
   static Future<NetworkResponse> multipartRequest({
     String? token,
     required String url,
@@ -188,13 +224,23 @@ class NetworkCaller {
 
       final request = MultipartRequest(method, uri);
 
-      // Add headers
-      final Map<String, String> headers = await _getHeaders(
-        requireAuth: requireAuth,
-        token: token,
-        addBearer: true,
-      );
-      request.headers.addAll(headers);
+      // Add ONLY auth headers — NOT Content-Type.
+      // The http package sets Content-Type: multipart/form-data with boundary automatically.
+      // If we set Content-Type: application/json here, it will break the multipart boundary.
+      String? tokenToUse = token;
+      if (tokenToUse == null || tokenToUse.isEmpty) {
+        tokenToUse = AuthController.accessToken;
+        if (tokenToUse == null || tokenToUse.isEmpty) {
+          const storage = FlutterSecureStorage();
+          tokenToUse = await storage.read(key: 'access_token');
+        }
+      }
+      if (tokenToUse != null && tokenToUse.isNotEmpty) {
+        request.headers['Authorization'] = tokenToUse.startsWith('Bearer ')
+            ? tokenToUse
+            : 'Bearer $tokenToUse';
+      }
+      request.headers['Accept'] = 'application/json';
 
       // Add text fields if any
       if (fields != null) {
@@ -202,15 +248,25 @@ class NetworkCaller {
       }
 
       // Add file if fileKey and filePath are provided
-      if (fileKey != null && filePath != null && filePath.isNotEmpty) {
-        final file = await MultipartFile.fromPath(fileKey, filePath);
-        request.files.add(file);
+      if (filePath != null && filePath.isNotEmpty && fileKey != null) {
+        request.files.add(
+          await MultipartFile.fromPath(
+            fileKey,
+            filePath,
+            contentType: MediaType(
+              'image',
+              'jpeg',
+            ), // Adding this is crucial for Node.js backends
+          ),
+        );
       }
 
-      _logRequest(method, url, fields ?? {}, headers);
+      _logRequest(method, url, fields ?? {}, request.headers);
 
-      // Send the request
-      final StreamedResponse streamedResponse = await request.send();
+      // Send the request with a timeout
+      final StreamedResponse streamedResponse = await request.send().timeout(
+        const Duration(seconds: 15),
+      );
 
       // Convert StreamedResponse to Response to use the existing _handleResponse method
       final Response response = await Response.fromStream(streamedResponse);

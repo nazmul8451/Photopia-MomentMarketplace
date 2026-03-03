@@ -5,6 +5,7 @@ import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/reset_password_controller.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
 
 class NewPasswordScreen extends StatefulWidget {
   static const String name = '/new_password';
@@ -57,21 +58,18 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
       );
 
       if (result && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Password reset successfully! Please log in.'),
-            backgroundColor: Colors.green,
-          ),
+        CustomSnackBar.show(
+          context: context,
+          message: 'Password reset successfully! Please log in.',
+          isError: false,
         );
         Navigator.pushNamedAndRemoveUntil(context, '/log_in', (route) => false);
       } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
+        CustomSnackBar.show(
+          context: context,
+          message:
               resetPassController.errorMessage ?? 'Failed to reset password',
-            ),
-            backgroundColor: Colors.red,
-          ),
+          isError: true,
         );
       }
     }

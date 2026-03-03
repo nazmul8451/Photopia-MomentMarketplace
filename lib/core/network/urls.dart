@@ -9,5 +9,7 @@ class Urls {
   static const String resetPassword = '$baseUrl/api/v1/auth/reset-password';
   //user profile api
   static const String userProfile = '$baseUrl/api/v1/users/profile';
-  static const String updateUserProfile = '$baseUrl/api/v1/user/profile';//PATCH
+  static const String updateUserProfile =
+      '$baseUrl/api/v1/users/profile'; // PATCH FOR UPDATE PROFILE
+
 }

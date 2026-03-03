@@ -50,24 +50,42 @@ class UserProfileController extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    Map<String, String> fields = {};
-    if (name != null) fields['name'] = name;
-    if (phoneNumber != null) fields['phone'] = phoneNumber;
-    if (location != null) fields['location'] = location;
+    NetworkResponse response;
 
-    NetworkResponse response = await NetworkCaller.multipartRequest(
-      url: Urls.updateUserProfile,
-      method: 'PATCH',
-      fields: fields.isNotEmpty ? fields : null,
-      fileKey: 'images', // API expects 'images' as the multipart field key
-      filePath: imagePath,
-      requireAuth: true,
-    );
+    if (imagePath != null && imagePath.isNotEmpty) {
+      debugPrint(
+        "UserProfileController: Updating WITH image (Multipart). Path: $imagePath",
+      );
+      // Has image — use multipart form-data
+      Map<String, String> fields = {};
+      if (name != null) fields['name'] = name;
+      if (phoneNumber != null) fields['phone'] = phoneNumber;
+
+      response = await NetworkCaller.multipartRequest(
+        url: Urls.updateUserProfile,
+        method: 'PATCH',
+        fields: fields.isNotEmpty ? fields : null,
+        fileKey: 'images',
+        filePath: imagePath,
+        requireAuth: true,
+      );
+    } else {
+      debugPrint("UserProfileController: Updating WITHOUT image (JSON PATCH).");
+      // No image — use plain JSON PATCH
+      Map<String, dynamic> body = {};
+      if (name != null) body['name'] = name;
+      if (phoneNumber != null) body['phone'] = phoneNumber;
+
+      response = await NetworkCaller.patchRequest(
+        url: Urls.updateUserProfile,
+        body: body,
+        requireAuth: true,
+      );
+    }
 
     _isUpdateInProgress = false;
 
     if (response.isSuccess) {
-      // Re-fetch user profile to update the UI with new data
       await getUserProfile();
       return true;
     } else {

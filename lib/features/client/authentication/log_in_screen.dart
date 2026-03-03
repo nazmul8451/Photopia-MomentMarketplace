@@ -5,6 +5,7 @@ import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/sign_in_controller.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
 
 class LogInScreen extends StatefulWidget {
   static const String name = '/log_in';
@@ -117,12 +118,10 @@ class _LogInScreenState extends State<LogInScreen> {
                       isLoading: signInController.inProgress,
                       onTap: () async {
                         if (!_isEmailValid || !_isPasswordValid) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Please enter valid email and password',
-                              ),
-                            ),
+                          CustomSnackBar.show(
+                            context: context,
+                            message: 'Please enter valid email and password',
+                            isError: true,
                           );
                           return;
                         }
@@ -151,13 +150,12 @@ class _LogInScreenState extends State<LogInScreen> {
                           }
                         } else {
                           if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
+                            CustomSnackBar.show(
+                              context: context,
+                              message:
                                   signInController.errorMessage ??
-                                      'Login failed',
-                                ),
-                              ),
+                                  'Login failed',
+                              isError: true,
                             );
                           }
                         }

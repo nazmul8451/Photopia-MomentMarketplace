@@ -5,6 +5,7 @@ import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/sign_up_controller.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
 
 class SignUpScreen extends StatefulWidget {
   static const String name = '/sign_up';
@@ -120,10 +121,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         if (!_isNameValid ||
                             !_isEmailValid ||
                             !_isPasswordValid) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Please fill all fields correctly'),
-                            ),
+                          CustomSnackBar.show(
+                            context: context,
+                            message: 'Please fill all fields correctly',
+                            isError: true,
                           );
                           return;
                         }
@@ -144,13 +145,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           }
                         } else {
                           if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
+                            CustomSnackBar.show(
+                              context: context,
+                              message:
                                   signUpController.errorMessage ??
-                                      'Registration failed',
-                                ),
-                              ),
+                                  'Registration failed',
+                              isError: true,
                             );
                           }
                         }

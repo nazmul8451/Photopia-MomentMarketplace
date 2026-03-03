@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
 import 'package:photopia/controller/client/user_profile_controller.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/client/widgets/auth_profile_image.dart';
@@ -42,7 +43,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 80,
+      requestFullMetadata:
+          false, // Disabling full metadata removes EXIF, forcing image picker to flatten the rotation natively
+    );
     if (image != null) {
       setState(() {
         _selectedImage = File(image.path);
@@ -64,16 +72,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (mounted) {
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully!')),
+        CustomSnackBar.show(
+          context: context,
+          message: 'Profile updated successfully!',
+          isError: false,
         );
         Navigator.pop(context);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(controller.errorMessage ?? 'Update failed'),
-            backgroundColor: Colors.red,
-          ),
+        CustomSnackBar.show(
+          context: context,
+          message: controller.errorMessage ?? 'Update failed',
+          isError: true,
         );
       }
     }
@@ -160,7 +169,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   SizedBox(height: 40.h),
                   _buildTextField(
                     controller: _nameController,
-                    label: 'Full Name',
+                    label: 'Name',
                     icon: Icons.person_outline,
                     validator: (value) =>
                         value!.isEmpty ? 'Please enter your name' : null,
@@ -223,6 +232,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       validator: validator,
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: TextStyle(
+          color: Colors.grey,
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w500,
+        ),
         prefixIcon: Icon(icon, color: Colors.grey),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(15).r,
