@@ -43,6 +43,7 @@ class _AuthProfileImageState extends State<AuthProfileImage> {
 
   Future<void> _fetchImage() async {
     if (widget.imageUrl == null || widget.imageUrl!.isEmpty) {
+      if (!mounted) return;
       setState(() {
         _loading = false;
         _hasError = true;
@@ -50,6 +51,7 @@ class _AuthProfileImageState extends State<AuthProfileImage> {
       return;
     }
 
+    if (!mounted) return;
     setState(() {
       _loading = true;
       _hasError = false;
@@ -82,17 +84,20 @@ class _AuthProfileImageState extends State<AuthProfileImage> {
       );
 
       if (response.statusCode == 200) {
+        if (!mounted) return;
         setState(() {
           _imageBytes = response.bodyBytes;
           _loading = false;
         });
       } else {
+        if (!mounted) return;
         setState(() {
           _loading = false;
           _hasError = true;
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _loading = false;
         _hasError = true;

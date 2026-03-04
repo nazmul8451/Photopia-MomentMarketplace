@@ -479,7 +479,7 @@ class ProviderMenuScreen extends StatelessWidget {
           Navigator.of(context, rootNavigator: true).push(
             MaterialPageRoute(
               builder: (context) => const ModeTransitionScreen(
-                targetRole: 'client',
+                targetRole: 'user',
                 targetRoute: AppRoutes.bottom_navigation,
               ),
             ),

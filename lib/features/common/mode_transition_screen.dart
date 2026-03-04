@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:async';
+import 'package:photopia/controller/client/role_switch_controller.dart';
+import 'package:provider/provider.dart';
 
 class ModeTransitionScreen extends StatefulWidget {
   final String targetRole; // 'client' or 'provider'
@@ -16,7 +18,8 @@ class ModeTransitionScreen extends StatefulWidget {
   State<ModeTransitionScreen> createState() => _ModeTransitionScreenState();
 }
 
-class _ModeTransitionScreenState extends State<ModeTransitionScreen> with SingleTickerProviderStateMixin {
+class _ModeTransitionScreenState extends State<ModeTransitionScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _rotationAnimation;
@@ -24,15 +27,21 @@ class _ModeTransitionScreenState extends State<ModeTransitionScreen> with Single
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
 
     _scaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween<double>(begin: 1.0, end: 1.15), weight: 50),
-      TweenSequenceItem(tween: Tween<double>(begin: 1.15, end: 1.0), weight: 50),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.0, end: 1.15),
+        weight: 50,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.15, end: 1.0),
+        weight: 50,
+      ),
     ]).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     _rotationAnimation = Tween<double>(
@@ -42,15 +51,25 @@ class _ModeTransitionScreenState extends State<ModeTransitionScreen> with Single
 
     _controller.repeat(reverse: true); // Flip back and forth
 
-    // Simulate loading and then navigate
+    // Start API call
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final roleController = context.read<RoleSwitchController>();
+      final success = await roleController.switchRole(widget.targetRole);
 
-    Timer(const Duration(seconds: 2), () {
-      if (mounted) {
+      if (success && mounted) {
         Navigator.pushNamedAndRemoveUntil(
           context,
           widget.targetRoute,
           (route) => false,
         );
+      } else if (mounted) {
+        // Handle failure - maybe show a message or go back
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to switch role. Please try again.'),
+          ),
+        );
+        Navigator.pop(context);
       }
     });
   }
@@ -63,8 +82,8 @@ class _ModeTransitionScreenState extends State<ModeTransitionScreen> with Single
 
   @override
   Widget build(BuildContext context) {
-    String message = widget.targetRole == 'provider' 
-        ? 'Switching to professional mode' 
+    String message = widget.targetRole == 'provider'
+        ? 'Switching to professional mode'
         : 'Switching to client mode';
 
     return Scaffold(
@@ -104,10 +123,13 @@ class _ModeTransitionScreenState extends State<ModeTransitionScreen> with Single
             SizedBox(height: 8.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(3, (index) => Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4.w),
-                child: _LoadingDot(delay: index * 0.2),
-              )),
+              children: List.generate(
+                3,
+                (index) => Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4.w),
+                  child: _LoadingDot(delay: index * 0.2),
+                ),
+              ),
             ),
           ],
         ),
@@ -124,7 +146,8 @@ class _LoadingDot extends StatefulWidget {
   State<_LoadingDot> createState() => _LoadingDotState();
 }
 
-class _LoadingDotState extends State<_LoadingDot> with SingleTickerProviderStateMixin {
+class _LoadingDotState extends State<_LoadingDot>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -136,9 +159,10 @@ class _LoadingDotState extends State<_LoadingDot> with SingleTickerProviderState
       duration: const Duration(milliseconds: 600),
     );
 
-    _animation = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: 0.3,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
     Future.delayed(Duration(milliseconds: (widget.delay * 1000).toInt()), () {
       if (mounted) {

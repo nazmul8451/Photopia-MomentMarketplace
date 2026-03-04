@@ -106,11 +106,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               color: Color(0xFF1A1A1A),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.person_outline,
-              color: Colors.white,
-              size: 14.sp,
-            ),
+            child: Icon(Icons.person_outline, color: Colors.white, size: 14.sp),
           ),
           SizedBox(height: 15.h),
           Text(
@@ -402,7 +398,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               Navigator.of(context, rootNavigator: true).push(
                 MaterialPageRoute(
                   builder: (context) => const ModeTransitionScreen(
-                    targetRole: 'provider',
+                    targetRole: 'professional',
                     targetRoute: AppRoutes.provider_bottom_navigation,
                   ),
                 ),
