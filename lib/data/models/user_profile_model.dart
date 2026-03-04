@@ -6,6 +6,8 @@ class UserProfileModel {
   final String? profile;
   final String? location;
   final String? role;
+  final String? description;
+  final String? specialty;
 
   UserProfileModel({
     this.id,
@@ -15,6 +17,8 @@ class UserProfileModel {
     this.profile,
     this.location,
     this.role,
+    this.description,
+    this.specialty,
   });
 
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +41,8 @@ class UserProfileModel {
       profile: json['profile'],
       location: tempLocation ?? json['location']?.toString(), // Ensure fallback
       role: json['activeRole'] ?? json['role'],
+      description: json['description'],
+      specialty: json['specialty'],
     );
   }
 
@@ -49,6 +55,8 @@ class UserProfileModel {
       'profile': profile,
       'location': location,
       'role': role,
+      'description': description,
+      'specialty': specialty,
     };
   }
 }

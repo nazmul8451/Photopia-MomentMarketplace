@@ -22,6 +22,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _locationController;
+  late TextEditingController _emailController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _specialtyController;
 
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
@@ -33,6 +36,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController = TextEditingController(text: profile?.fullName ?? '');
     _phoneController = TextEditingController(text: profile?.phone ?? '');
     _locationController = TextEditingController(text: profile?.location ?? '');
+    _emailController = TextEditingController(text: profile?.email ?? '');
+    _descriptionController = TextEditingController(
+      text: profile?.description ?? '',
+    );
+    _specialtyController = TextEditingController(
+      text: profile?.specialty ?? '',
+    );
   }
 
   @override
@@ -40,6 +50,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _nameController.dispose();
     _phoneController.dispose();
     _locationController.dispose();
+    _emailController.dispose();
+    _descriptionController.dispose();
+    _specialtyController.dispose();
     super.dispose();
   }
 
@@ -74,6 +87,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       name: _nameController.text.trim(),
       phoneNumber: _phoneController.text.trim(),
       location: _locationController.text.trim(),
+      email: _emailController.text.trim(),
+      description: _descriptionController.text.trim(),
+      specialty: _specialtyController.text.trim(),
       imagePath: _selectedImage?.path,
     );
 
@@ -193,6 +209,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     label: 'Location',
                     icon: Icons.location_on_outlined,
                   ),
+                  SizedBox(height: 20.h),
+                  _buildTextField(
+                    controller: _emailController,
+                    label: 'Email',
+                    icon: Icons.email_outlined,
+                    validator: (value) {
+                      if (value != null && value.isNotEmpty) {
+                        if (!RegExp(
+                          r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                        ).hasMatch(value)) {
+                          return 'Please enter a valid email';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 20.h),
+                  _buildTextField(
+                    controller: _specialtyController,
+                    label: 'Specialty',
+                    icon: Icons.star_border_outlined,
+                  ),
+                  SizedBox(height: 20.h),
+                  _buildTextField(
+                    controller: _descriptionController,
+                    label: 'Description',
+                    icon: Icons.description_outlined,
+                    maxLines: 3,
+                  ),
                   SizedBox(height: 40.h),
                   SizedBox(
                     width: double.infinity,
@@ -233,10 +278,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     required String label,
     required IconData icon,
     String? Function(String?)? validator,
+    int maxLines = 1,
   }) {
     return TextFormField(
       controller: controller,
       validator: validator,
+      maxLines: maxLines,
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(

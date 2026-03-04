@@ -12,4 +12,7 @@ class Urls {
   static const String updateUserProfile =
       '$baseUrl/api/v1/users/profile'; // PATCH FOR UPDATE PROFILE
 
+      //Role api
+  static const String role = '$baseUrl/api/v1/users/switch-role';
+
 }

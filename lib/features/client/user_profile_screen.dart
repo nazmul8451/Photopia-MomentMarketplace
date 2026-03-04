@@ -99,26 +99,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       padding: EdgeInsets.symmetric(vertical: 30.h),
       child: Column(
         children: [
-          Stack(
-            children: [
-              AuthProfileImage(imageUrl: imageUrl, size: 100.w),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  padding: EdgeInsets.all(6.w),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF1A1A1A),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.person_outline,
-                    color: Colors.white,
-                    size: 14.sp,
-                  ),
-                ),
-              ),
-            ],
+          AuthProfileImage(imageUrl: imageUrl, size: 100.w),
+          Container(
+            padding: EdgeInsets.all(6.w),
+            decoration: const BoxDecoration(
+              color: Color(0xFF1A1A1A),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.person_outline,
+              color: Colors.white,
+              size: 14.sp,
+            ),
           ),
           SizedBox(height: 15.h),
           Text(
@@ -137,20 +129,31 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
           ),
           SizedBox(height: 8.h),
-          if (user?.role?.isNotEmpty ?? false)
+          if (user?.location?.isNotEmpty ?? false)
             Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
               decoration: BoxDecoration(
                 color: Colors.blue.withAlpha(25),
-                borderRadius: BorderRadius.circular(5).r,
+                borderRadius: BorderRadius.circular(15).r,
               ),
-              child: Text(
-                user!.role!.toUpperCase(),
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontSize: 10.sp,
-                  fontWeight: FontWeight.bold,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.location_on_outlined,
+                    color: Colors.blue,
+                    size: 14.sp,
+                  ),
+                  SizedBox(width: 4.w),
+                  Text(
+                    user!.location!,
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
           SizedBox(height: 20.h),

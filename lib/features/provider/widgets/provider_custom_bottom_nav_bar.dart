@@ -48,7 +48,7 @@ class ProviderCustomBottomNavBar extends StatelessWidget {
                 ),
                 _buildNavItem(
                   iconAsset: 'assets/images/overview_icon.png',
-                  label: 'Overview',
+                  label: 'Listing',
                   index: 2,
                 ),
                 _buildNavItem(

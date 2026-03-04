@@ -87,6 +87,16 @@ class ViewProfileScreen extends StatelessWidget {
                   user.location ?? 'Not Set',
                 ),
                 _buildInfoTile(
+                  Icons.star_border_outlined,
+                  'Specialty',
+                  user.specialty ?? 'Not Set',
+                ),
+                _buildInfoTile(
+                  Icons.description_outlined,
+                  'Description',
+                  user.description ?? 'Not Set',
+                ),
+                _buildInfoTile(
                   Icons.work_outline,
                   'Role',
                   user.role?.toUpperCase() ?? 'USER',

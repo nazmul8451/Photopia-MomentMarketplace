@@ -44,6 +44,9 @@ class UserProfileController extends ChangeNotifier {
     String? name,
     String? phoneNumber,
     String? location,
+    String? email,
+    String? description,
+    String? specialty,
     String? imagePath,
   }) async {
     _isUpdateInProgress = true;
@@ -60,6 +63,9 @@ class UserProfileController extends ChangeNotifier {
       Map<String, String> fields = {};
       if (name != null) fields['name'] = name;
       if (phoneNumber != null) fields['phone'] = phoneNumber;
+      if (email != null) fields['email'] = email;
+      if (description != null) fields['description'] = description;
+      if (specialty != null) fields['specialty'] = specialty;
 
       response = await NetworkCaller.multipartRequest(
         url: Urls.updateUserProfile,
@@ -75,6 +81,9 @@ class UserProfileController extends ChangeNotifier {
       Map<String, dynamic> body = {};
       if (name != null) body['name'] = name;
       if (phoneNumber != null) body['phone'] = phoneNumber;
+      if (email != null) body['email'] = email;
+      if (description != null) body['description'] = description;
+      if (specialty != null) body['specialty'] = specialty;
 
       response = await NetworkCaller.patchRequest(
         url: Urls.updateUserProfile,
