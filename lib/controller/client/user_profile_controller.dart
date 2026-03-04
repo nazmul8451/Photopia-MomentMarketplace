@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/network/Api_service/network_caller.dart';
 import 'package:photopia/core/network/urls.dart';
 import 'package:photopia/data/models/user_profile_model.dart';
@@ -28,6 +29,9 @@ class UserProfileController extends ChangeNotifier {
       final data = response.body?['data'];
       if (data != null) {
         _userProfile = UserProfileModel.fromJson(data);
+        if (_userProfile?.role != null) {
+          await AuthController.saveUserRole(_userProfile!.role!);
+        }
       }
     } else {
       _errorMessage = response.errorMessage;

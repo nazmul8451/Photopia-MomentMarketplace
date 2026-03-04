@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/network/Api_service/network_caller.dart';
 import 'package:photopia/core/network/urls.dart';
 
@@ -19,6 +20,7 @@ class RoleSwitchController extends ChangeNotifier {
       notifyListeners();
 
       if (response.isSuccess) {
+        await AuthController.saveUserRole(targetRole);
         return true;
       } else {
         debugPrint("RoleSwitchController Error: ${response.errorMessage}");

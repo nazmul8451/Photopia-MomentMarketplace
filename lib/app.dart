@@ -16,6 +16,7 @@ import 'package:photopia/controller/client/user_profile_controller.dart';
 import 'package:photopia/controller/client/role_switch_controller.dart';
 import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/features/onboarding/get_started.dart';
+import 'package:photopia/features/provider/screen/BottomNavigationBar/bottom_navigation_screen.dart';
 
 class Photopia extends StatelessWidget {
   const Photopia({super.key});
@@ -52,10 +53,22 @@ class Photopia extends StatelessWidget {
               ),
             ),
             routes: AppRoutes.routes,
-            home: const GetStartedScreen(),
+            home: _getInitialScreen(),
           ),
         );
       },
     );
+  }
+
+  Widget _getInitialScreen() {
+    if (!AuthController.isLoggedIn) {
+      return const GetStartedScreen();
+    }
+
+    if (AuthController.activeRole == 'professional') {
+      return const ProviderBottomNavigationScreen();
+    } else {
+      return const BottomNavigationScreen();
+    }
   }
 }

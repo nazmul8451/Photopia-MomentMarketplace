@@ -25,8 +25,12 @@ class SignInController extends ChangeNotifier {
     _inProgress = false;
     if (response.isSuccess) {
       final token = response.body?['data']?['accessToken'];
+      final role = response.body?['data']?['user']?['activeRole'];
       if (token != null) {
         await AuthController.saveUserToken(token);
+      }
+      if (role != null) {
+        await AuthController.saveUserRole(role);
       }
       isSuccess = true;
     } else {
