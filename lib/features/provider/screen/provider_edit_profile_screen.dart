@@ -5,15 +5,20 @@ import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_profile_controller.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
+import 'package:photopia/features/client/widgets/auth_profile_image.dart';
 
 class ProviderEditProfileScreen extends StatefulWidget {
   const ProviderEditProfileScreen({super.key});
 
   @override
-  State<ProviderEditProfileScreen> createState() => _ProviderEditProfileScreenState();
+  State<ProviderEditProfileScreen> createState() =>
+      _ProviderEditProfileScreenState();
 }
 
 class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
+  late TextEditingController _nameController;
+  late TextEditingController _specialtyController;
   late TextEditingController _aboutController;
   late List<String> _tempSpecializations;
   late List<String> _tempLanguages;
@@ -23,6 +28,8 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
   void initState() {
     super.initState();
     final controller = context.read<ProviderProfileController>();
+    _nameController = TextEditingController(text: controller.name);
+    _specialtyController = TextEditingController(text: controller.specialty);
     _aboutController = TextEditingController(text: controller.aboutMe);
     _tempSpecializations = List.from(controller.specializations);
     _tempLanguages = List.from(controller.languages);
@@ -31,38 +38,69 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
 
   @override
   void dispose() {
+    _nameController.dispose();
+    _specialtyController.dispose();
     _aboutController.dispose();
     super.dispose();
   }
 
-  void _saveChanges() {
-    context.read<ProviderProfileController>().updateProfile(
-      aboutMe: _aboutController.text,
-      specializations: _tempSpecializations,
-      languages: _tempLanguages,
-      recentWork: _tempRecentWork,
+  Future<void> _saveChanges() async {
+    final controller = context.read<ProviderProfileController>();
+    final navigator = Navigator.of(context);
+
+    // Call update API
+    final success = await controller.updateProviderProfile(
+      name: _nameController.text,
+      description: _aboutController.text,
+      specialty: _specialtyController.text,
     );
-    Navigator.pop(context);
+
+    if (success) {
+      // Exit the screen first
+      navigator.pop();
+
+      // Show success message using the context of the Screen that just appeared
+      if (navigator.mounted) {
+        CustomSnackBar.show(
+          context: navigator.context,
+          message: 'Profile updated successfully',
+          isError: false,
+        );
+      }
+    } else {
+      // Show error message on current screen if it failed
+      if (mounted) {
+        CustomSnackBar.show(
+          context: context,
+          message: controller.errorMessage ?? 'Failed to update profile',
+          isError: true,
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        physics: const ClampingScrollPhysics(),
-        child: Column(
-          children: [
-            _buildHeader(),
-            SizedBox(height: 100.h),
-            _buildEditBody(),
-          ],
-        ),
-      ),
+    return Consumer<ProviderProfileController>(
+      builder: (context, controller, child) {
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: Column(
+              children: [
+                _buildHeader(controller),
+                SizedBox(height: 100.h),
+                _buildEditBody(),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(ProviderProfileController controller) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -73,14 +111,14 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
           imageUrl: 'assets/images/img5.png',
           fit: BoxFit.cover,
         ),
-          // Container(
-          //   width: double.infinity,
-          //   height: 220.h,
-          //   color: Colors.black.withOpacity(0.4),
-          //   child: Center(
-          //     child: Icon(Icons.camera_alt_outlined, color: Colors.white, size: 40.sp),
-          //   ),
-          // ),
+        // Container(
+        //   width: double.infinity,
+        //   height: 220.h,
+        //   color: Colors.black.withOpacity(0.4),
+        //   child: Center(
+        //     child: Icon(Icons.camera_alt_outlined, color: Colors.white, size: 40.sp),
+        //   ),
+        // ),
         // Gradient Overlay
         // Container(
         //   height: 200.h,
@@ -95,14 +133,13 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
         //     ),
         //   ),
         // ),
-      
 
         // Floating Glassmorphism Profile Card
         Positioned(
           bottom: -5.h,
           left: 6.w,
           right: 6.w,
-          child: _buildProfileCard(),
+          child: _buildProfileCard(controller),
         ),
 
         // Overlapping Stats Row
@@ -119,7 +156,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
     );
   }
 
-  Widget _buildProfileCard() {
+  Widget _buildProfileCard(ProviderProfileController controller) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10.r),
       child: BackdropFilter(
@@ -163,22 +200,35 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                         ),
                       ),
                       SizedBox(width: 12.w),
-                      GestureDetector(
-                        onTap: _saveChanges,
-                        child: Container(
-                          padding: EdgeInsets.all(8.w),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF4C6A5A).withOpacity(0.8),
-                            borderRadius: BorderRadius.circular(10.r),
+                      if (controller.inProgress)
+                        SizedBox(
+                          width: 36.sp,
+                          height: 36.sp,
+                          child: const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
                           ),
-                          child: Image.asset(
-                            'assets/images/edit_done_icon.png',
-                            width: 20.sp,
-                            height: 20.sp,
-                            color: Colors.white,
+                        )
+                      else
+                        GestureDetector(
+                          onTap: _saveChanges,
+                          child: Container(
+                            padding: EdgeInsets.all(8.w),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF4C6A5A).withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(10.r),
+                            ),
+                            child: Image.asset(
+                              'assets/images/edit_done_icon.png',
+                              width: 20.sp,
+                              height: 20.sp,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ],
@@ -189,19 +239,9 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                 children: [
                   Stack(
                     children: [
-                      Container(
-                        width: 75.r,
-                        height: 75.r,
-                        padding: EdgeInsets.all(2.5.w),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2.5.w),
-                        ),
-                        child: CustomNetworkImage(
-                          imageUrl: 'assets/images/img6.png',
-                          shape: BoxShape.circle,
-                          fit: BoxFit.cover,
-                        ),
+                      AuthProfileImage(
+                        imageUrl: controller.profileImage,
+                        size: 75.r,
                       ),
                       Positioned(
                         bottom: 0,
@@ -212,7 +252,11 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                             color: Colors.white,
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(Icons.camera_alt, color: Colors.black, size: 12.sp),
+                          child: Icon(
+                            Icons.camera_alt,
+                            color: Colors.black,
+                            size: 12.sp,
+                          ),
                         ),
                       ),
                     ],
@@ -222,21 +266,31 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Michael Photographer',
+                        TextField(
+                          controller: _nameController,
                           style: TextStyle(
                             fontSize: AppTypography.h1,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
                         ),
                         SizedBox(height: 2.h),
-                        Text(
-                          'Wedding & Event Photography',
+                        TextField(
+                          controller: _specialtyController,
                           style: TextStyle(
                             fontSize: AppTypography.bodyMedium,
                             color: Colors.white.withOpacity(0.9),
                             fontWeight: FontWeight.w400,
+                          ),
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
                           ),
                         ),
                         SizedBox(height: 6.h),
@@ -252,7 +306,11 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.stars, color: Colors.white, size: 12.sp),
+                              Icon(
+                                Icons.stars,
+                                color: Colors.white,
+                                size: 12.sp,
+                              ),
                               SizedBox(width: 6.w),
                               Text(
                                 'Premium',
@@ -341,7 +399,13 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('About Me', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
+          Text(
+            'About Me',
+            style: TextStyle(
+              fontSize: AppTypography.h2,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           SizedBox(height: 12.h),
           Container(
             decoration: BoxDecoration(
@@ -351,7 +415,10 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
             child: TextField(
               controller: _aboutController,
               maxLines: 4,
-              style: TextStyle(fontSize: AppTypography.bodyLarge, color: Colors.black87),
+              style: TextStyle(
+                fontSize: AppTypography.bodyLarge,
+                color: Colors.black87,
+              ),
               decoration: InputDecoration(
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.all(12.w),
@@ -359,29 +426,39 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
             ),
           ),
           SizedBox(height: 25.h),
-          
-          _buildEditableSection('Specializations', _tempSpecializations, (value) {
-            setState(() {
-              _tempSpecializations.add(value);
-            });
-          }, (value) {
-            setState(() {
-              _tempSpecializations.remove(value);
-            });
-          }),
+
+          _buildEditableSection(
+            'Specializations',
+            _tempSpecializations,
+            (value) {
+              setState(() {
+                _tempSpecializations.add(value);
+              });
+            },
+            (value) {
+              setState(() {
+                _tempSpecializations.remove(value);
+              });
+            },
+          ),
           SizedBox(height: 25.h),
-          
-          _buildEditableSection('Languages', _tempLanguages, (value) {
-             setState(() {
-              _tempLanguages.add(value);
-            });
-          }, (value) {
-             setState(() {
-              _tempLanguages.remove(value);
-            });
-          }),
+
+          _buildEditableSection(
+            'Languages',
+            _tempLanguages,
+            (value) {
+              setState(() {
+                _tempLanguages.add(value);
+              });
+            },
+            (value) {
+              setState(() {
+                _tempLanguages.remove(value);
+              });
+            },
+          ),
           SizedBox(height: 25.h),
-          
+
           _buildGallerySection(),
           SizedBox(height: 40.h),
         ],
@@ -389,17 +466,28 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
     );
   }
 
-  Widget _buildEditableSection(String title, List<String> items, Function(String) onAdd, Function(String) onRemove) {
+  Widget _buildEditableSection(
+    String title,
+    List<String> items,
+    Function(String) onAdd,
+    Function(String) onRemove,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: AppTypography.h2,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             GestureDetector(
               onTap: () => _showAddDialog(title, onAdd),
-              child: Icon(Icons.add, size: 22.sp, color: Colors.black)
+              child: Icon(Icons.add, size: 22.sp, color: Colors.black),
             ),
           ],
         ),
@@ -407,7 +495,9 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
         Wrap(
           spacing: 10.w,
           runSpacing: 10.h,
-          children: items.map((item) => _buildEditChip(item, () => onRemove(item))).toList(),
+          children: items
+              .map((item) => _buildEditChip(item, () => onRemove(item)))
+              .toList(),
         ),
       ],
     );
@@ -424,7 +514,10 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
           decoration: InputDecoration(hintText: 'Enter name'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
           TextButton(
             onPressed: () {
               if (controller.text.isNotEmpty) {
@@ -449,11 +542,17 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.black87)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: AppTypography.bodySmall,
+              color: Colors.black87,
+            ),
+          ),
           SizedBox(width: 6.w),
           GestureDetector(
             onTap: onRemove,
-            child: Icon(Icons.close, size: 14.sp, color: Colors.black54)
+            child: Icon(Icons.close, size: 14.sp, color: Colors.black54),
           ),
         ],
       ),
@@ -467,7 +566,13 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Recent (${_tempRecentWork.length})', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
+            Text(
+              'Recent (${_tempRecentWork.length})',
+              style: TextStyle(
+                fontSize: AppTypography.h2,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             GestureDetector(
               onTap: () {
                 // Mock adding a photo
@@ -479,7 +584,14 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                 children: [
                   Icon(Icons.add, size: 14.sp, color: Colors.grey),
                   SizedBox(width: 4.w),
-                  Text('Add Photo', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.grey[600])),
+                  Text(
+                    'Add Photo',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[600],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -522,7 +634,11 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                         color: Colors.red,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.close, color: Colors.white, size: 10.sp),
+                      child: Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 10.sp,
+                      ),
                     ),
                   ),
                 ),

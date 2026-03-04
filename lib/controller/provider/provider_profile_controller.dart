@@ -1,9 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:photopia/core/network/Api_service/network_caller.dart';
+import 'package:photopia/core/network/urls.dart';
+import 'package:photopia/data/models/user_profile_model.dart';
 
 class ProviderProfileController extends ChangeNotifier {
-  String _name = 'Michael Photographer';
-  String _aboutMe =
+  bool _inProgress = false;
+  String? _errorMessage;
+  UserProfileModel? _userProfile;
+
+  bool get inProgress => _inProgress;
+  String? get errorMessage => _errorMessage;
+  UserProfileModel? get userProfile => _userProfile;
+
+  // Convenience getters for easier UI binding
+  String get name => _userProfile?.fullName ?? 'Michael Photographer';
+  String get aboutMe =>
+      _userProfile?.description ??
       'Professional wedding and event photographer with 10+ years of experience. Specialized in capturing authentic moments and emotions.';
+  String get specialty =>
+      _userProfile?.specialty ?? 'Professional Photographer';
+  String? get profileImage => _userProfile?.profile;
+
   List<String> _specializations = ['Wedding', 'Event', 'Portrait'];
   List<String> _languages = ['English', 'Spanish', 'Catalan'];
   List<String> _recentWork = [
@@ -15,11 +32,74 @@ class ProviderProfileController extends ChangeNotifier {
     'assets/images/img6.png',
   ];
 
-  String get name => _name;
-  String get aboutMe => _aboutMe;
   List<String> get specializations => _specializations;
   List<String> get languages => _languages;
   List<String> get recentWork => _recentWork;
+
+  Future<bool> getProviderProfile() async {
+    _inProgress = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    final response = await NetworkCaller.getRequest(url: Urls.userProfile);
+
+    _inProgress = false;
+    if (response.isSuccess) {
+      final data = response.body?['data'];
+      if (data != null) {
+        _userProfile = UserProfileModel.fromJson(data);
+      }
+      notifyListeners();
+      return true;
+    } else {
+      _errorMessage = response.errorMessage;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateProviderProfile({
+    String? name,
+    String? description,
+    String? specialty,
+  }) async {
+    _inProgress = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      Map<String, dynamic> body = {};
+      if (name != null) body['name'] = name;
+      if (description != null) body['description'] = description;
+      if (specialty != null) body['specialty'] = specialty;
+
+      final response = await NetworkCaller.patchRequest(
+        url: Urls.updateUserProfile,
+        body: body,
+      );
+
+      debugPrint(
+        'Update Profile Response: ${response.statusCode} - ${response.isSuccess}',
+      );
+
+      if (response.isSuccess) {
+        // The API returns a string "Profile updated successfully." instead of the user object
+        // So we just fetch the profile again to get updated data
+        await getProviderProfile();
+        return true;
+      } else {
+        _errorMessage = response.errorMessage;
+        return false;
+      }
+    } catch (e) {
+      debugPrint('Error updating profile: $e');
+      _errorMessage = 'An unexpected error occurred';
+      return false;
+    } finally {
+      _inProgress = false;
+      notifyListeners();
+    }
+  }
 
   void updateProfile({
     String? name,
@@ -28,11 +108,7 @@ class ProviderProfileController extends ChangeNotifier {
     List<String>? languages,
     List<String>? recentWork,
   }) {
-    if (name != null) _name = name;
-    if (aboutMe != null) _aboutMe = aboutMe;
-    if (specializations != null) _specializations = specializations;
-    if (languages != null) _languages = languages;
-    if (recentWork != null) _recentWork = recentWork;
+    // This could be updated to call an API in the future
     notifyListeners();
   }
 
@@ -71,9 +147,7 @@ class ProviderProfileController extends ChangeNotifier {
   }
 
   void reset() {
-    _name = 'Michael Photographer';
-    _aboutMe =
-        'Professional wedding and event photographer with 10+ years of experience. Specialized in capturing authentic moments and emotions.';
+    _userProfile = null;
     _specializations = ['Wedding', 'Event', 'Portrait'];
     _languages = ['English', 'Spanish', 'Catalan'];
     _recentWork = [

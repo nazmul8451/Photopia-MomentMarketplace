@@ -5,12 +5,26 @@ import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/features/provider/screen/provider_subscription_screen.dart';
 import 'package:photopia/features/provider/screen/provider_profile_screen.dart';
 import 'package:photopia/features/provider/screen/provider_wallet_screen.dart';
-import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:photopia/controller/client/log_out_controller.dart';
 import 'package:provider/provider.dart';
+import 'package:photopia/controller/provider/provider_profile_controller.dart';
+import 'package:photopia/features/client/widgets/auth_profile_image.dart';
 
-class ProviderMenuScreen extends StatelessWidget {
+class ProviderMenuScreen extends StatefulWidget {
   const ProviderMenuScreen({super.key});
+
+  @override
+  State<ProviderMenuScreen> createState() => _ProviderMenuScreenState();
+}
+
+class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProviderProfileController>().getProviderProfile();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,93 +32,100 @@ class ProviderMenuScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(16.w),
-            child: Column(
-              children: [
-                // Profile Section
-                _buildProfileSection(context),
-                SizedBox(height: 16.h.clamp(12, 20)),
+          child: Consumer<ProviderProfileController>(
+            builder: (context, controller, child) {
+              return Padding(
+                padding: EdgeInsets.all(16.w),
+                child: Column(
+                  children: [
+                    // Profile Section
+                    _buildProfileSection(context, controller),
+                    SizedBox(height: 16.h.clamp(12, 20)),
 
-                // Stats Grid
-                _buildStatsGrid(),
-                SizedBox(height: 16.h.clamp(12, 20)),
+                    // Stats Grid
+                    _buildStatsGrid(),
+                    SizedBox(height: 16.h.clamp(12, 20)),
 
-                // Premium Member Card
-                _buildPremiumCard(context),
-                SizedBox(height: 16.h.clamp(12, 20)),
+                    // Premium Member Card
+                    _buildPremiumCard(context),
+                    SizedBox(height: 16.h.clamp(12, 20)),
 
-                // Menu Items
-                _buildMenuItem(
-                  icon: Icons.payment,
-                  title: 'Payments & Transactions',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ProviderWalletScreen(),
+                    // Menu Items
+                    _buildMenuItem(
+                      icon: Icons.payment,
+                      title: 'Payments & Transactions',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ProviderWalletScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    SizedBox(height: 12.h.clamp(8, 16)),
+
+                    _buildMenuItem(
+                      icon: Icons.bar_chart,
+                      title: 'Detailed Statistics',
+                      isPremium: true,
+                      onTap: () {},
+                    ),
+                    SizedBox(height: 12.h.clamp(8, 16)),
+
+                    _buildMenuItem(
+                      icon: Icons.settings,
+                      title: 'Account Settings',
+                      onTap: () {},
+                    ),
+                    SizedBox(height: 12.h.clamp(8, 16)),
+
+                    _buildMenuItem(
+                      icon: Icons.notifications_outlined,
+                      title: 'Notifications',
+                      hasNotification: true,
+                      onTap: () {},
+                    ),
+                    SizedBox(height: 12.h.clamp(8, 16)),
+
+                    _buildMenuItem(
+                      icon: Icons.help_outline,
+                      title: 'Help & Support',
+                      onTap: () {},
+                    ),
+                    SizedBox(height: 24.h.clamp(20, 28)),
+
+                    // Switch to Client Button
+                    _buildSwitchButton(context),
+                    SizedBox(height: 12.h.clamp(8, 16)),
+
+                    // Sign Out Button
+                    _buildSignOutButton(context),
+                    SizedBox(height: 16.h.clamp(12, 20)),
+
+                    // App Version
+                    Text(
+                      'Photopia Pro v1.0.4',
+                      style: TextStyle(
+                        fontSize: 12.sp.clamp(11, 13),
+                        color: Colors.grey,
                       ),
-                    );
-                  },
+                    ),
+                    SizedBox(height: 16.h),
+                  ],
                 ),
-                SizedBox(height: 12.h.clamp(8, 16)),
-
-                _buildMenuItem(
-                  icon: Icons.bar_chart,
-                  title: 'Detailed Statistics',
-                  isPremium: true,
-                  onTap: () {},
-                ),
-                SizedBox(height: 12.h.clamp(8, 16)),
-
-                _buildMenuItem(
-                  icon: Icons.settings,
-                  title: 'Account Settings',
-                  onTap: () {},
-                ),
-                SizedBox(height: 12.h.clamp(8, 16)),
-
-                _buildMenuItem(
-                  icon: Icons.notifications_outlined,
-                  title: 'Notifications',
-                  hasNotification: true,
-                  onTap: () {},
-                ),
-                SizedBox(height: 12.h.clamp(8, 16)),
-
-                _buildMenuItem(
-                  icon: Icons.help_outline,
-                  title: 'Help & Support',
-                  onTap: () {},
-                ),
-                SizedBox(height: 24.h.clamp(20, 28)),
-
-                // Switch to Client Button
-                _buildSwitchButton(context),
-                SizedBox(height: 12.h.clamp(8, 16)),
-
-                // Sign Out Button
-                _buildSignOutButton(context),
-                SizedBox(height: 16.h.clamp(12, 20)),
-
-                // App Version
-                Text(
-                  'Photopia Pro v1.0.4',
-                  style: TextStyle(
-                    fontSize: 12.sp.clamp(11, 13),
-                    color: Colors.grey,
-                  ),
-                ),
-                SizedBox(height: 16.h),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),
     );
   }
 
-  Widget _buildProfileSection(BuildContext context) {
+  Widget _buildProfileSection(
+    BuildContext context,
+    ProviderProfileController controller,
+  ) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -117,15 +138,9 @@ class ProviderMenuScreen extends StatelessWidget {
           Row(
             children: [
               // Profile Image - Larger and Circular
-              Container(
-                width: 60.w.clamp(55, 65),
-                height: 60.w.clamp(55, 65),
-                decoration: const BoxDecoration(shape: BoxShape.circle),
-                child: CustomNetworkImage(
-                  imageUrl: 'assets/images/img8.jpg',
-                  shape: BoxShape.circle,
-                  fit: BoxFit.cover,
-                ),
+              AuthProfileImage(
+                imageUrl: controller.profileImage,
+                size: 60.w.clamp(55, 65),
               ),
               SizedBox(width: 12.w),
               Expanded(
@@ -133,7 +148,7 @@ class ProviderMenuScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Michael Photographer',
+                      controller.name,
                       style: TextStyle(
                         fontSize: 17.sp.clamp(16, 18),
                         fontWeight: FontWeight.bold,
@@ -142,7 +157,7 @@ class ProviderMenuScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 4.h),
                     Text(
-                      'Professional Photographer',
+                      controller.specialty,
                       style: TextStyle(
                         fontSize: 13.sp.clamp(12, 14),
                         color: Colors.grey[600],

@@ -6,6 +6,7 @@ import 'package:photopia/features/provider/screen/provider_edit_profile_screen.d
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_profile_controller.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
+import 'package:photopia/features/client/widgets/auth_profile_image.dart';
 
 class ProviderProfileScreen extends StatefulWidget {
   const ProviderProfileScreen({super.key});
@@ -15,6 +16,14 @@ class ProviderProfileScreen extends StatefulWidget {
 }
 
 class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProviderProfileController>().getProviderProfile();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ProviderProfileController>(
@@ -44,7 +53,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         CustomNetworkImage(
           width: double.infinity,
           height: 220.h,
-          imageUrl: 'assets/images/img5.png',
+          imageUrl: controller.userProfile?.profile ?? 'assets/images/img5.png',
           fit: BoxFit.cover,
         ),
         // Gradient Overlay
@@ -118,7 +127,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-                   // Edit Button (Stylized top right)
+              // Edit Button (Stylized top right)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -132,48 +141,41 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                     ),
                   ),
 
-                    GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ProviderEditProfileScreen(),
-              ),
-            );
-          },
-          child: Container(
-            padding: EdgeInsets.all(8.w),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(color: Colors.white.withOpacity(0.3)),
-            ),
-            child: Icon(
-              Icons.edit_outlined,
-              color: Colors.white,
-              size: 20.sp,
-            ),
-          ),
-        ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const ProviderEditProfileScreen(),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(8.w),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(10.r),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.edit_outlined,
+                        color: Colors.white,
+                        size: 20.sp,
+                      ),
+                    ),
+                  ),
                 ],
               ),
               SizedBox(height: 8.h),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 75.r,
-                    height: 75.r,
-                    padding: EdgeInsets.all(2.5.w),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2.5.w),
-                    ),
-                    child: CustomNetworkImage(
-                      imageUrl: 'assets/images/img6.png',
-                      shape: BoxShape.circle,
-                      fit: BoxFit.cover,
-                    ),
+                  AuthProfileImage(
+                    imageUrl: controller.profileImage,
+                    size: 75.r,
                   ),
                   SizedBox(width: 18.w),
                   Expanded(
@@ -191,7 +193,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                         ),
                         SizedBox(height: 2.h),
                         Text(
-                          'Wedding & Event Photography',
+                          controller.specialty,
                           style: TextStyle(
                             fontSize: AppTypography.bodyMedium,
                             color: Colors.white.withOpacity(0.9),
