@@ -3,6 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:intl/intl.dart';
 import 'package:photopia/core/widgets/custom_snacbar.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/controller/provider/calender_availibility_controller.dart';
+import 'package:photopia/controller/client/user_profile_controller.dart';
+import 'package:photopia/data/models/calender_availibility_model.dart';
 
 class ProviderCalendarScreen extends StatefulWidget {
   const ProviderCalendarScreen({super.key});
@@ -25,11 +29,145 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
     text: '120',
   );
   List<String> _blockedDays = [];
+  bool _isLoading = false;
+  Data? _availabilityData;
 
   @override
   void initState() {
     super.initState();
     _selectedDate = _currentDate;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchAvailability();
+    });
+  }
+
+  Future<void> _fetchAvailability() async {
+    setState(() => _isLoading = true);
+    final controller = context.read<CalenderAvailibilityController>();
+    final settingsModel = await controller.getAvailabilitySettings();
+
+    if (mounted && settingsModel != null && settingsModel.data != null) {
+      setState(() {
+        _availabilityData = settingsModel.data;
+        // Map data to UI if needed
+        _updateUIFromData(_availabilityData!);
+      });
+    }
+    if (mounted) setState(() => _isLoading = false);
+  }
+
+  void _updateUIFromData(Data data) {
+    _blockedDays.clear();
+    final schedule = data.defaultSchedule;
+    if (schedule != null) {
+      if (schedule.monday?.isActive == false) _blockedDays.add('Monday');
+      if (schedule.tuesday?.isActive == false) _blockedDays.add('Tuesday');
+      if (schedule.wednesday?.isActive == false) _blockedDays.add('Wednesday');
+      if (schedule.thursday?.isActive == false) _blockedDays.add('Thursday');
+      if (schedule.friday?.isActive == false) _blockedDays.add('Friday');
+      if (schedule.saturday?.isActive == false) _blockedDays.add('Saturday');
+      if (schedule.sunday?.isActive == false) _blockedDays.add('Sunday');
+    }
+  }
+
+  Future<void> _saveSettings() async {
+    final profileController = context.read<UserProfileController>();
+    final availabilityController = context
+        .read<CalenderAvailibilityController>();
+
+    final String? providerId = profileController.userProfile?.id;
+    if (providerId == null) {
+      CustomSnackBar.show(
+        context: context,
+        message: 'Provider ID not found',
+        isError: true,
+      );
+      return;
+    }
+
+    // Prepare the data to save
+    final Data dataToSave = _availabilityData ?? Data();
+    dataToSave.providerId = providerId;
+
+    // Update schedule based on blocked days
+    dataToSave.defaultSchedule ??= DefaultSchedule(
+      monday: Monday(
+        start: "09:00",
+        end: "18:00",
+        isActive: true,
+        maxBookings: 2,
+      ),
+      tuesday: Monday(
+        start: "09:00",
+        end: "18:00",
+        isActive: true,
+        maxBookings: 2,
+      ),
+      wednesday: Monday(
+        start: "09:00",
+        end: "18:00",
+        isActive: true,
+        maxBookings: 2,
+      ),
+      thursday: Monday(
+        start: "09:00",
+        end: "18:00",
+        isActive: true,
+        maxBookings: 2,
+      ),
+      friday: Monday(
+        start: "09:00",
+        end: "18:00",
+        isActive: true,
+        maxBookings: 2,
+      ),
+      saturday: Monday(
+        start: "10:00",
+        end: "16:00",
+        isActive: true,
+        maxBookings: 1,
+      ),
+      sunday: Monday(
+        start: "10:00",
+        end: "16:00",
+        isActive: false,
+        maxBookings: 1,
+      ),
+    );
+
+    final schedule = dataToSave.defaultSchedule!;
+    schedule.monday?.isActive = !_blockedDays.contains('Monday');
+    schedule.tuesday?.isActive = !_blockedDays.contains('Tuesday');
+    schedule.wednesday?.isActive = !_blockedDays.contains('Wednesday');
+    schedule.thursday?.isActive = !_blockedDays.contains('Thursday');
+    schedule.friday?.isActive = !_blockedDays.contains('Friday');
+    schedule.saturday?.isActive = !_blockedDays.contains('Saturday');
+    schedule.sunday?.isActive = !_blockedDays.contains('Sunday');
+
+    // Default values if empty
+    dataToSave.bufferMinutes ??= 15;
+    dataToSave.advanceNoticeHours ??= 24;
+    dataToSave.maxBookingsPerDay ??= 3;
+    dataToSave.maxBookingsPerWeek ??= 10;
+    dataToSave.autoBlockAfterBooking ??= true;
+    dataToSave.autoBlockDuration ??= 30;
+    dataToSave.googleCalendarSync ??= GoogleCalendarSync(
+      calendarId: "primary",
+      syncEnabled: false,
+    );
+
+    final success = await availabilityController.updateAvailability(dataToSave);
+
+    if (mounted) {
+      CustomSnackBar.show(
+        context: context,
+        message: success
+            ? 'Settings saved successfully!'
+            : (availabilityController.errorMessage ??
+                  'Failed to save settings'),
+        isError: !success,
+      );
+    }
   }
 
   @override
@@ -517,28 +655,37 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
               SizedBox(height: 8.h),
               _buildEditableRateField(_weekendRateController),
               SizedBox(height: 20.h),
-              ElevatedButton(
-                onPressed: () {
-                  CustomSnackBar.show(
-                    context: context,
-                    message: 'Settings saved successfully!',
-                    isError: false,
+              Consumer<CalenderAvailibilityController>(
+                builder: (context, controller, child) {
+                  return ElevatedButton(
+                    onPressed: (controller.inProgress || _isLoading)
+                        ? null
+                        : _saveSettings,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      minimumSize: Size(double.infinity, 50.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.r),
+                      ),
+                    ),
+                    child: (controller.inProgress || _isLoading)
+                        ? SizedBox(
+                            height: 20.h,
+                            width: 20.h,
+                            child: const CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            'Save Settings',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: AppTypography.bodyLarge,
+                            ),
+                          ),
                   );
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  minimumSize: Size(double.infinity, 50.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                ),
-                child: Text(
-                  'Save Settings',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: AppTypography.bodyLarge,
-                  ),
-                ),
               ),
             ],
           ),
