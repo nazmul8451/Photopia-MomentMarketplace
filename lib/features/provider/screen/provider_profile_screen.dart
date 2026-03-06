@@ -71,23 +71,6 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
           ),
         ),
 
-        // Back Button
-        // Positioned(
-        //   top: 50.h,
-        //   left: 20.w,
-        //   child: GestureDetector(
-        //     onTap: () => Navigator.pop(context),
-        //     child: Container(
-        //       padding: EdgeInsets.all(8.w),
-        //       decoration: BoxDecoration(
-        //         color: Colors.white.withOpacity(0.15),
-        //         borderRadius: BorderRadius.circular(10.r),
-        //         border: Border.all(color: Colors.white.withOpacity(0.3)),
-        //       ),
-        //       child: Icon(Icons.arrow_back, color: Colors.white, size: 20.sp),
-        //     ),
-        //   ),
-        // ),
 
         // Floating Glassmorphism Profile Card
         Positioned(

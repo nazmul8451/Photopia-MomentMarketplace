@@ -1,38 +1,245 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:photopia/core/constants/app_typography.dart';
-import 'package:photopia/features/provider/widgets/provider_custom_bottom_nav_bar.dart';
-import 'package:photopia/features/provider/screen/BottomNavigationBar/bottom_navigation_screen.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
+import 'package:photopia/controller/provider/service_controller.dart';
+import 'package:photopia/data/models/provider_service_model.dart';
+import 'package:provider/provider.dart';
 
 class ProviderCreateListingScreen extends StatefulWidget {
   const ProviderCreateListingScreen({super.key});
 
   @override
-  State<ProviderCreateListingScreen> createState() => _ProviderCreateListingScreenState();
+  State<ProviderCreateListingScreen> createState() =>
+      _ProviderCreateListingScreenState();
 }
 
-class _ProviderCreateListingScreenState extends State<ProviderCreateListingScreen> {
+class _ProviderCreateListingScreenState
+    extends State<ProviderCreateListingScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _durationController = TextEditingController();
+  final TextEditingController _equipmentController = TextEditingController();
+
+  // Pricing controllers
+  final TextEditingController _hourlyRateController = TextEditingController();
+  final TextEditingController _weekdayRateController = TextEditingController();
+  final TextEditingController _weekendRateController = TextEditingController();
+  final TextEditingController _dailyRateController = TextEditingController();
+  final TextEditingController _weekendDailyRateController =
+      TextEditingController();
+
+  // Package controllers
+  final TextEditingController _basicPackagePriceController =
+      TextEditingController();
+  final TextEditingController _standardPackagePriceController =
+      TextEditingController();
+  final TextEditingController _premiumPackagePriceController =
+      TextEditingController();
+
+  Category? _selectedCategory;
+  List<Category> _categories = [];
+  bool _isLoadingCategories = true;
+
   String _selectedServiceType = 'Photography';
   String _selectedPricingModel = 'By Hour';
   double _serviceRadius = 25.0;
   bool _acceptOutsideRadius = false;
   final List<String> _equipment = [];
-  final TextEditingController _equipmentController = TextEditingController();
-  final TextEditingController _hourlyRateController = TextEditingController();
-  final TextEditingController _weekendRateController = TextEditingController();
-  final TextEditingController _basicPackageController = TextEditingController();
-  final TextEditingController _standardPackageController = TextEditingController();
-  final TextEditingController _premiumPackageController = TextEditingController();
+  final List<File> _selectedImages = [];
+  final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCategories();
+  }
+
+  Future<void> _fetchCategories() async {
+    setState(() => _isLoadingCategories = true);
+    final controller = context.read<ServiceController>();
+    final categories = await controller.getCategories();
+    if (mounted) {
+      setState(() {
+        if (categories.isNotEmpty) {
+          _categories = categories;
+        } else {
+          // Local fallback if everything else fails
+          _categories = [
+            Category(sId: "6967f8313c7a3a49e02c1fde", name: "Photography"),
+            Category(sId: "65e8a5b4f1a2b3c4d5e6f702", name: "Videography"),
+            Category(sId: "65e8a5b4f1a2b3c4d5e6f703", name: "Video Editing"),
+          ];
+        }
+        _selectedCategory = _categories.first;
+        _isLoadingCategories = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _locationController.dispose();
+    _durationController.dispose();
     _equipmentController.dispose();
     _hourlyRateController.dispose();
+    _weekdayRateController.dispose();
     _weekendRateController.dispose();
-    _basicPackageController.dispose();
-    _standardPackageController.dispose();
-    _premiumPackageController.dispose();
+    _dailyRateController.dispose();
+    _weekendDailyRateController.dispose();
+    _basicPackagePriceController.dispose();
+    _standardPackagePriceController.dispose();
+    _premiumPackagePriceController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImages() async {
+    final List<XFile> images = await _picker.pickMultiImage(
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 80,
+    );
+    if (images.isNotEmpty) {
+      if (_selectedImages.length + images.length > 5) {
+        if (mounted) {
+          CustomSnackBar.show(
+            context: context,
+            message: 'You can only upload up to 5 images',
+            isError: true,
+          );
+        }
+        return;
+      }
+      setState(() {
+        _selectedImages.addAll(
+          images.map((xFile) => File(xFile.path)).toList(),
+        );
+      });
+    }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
+  }
+
+  bool _isFormValid() {
+    if (_titleController.text.isEmpty ||
+        _descriptionController.text.isEmpty ||
+        _locationController.text.isEmpty ||
+        _selectedImages.isEmpty ||
+        _selectedCategory == null) {
+      return false;
+    }
+
+    // Check pricing based on model
+    if (_selectedPricingModel == 'By Hour') {
+      return _hourlyRateController.text.isNotEmpty;
+    } else if (_selectedPricingModel == 'By Day') {
+      return _dailyRateController.text.isNotEmpty;
+    } else if (_selectedPricingModel == 'By Service') {
+      return _basicPackagePriceController.text.isNotEmpty;
+    }
+
+    return true;
+  }
+
+  Future<void> _publishListing() async {
+    if (!_isFormValid()) {
+      CustomSnackBar.show(
+        context: context,
+        message:
+            'Please fill in all required fields and upload at least one photo',
+        isError: true,
+      );
+      return;
+    }
+
+    final serviceData = Data(
+      title: _titleController.text.trim(),
+      description: _descriptionController.text.trim(),
+      category: _selectedCategory,
+      tags: [_selectedServiceType],
+      equipment: _equipment,
+      price:
+          int.tryParse(
+            _selectedPricingModel == 'By Hour'
+                ? _hourlyRateController.text
+                : _selectedPricingModel == 'By Day'
+                ? _dailyRateController.text
+                : _basicPackagePriceController.text,
+          ) ??
+          0,
+      currency: "USD",
+      pricingType: _selectedPricingModel == 'By Hour'
+          ? "HOURLY"
+          : _selectedPricingModel == 'By Day'
+          ? "DAILY"
+          : "PACKAGE",
+      location: Location(
+        type: "ONSITE",
+        country: "USA", // Default for now, can be sophisticated
+        city: _locationController.text.trim(),
+        serviceRadiusKm: _serviceRadius.toInt(),
+      ),
+      allowOutsideRadius: _acceptOutsideRadius,
+      duration: _durationController.text.trim(),
+      pricingRules: [], // Optional
+    );
+
+    // Setup packages if SERVICE pricing
+    if (_selectedPricingModel == 'By Service') {
+      serviceData.pricingModel = PricingModel(
+        type: "PACKAGE",
+        packages: [
+          if (_basicPackagePriceController.text.isNotEmpty)
+            Packages(
+              name: "Basic",
+              price: int.tryParse(_basicPackagePriceController.text) ?? 0,
+            ),
+          if (_standardPackagePriceController.text.isNotEmpty)
+            Packages(
+              name: "Standard",
+              price: int.tryParse(_standardPackagePriceController.text) ?? 0,
+            ),
+          if (_premiumPackagePriceController.text.isNotEmpty)
+            Packages(
+              name: "Premium",
+              price: int.tryParse(_premiumPackagePriceController.text) ?? 0,
+            ),
+        ],
+      );
+    }
+
+    final controller = context.read<ServiceController>();
+    final success = await controller.createService(
+      serviceData,
+      _selectedImages,
+    );
+
+    if (mounted) {
+      if (success) {
+        CustomSnackBar.show(
+          context: context,
+          message: 'Listing published successfully!',
+          isError: false,
+        );
+        Navigator.pop(context);
+      } else {
+        CustomSnackBar.show(
+          context: context,
+          message: controller.errorMessage ?? 'Publishing failed',
+          isError: true,
+        );
+      }
+    }
   }
 
   @override
@@ -57,85 +264,134 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
         ),
         centerTitle: false,
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildLabel('Listing Title'),
-            _buildTextField(hintText: 'Event Photography'),
-            SizedBox(height: 20.h),
-            
-            _buildLabel('Select the category that fits your services best:'),
-            _buildDropdown(['Photography', 'Videography', 'Video Editing']),
-            SizedBox(height: 20.h),
-            
-            _buildLabel('Service Type'),
-            _buildRadioOption('Photography'),
-            _buildRadioOption('Videography'),
-            _buildRadioOption('Video Editing'),
-            SizedBox(height: 20.h),
-            
-            _buildLabel('Pricing Model'),
-            _buildPricingToggle(),
-            SizedBox(height: 20.h),
-            
-            if (_selectedPricingModel == 'By Service') ...[
-              _buildLabel('Basic Package (\$)'),
-              _buildTextField(hintText: '500', controller: _basicPackageController),
-              SizedBox(height: 20.h),
-              
-              _buildLabel('Standard Package (\$)'),
-              _buildTextField(hintText: '1200', controller: _standardPackageController),
-              SizedBox(height: 20.h),
-              
-              _buildLabel('Premium Package (\$)'),
-              _buildTextField(hintText: '2500', controller: _premiumPackageController),
-              SizedBox(height: 20.h),
-            ] else ...[
-              _buildLabel('${_selectedPricingModel == 'By Day' ? 'Daily' : 'Weekday Hourly'} Rate (\$)'),
-              _buildTextField(hintText: _selectedPricingModel == 'By Day' ? '800' : '150', controller: _hourlyRateController),
-              SizedBox(height: 20.h),
-              
-              _buildLabel('${_selectedPricingModel == 'By Day' ? 'Weekend Daily' : 'Weekend Hourly'} Rate (\$)'),
-              _buildTextField(hintText: _selectedPricingModel == 'By Day' ? '1000' : '180', controller: _weekendRateController),
-              SizedBox(height: 20.h),
-            ],
-            
-            _buildLabel('Description'),
-            _buildTextField(hintText: 'Describe your service...', maxLines: 4),
-            SizedBox(height: 20.h),
-            
-            _buildLabel('Duration (Optional)'),
-            _buildTextField(hintText: '2-4 hours'),
-            SizedBox(height: 20.h),
-            
-            _buildLabel('Location'),
-            _buildTextField(hintText: 'New York, NY'),
-            SizedBox(height: 20.h),
-            
-            _buildLabel('Service Radius: ${_serviceRadius.toInt()} miles'),
-            _buildRadiusSlider(),
-            SizedBox(height: 10.h),
-            
-            _buildAcceptOutsideRadiusToggle(),
-            SizedBox(height: 20.h),
-            
-            _buildLabel('Equipment'),
-            _buildEquipmentInput(),
-            if (_equipment.isNotEmpty) _buildEquipmentList(),
-            SizedBox(height: 20.h),
-            
-            _buildLabel('Photos'),
-            _buildPhotoUploadArea(),
-            SizedBox(height: 30.h),
-            
-            _buildFooterButtons(),
-            SizedBox(height: 20.h),
-          ],
-        ),
+      body: Consumer<ServiceController>(
+        builder: (context, controller, child) {
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(20.w),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildLabel('Listing Title'),
+                  _buildTextField(
+                    hintText: 'Event Photography',
+                    controller: _titleController,
+                  ),
+                  SizedBox(height: 20.h),
+
+                  _buildLabel('Category'),
+                  _buildDropdown(),
+                  SizedBox(height: 20.h),
+
+                  _buildLabel('Service Type'),
+                  _buildRadioOption('Photography'),
+                  _buildRadioOption('Videography'),
+                  _buildRadioOption('Video Editing'),
+                  SizedBox(height: 20.h),
+
+                  _buildLabel('Pricing Model'),
+                  _buildPricingToggle(),
+                  SizedBox(height: 20.h),
+
+                  if (_selectedPricingModel == 'By Service') ...[
+                    _buildLabel('Basic Package (\$)'),
+                    _buildTextField(
+                      hintText: '500',
+                      controller: _basicPackagePriceController,
+                    ),
+                    SizedBox(height: 20.h),
+
+                    _buildLabel('Standard Package (\$)'),
+                    _buildTextField(
+                      hintText: '1200',
+                      controller: _standardPackagePriceController,
+                    ),
+                    SizedBox(height: 20.h),
+
+                    _buildLabel('Premium Package (\$)'),
+                    _buildTextField(
+                      hintText: '2500',
+                      controller: _premiumPackagePriceController,
+                    ),
+                    SizedBox(height: 20.h),
+                  ] else ...[
+                    _buildLabel(
+                      '${_selectedPricingModel == 'By Day' ? 'Daily' : 'Weekday Hourly'} Rate (\$)',
+                    ),
+                    _buildTextField(
+                      hintText: _selectedPricingModel == 'By Day'
+                          ? '800'
+                          : '150',
+                      controller: _selectedPricingModel == 'By Day'
+                          ? _dailyRateController
+                          : _hourlyRateController,
+                    ),
+                    SizedBox(height: 20.h),
+
+                    _buildLabel(
+                      '${_selectedPricingModel == 'By Day' ? 'Weekend Daily' : 'Weekend Hourly'} Rate (\$)',
+                    ),
+                    _buildTextField(
+                      hintText: _selectedPricingModel == 'By Day'
+                          ? '1000'
+                          : '180',
+                      controller: _selectedPricingModel == 'By Day'
+                          ? _weekendDailyRateController
+                          : _weekendRateController,
+                    ),
+                    SizedBox(height: 20.h),
+                  ],
+
+                  _buildLabel('Description'),
+                  _buildTextField(
+                    hintText: 'Describe your service...',
+                    maxLines: 4,
+                    controller: _descriptionController,
+                  ),
+                  SizedBox(height: 20.h),
+
+                  _buildLabel('Duration (Optional)'),
+                  _buildTextField(
+                    hintText: '2-4 hours',
+                    controller: _durationController,
+                  ),
+                  SizedBox(height: 20.h),
+
+                  _buildLabel('Location (City)'),
+                  _buildTextField(
+                    hintText: 'New York, NY',
+                    controller: _locationController,
+                  ),
+                  SizedBox(height: 20.h),
+
+                  _buildLabel(
+                    'Service Radius: ${_serviceRadius.toInt()} miles',
+                  ),
+                  _buildRadiusSlider(),
+                  SizedBox(height: 10.h),
+
+                  _buildAcceptOutsideRadiusToggle(),
+                  SizedBox(height: 20.h),
+
+                  _buildLabel('Equipment'),
+                  _buildEquipmentInput(),
+                  if (_equipment.isNotEmpty) _buildEquipmentList(),
+                  SizedBox(height: 20.h),
+
+                  _buildLabel('Photos (Max 5)'),
+                  _buildPhotoUploadArea(),
+                  if (_selectedImages.isNotEmpty) _buildSelectedImagesGrid(),
+                  SizedBox(height: 30.h),
+
+                  _buildFooterButtons(controller.inProgress),
+                  SizedBox(height: 20.h),
+                ],
+              ),
+            ),
+          );
+        },
       ),
-      bottomNavigationBar: null,
     );
   }
 
@@ -153,7 +409,11 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
     );
   }
 
-  Widget _buildTextField({required String hintText, int maxLines = 1, TextEditingController? controller}) {
+  Widget _buildTextField({
+    required String hintText,
+    int maxLines = 1,
+    TextEditingController? controller,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -163,17 +423,69 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
       child: TextField(
         controller: controller,
         maxLines: maxLines,
+        keyboardType: (maxLines == 1 && hintText.contains(RegExp(r'[0-9]')))
+            ? TextInputType.number
+            : TextInputType.text,
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: TextStyle(color: Colors.grey[400], fontSize: AppTypography.bodyLarge),
+          hintStyle: TextStyle(
+            color: Colors.grey[400],
+            fontSize: AppTypography.bodyLarge,
+          ),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 12.h,
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildDropdown(List<String> items) {
+  Widget _buildDropdown() {
+    if (_isLoadingCategories) {
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10.r),
+          border: Border.all(color: const Color(0xFFE0E0E0)),
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 16.w,
+              height: 16.w,
+              child: const CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 12.w),
+            Text(
+              'Loading categories...',
+              style: TextStyle(fontSize: AppTypography.bodyLarge),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_categories.isEmpty) {
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10.r),
+          border: Border.all(color: const Color(0xFFE0E0E0)),
+        ),
+        child: Text(
+          'No categories found',
+          style: TextStyle(
+            fontSize: AppTypography.bodyLarge,
+            color: Colors.red,
+          ),
+        ),
+      );
+    }
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       decoration: BoxDecoration(
@@ -182,16 +494,28 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
         border: Border.all(color: const Color(0xFFE0E0E0)),
       ),
       child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
+        child: DropdownButton<Category>(
+          value: _selectedCategory,
           isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down, size: 24.sp, color: Colors.grey),
-          items: items.map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value, style: TextStyle(fontSize: AppTypography.bodyLarge)),
+          icon: Icon(
+            Icons.keyboard_arrow_down,
+            size: 24.sp,
+            color: Colors.grey,
+          ),
+          items: _categories.map((Category cat) {
+            return DropdownMenuItem<Category>(
+              value: cat,
+              child: Text(
+                cat.name ?? "",
+                style: TextStyle(fontSize: AppTypography.bodyLarge),
+              ),
             );
           }).toList(),
-          onChanged: (_) {},
+          onChanged: (newValue) {
+            setState(() {
+              _selectedCategory = newValue;
+            });
+          },
         ),
       ),
     );
@@ -210,21 +534,31 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
               height: 18.w,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: isSelected ? Colors.black : Colors.grey[400]!),
-              ),
-              child: isSelected ? Center(
-                child: Container(
-                  width: 10.w,
-                  height: 10.w,
-                  decoration: const BoxDecoration(
-                    color: Colors.black,
-                    shape: BoxShape.circle,
-                  ),
+                border: Border.all(
+                  color: isSelected ? Colors.black : Colors.grey[400]!,
                 ),
-              ) : null,
+              ),
+              child: isSelected
+                  ? Center(
+                      child: Container(
+                        width: 10.w,
+                        height: 10.w,
+                        decoration: const BoxDecoration(
+                          color: Colors.black,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    )
+                  : null,
             ),
             SizedBox(width: 12.w),
-            Text(value, style: TextStyle(fontSize: AppTypography.bodyLarge, color: Colors.black87)),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: AppTypography.bodyLarge,
+                color: Colors.black87,
+              ),
+            ),
           ],
         ),
       ),
@@ -244,7 +578,9 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
               decoration: BoxDecoration(
                 color: isSelected ? Colors.black : Colors.white,
                 borderRadius: BorderRadius.circular(10.r),
-                border: Border.all(color: isSelected ? Colors.black : const Color(0xFFE0E0E0)),
+                border: Border.all(
+                  color: isSelected ? Colors.black : const Color(0xFFE0E0E0),
+                ),
               ),
               child: Text(
                 model,
@@ -292,18 +628,22 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
             height: 18.w,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: _acceptOutsideRadius ? Colors.black : Colors.grey[400]!),
-            ),
-            child: _acceptOutsideRadius ? Center(
-              child: Container(
-                width: 10.w,
-                height: 10.w,
-                decoration: const BoxDecoration(
-                  color: Colors.black,
-                  shape: BoxShape.circle,
-                ),
+              border: Border.all(
+                color: _acceptOutsideRadius ? Colors.black : Colors.grey[400]!,
               ),
-            ) : null,
+            ),
+            child: _acceptOutsideRadius
+                ? Center(
+                    child: Container(
+                      width: 10.w,
+                      height: 10.w,
+                      decoration: const BoxDecoration(
+                        color: Colors.black,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  )
+                : null,
           ),
           SizedBox(width: 12.w),
           Expanded(
@@ -312,12 +652,19 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
               children: [
                 Text(
                   'Accept orders from outside location radius',
-                  style: TextStyle(fontSize: AppTypography.bodyLarge, fontWeight: FontWeight.w500, color: Colors.black87),
+                  style: TextStyle(
+                    fontSize: AppTypography.bodyLarge,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
                 ),
                 SizedBox(height: 4.h),
                 Text(
                   'Additional travel fees may apply for bookings outside your service radius',
-                  style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.grey[400]),
+                  style: TextStyle(
+                    fontSize: AppTypography.bodySmall,
+                    color: Colors.grey[400],
+                  ),
                 ),
               ],
             ),
@@ -341,9 +688,15 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
               controller: _equipmentController,
               decoration: InputDecoration(
                 hintText: 'Canon EOS R5',
-                hintStyle: TextStyle(color: Colors.grey[400], fontSize: AppTypography.bodyLarge),
+                hintStyle: TextStyle(
+                  color: Colors.grey[400],
+                  fontSize: AppTypography.bodyLarge,
+                ),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16.w,
+                  vertical: 12.h,
+                ),
               ),
             ),
           ),
@@ -353,7 +706,7 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
           onTap: () {
             if (_equipmentController.text.isNotEmpty) {
               setState(() {
-                _equipment.add(_equipmentController.text);
+                _equipment.add(_equipmentController.text.trim());
                 _equipmentController.clear();
               });
             }
@@ -366,7 +719,11 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
             ),
             child: Text(
               'Add',
-              style: TextStyle(color: Colors.white, fontSize: AppTypography.bodyLarge, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: AppTypography.bodyLarge,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
@@ -390,7 +747,13 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(item, style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.black87)),
+                Text(
+                  item,
+                  style: TextStyle(
+                    fontSize: AppTypography.bodySmall,
+                    color: Colors.black87,
+                  ),
+                ),
                 SizedBox(width: 4.w),
                 GestureDetector(
                   onTap: () => setState(() => _equipment.remove(item)),
@@ -405,71 +768,162 @@ class _ProviderCreateListingScreenState extends State<ProviderCreateListingScree
   }
 
   Widget _buildPhotoUploadArea() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 40.h),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15.r),
-        border: Border.all(color: const Color(0xFFE0E0E0), style: BorderStyle.solid),
-      ),
-      child: Column(
-        children: [
-          Icon(Icons.cloud_upload_outlined, size: 40.sp, color: Colors.grey[400]),
-          SizedBox(height: 12.h),
-          Text(
-            'Click to upload photos and videos',
-            style: TextStyle(fontSize: AppTypography.bodyLarge, color: Colors.black87, fontWeight: FontWeight.w500),
+    return GestureDetector(
+      onTap: _pickImages,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: 40.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15.r),
+          border: Border.all(
+            color: const Color(0xFFE0E0E0),
+            style: BorderStyle.solid,
           ),
-          SizedBox(height: 4.h),
-          Text(
-            'or drag and drop',
-            style: TextStyle(fontSize: AppTypography.bodySmall, color: Colors.grey[400]),
-          ),
-        ],
+        ),
+        child: Column(
+          children: [
+            Icon(
+              Icons.cloud_upload_outlined,
+              size: 40.sp,
+              color: Colors.grey[400],
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              'Click to upload photos',
+              style: TextStyle(
+                fontSize: AppTypography.bodyLarge,
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              'Select up to 5 high-quality images',
+              style: TextStyle(
+                fontSize: AppTypography.bodySmall,
+                color: Colors.grey[400],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildFooterButtons() {
+  Widget _buildSelectedImagesGrid() {
+    return Padding(
+      padding: EdgeInsets.only(top: 15.h),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 10.w,
+          mainAxisSpacing: 10.h,
+          childAspectRatio: 1,
+        ),
+        itemCount: _selectedImages.length,
+        itemBuilder: (context, index) {
+          return Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10.r),
+                child: Image.file(
+                  _selectedImages[index],
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              Positioned(
+                top: 5,
+                right: 5,
+                child: GestureDetector(
+                  onTap: () => _removeImage(index),
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: const BoxDecoration(
+                      color: Colors.black54,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.close, color: Colors.white, size: 16.sp),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFooterButtons(bool inProgress) {
+    bool isReady = _isFormValid();
     return Column(
       children: [
         Row(
           children: [
             Expanded(
               child: OutlinedButton(
-                onPressed: () {},
+                onPressed: inProgress ? null : () => Navigator.pop(context),
                 style: OutlinedButton.styleFrom(
                   minimumSize: Size(0, 50.h),
                   side: const BorderSide(color: Color(0xFFE0E0E0)),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
                 ),
-                child: Text('Save as Draft', style: TextStyle(color: Colors.black, fontSize: AppTypography.bodyLarge)),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: AppTypography.bodyLarge,
+                  ),
+                ),
               ),
             ),
             SizedBox(width: 15.w),
             Expanded(
               child: ElevatedButton(
-                onPressed: null, // Disabled until required fields filled
+                onPressed: (isReady && !inProgress) ? _publishListing : null,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFD1D5DB),
+                  backgroundColor: isReady
+                      ? Colors.black
+                      : const Color(0xFFD1D5DB),
                   disabledBackgroundColor: const Color(0xFFD1D5DB),
                   minimumSize: Size(0, 50.h),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
                   elevation: 0,
                 ),
-                child: Text('Publish', style: TextStyle(color: Colors.white, fontSize: AppTypography.bodyLarge)),
+                child: inProgress
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                        'Publish',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: AppTypography.bodyLarge,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
           ],
         ),
-        SizedBox(height: 10.h),
-        Center(
-          child: Text(
-            'Please complete all required fields to publish',
-            style: TextStyle(color: Colors.red[400], fontSize: AppTypography.bodySmall),
+        if (!isReady && !inProgress) ...[
+          SizedBox(height: 10.h),
+          Center(
+            child: Text(
+              'Please complete all required fields to publish',
+              style: TextStyle(
+                color: Colors.red[400],
+                fontSize: AppTypography.bodySmall,
+              ),
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
