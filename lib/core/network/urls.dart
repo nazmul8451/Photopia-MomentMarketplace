@@ -19,10 +19,13 @@ class Urls {
 
   //** serivce api */
   static const String service = '$baseUrl/api/v1/services';
+  //Calender and availibility
+  static const String calenderSettings = '$baseUrl/api/v1/availability';
 
   //** user service */
   static const String userService = '';
 
   //** category api */
   static const String categories = '$baseUrl/api/v1/categories';
+
 }
