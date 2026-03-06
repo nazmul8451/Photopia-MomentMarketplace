@@ -3,6 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/provider/screen/provider_create_listing_screen.dart';
 import 'package:photopia/features/provider/screen/provider_listing_details_screen.dart';
+import 'package:photopia/controller/provider/my_listing_controller.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/data/models/my_listing_model.dart';
 
 class ProviderOverviewScreen extends StatefulWidget {
   const ProviderOverviewScreen({super.key});
@@ -12,45 +15,24 @@ class ProviderOverviewScreen extends StatefulWidget {
 }
 
 class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
-  String _selectedStatus = 'Active';
+  String _selectedStatus = 'Active'; // Initialize with a default value
 
-  final List<Map<String, dynamic>> _allListings = [
-    {
-      'title': 'Professional Portrait Photography',
-      'category': 'Photography',
-      'rate': '\$150/hr',
-      'status': 'Active',
-      'views': 189,
-      'bookings': 8,
-    },
-    {
-      'title': 'Event Photography',
-      'category': 'Photography',
-      'rate': '\$200/hr',
-      'status': 'Active',
-      'views': 189,
-      'bookings': 8,
-    },
-    {
-      'title': 'Product Photography',
-      'category': 'Photography',
-      'rate': '\$120/hr',
-      'status': 'Drafts',
-      'views': 45,
-      'bookings': 0,
-    },
-    {
-      'title': 'Fashion Photography',
-      'category': 'Photography',
-      'rate': '\$180/hr',
-      'status': 'Past',
-      'views': 250,
-      'bookings': 12,
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<MyListingController>().getMyListings();
+    });
+  }
 
-  List<Map<String, dynamic>> get _filteredListings =>
-      _allListings.where((listing) => listing['status'] == _selectedStatus).toList();
+  List<Listing> _getFilteredListings(List<Listing> listings) {
+    return listings
+        .where(
+          (listing) =>
+              listing.status?.toLowerCase() == _selectedStatus.toLowerCase(),
+        )
+        .toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +76,10 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 8.h,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.r),
                   ),
@@ -104,31 +89,63 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 20.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 10.h),
-            // Status Tabs
-            Row(
-              children: [
-                _buildStatusTab('Active'),
-                SizedBox(width: 12.w),
-                _buildStatusTab('Drafts'),
-                SizedBox(width: 12.w),
-                _buildStatusTab('Past'),
-              ],
+      body: Consumer<MyListingController>(
+        builder: (context, controller, child) {
+          if (controller.isProgress) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (controller.errorMessage != null) {
+            return Center(child: Text(controller.errorMessage!));
+          }
+
+          final listings = _getFilteredListings(controller.listings);
+
+          return RefreshIndicator(
+            onRefresh: () => controller.getMyListings(),
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 10.h),
+                  // Status Tabs
+                  Row(
+                    children: [
+                      _buildStatusTab('Active'),
+                      SizedBox(width: 12.w),
+                      _buildStatusTab('Drafts'),
+                      SizedBox(width: 12.w),
+                      _buildStatusTab('Past'),
+                    ],
+                  ),
+                  SizedBox(height: 20.h),
+                  // Listings
+                  if (listings.isEmpty)
+                    Center(
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 50.h),
+                        child: Text(
+                          'No $_selectedStatus listings found',
+                          style: TextStyle(
+                            fontSize: AppTypography.bodyLarge,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    ...listings.map((listing) => _buildListingCard(listing)),
+                  SizedBox(height: 20.h),
+                  // Overall Statistics
+                  _buildStatisticsSection(controller),
+                  SizedBox(height: 30.h),
+                ],
+              ),
             ),
-            SizedBox(height: 20.h),
-            // Listings
-            ..._filteredListings.map((listing) => _buildListingCard(listing)),
-            SizedBox(height: 20.h),
-            // Overall Statistics
-            _buildStatisticsSection(),
-            SizedBox(height: 30.h),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -141,7 +158,9 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
         child: Container(
           padding: EdgeInsets.symmetric(vertical: 10.h),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF1F1F1F) : const Color(0xFFF5F5F7),
+            color: isSelected
+                ? const Color(0xFF1F1F1F)
+                : const Color(0xFFF5F5F7),
             borderRadius: BorderRadius.circular(10.r),
           ),
           child: Text(
@@ -158,7 +177,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
     );
   }
 
-  Widget _buildListingCard(Map<String, dynamic> listing) {
+  Widget _buildListingCard(Listing listing) {
     return Container(
       margin: EdgeInsets.only(bottom: 5.h),
       padding: EdgeInsets.all(12.w),
@@ -182,7 +201,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
             children: [
               Expanded(
                 child: Text(
-                  listing['title'],
+                  listing.title ?? 'No Title',
                   style: TextStyle(
                     fontSize: AppTypography.h2,
                     fontWeight: FontWeight.bold,
@@ -199,7 +218,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                   borderRadius: BorderRadius.circular(6.r),
                 ),
                 child: Text(
-                  listing['status'],
+                  listing.status ?? 'Active',
                   style: TextStyle(
                     fontSize: AppTypography.bodySmall,
                     color: const Color(0xFF2E7D32),
@@ -213,7 +232,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
           Row(
             children: [
               Text(
-                listing['category'],
+                'Photography', // Replace with listing.category if available and not null
                 style: TextStyle(
                   fontSize: AppTypography.bodyMedium,
                   color: Colors.grey[600],
@@ -224,7 +243,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                 child: Icon(Icons.circle, size: 4.sp, color: Colors.grey[400]),
               ),
               Text(
-                listing['rate'],
+                '${listing.currency ?? '\$'}${listing.price ?? 0}/${listing.duration ?? 'hr'}',
                 style: TextStyle(
                   fontSize: AppTypography.bodyMedium,
                   fontWeight: FontWeight.w600,
@@ -236,16 +255,26 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
           SizedBox(height: 12.h),
           Row(
             children: [
-              Icon(Icons.visibility_outlined, size: 16.sp, color: Colors.grey[400]),
+              Icon(
+                Icons.visibility_outlined,
+                size: 16.sp,
+                color: Colors.grey[400],
+              ),
               SizedBox(width: 4.w),
               Text(
-                '${listing['views']} views',
-                style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.black87),
+                '189 views', // Not in model yet
+                style: TextStyle(
+                  fontSize: AppTypography.bodyMedium,
+                  color: Colors.black87,
+                ),
               ),
               SizedBox(width: 16.w),
               Text(
-                '${listing['bookings']} bookings',
-                style: TextStyle(fontSize: AppTypography.bodyMedium, color: const Color(0xFF636AFF)),
+                '8 bookings', // Not in model yet
+                style: TextStyle(
+                  fontSize: AppTypography.bodyMedium,
+                  color: const Color(0xFF636AFF),
+                ),
               ),
             ],
           ),
@@ -254,7 +283,8 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
           SizedBox(height: 16.h),
           Row(
             children: [
-              Expanded(flex:2,
+              Expanded(
+                flex: 2,
                 child: _buildListingButton(
                   icon: Icons.visibility_outlined,
                   label: 'View',
@@ -262,7 +292,9 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProviderListingDetailsScreen(listing: listing),
+                        builder: (context) => ProviderListingDetailsScreen(
+                          listing: listing.toJson(),
+                        ),
                       ),
                     );
                   },
@@ -320,7 +352,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                 child: Text(
                   label,
                   style: TextStyle(
-                    fontSize: 12.sp.clamp(12,13),
+                    fontSize: 12.sp.clamp(12, 13),
                     fontWeight: FontWeight.w500,
                     color: Colors.black87,
                   ),
@@ -334,7 +366,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
     );
   }
 
-  Widget _buildStatisticsSection() {
+  Widget _buildStatisticsSection(MyListingController controller) {
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
@@ -357,10 +389,10 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildStatItem('Total', _allListings.length.toString()),
-              _buildStatItem('Active', _allListings.where((l) => l['status'] == 'Active').length.toString()),
-              _buildStatItem('Drafts', _allListings.where((l) => l['status'] == 'Drafts').length.toString()),
-              _buildStatItem('Past', _allListings.where((l) => l['status'] == 'Past').length.toString()),
+              _buildStatItem('Total', controller.totalListings.toString()),
+              _buildStatItem('Active', controller.activeListings.toString()),
+              _buildStatItem('Drafts', controller.draftListings.toString()),
+              _buildStatItem('Past', controller.pastListings.toString()),
             ],
           ),
         ],
