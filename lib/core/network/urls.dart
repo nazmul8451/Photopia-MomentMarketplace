@@ -21,6 +21,25 @@ class Urls {
   static const String service = '$baseUrl/api/v1/services';
   //Calender and availibility
   static const String calenderSettings = '$baseUrl/api/v1/availability';
+    
+  static const String myListingApi = '$baseUrl/api/v1/services/my/services';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   //** user service */
   static const String userService = '';
