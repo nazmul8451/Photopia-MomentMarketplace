@@ -213,6 +213,36 @@ class NetworkCaller {
     }
   }
 
+  // DELETE Request
+  static Future<NetworkResponse> deleteRequest({
+    required String url,
+    bool requireAuth = true,
+    String? token,
+    bool addBearer = true,
+  }) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      final Map<String, String> headers = await _getHeaders(
+        requireAuth: requireAuth,
+        token: token,
+        addBearer: addBearer,
+      );
+
+      _logRequest("DELETE", url, {}, headers);
+
+      final Response response = await delete(uri, headers: headers);
+
+      return _handleResponse(response, url, "DELETE");
+    } catch (e) {
+      debugPrint("DELETE request error: $e");
+      return NetworkResponse(
+        isSuccess: false,
+        statusCode: -1,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
   static Future<NetworkResponse> multipartRequest({
     String? token,
     required String url,

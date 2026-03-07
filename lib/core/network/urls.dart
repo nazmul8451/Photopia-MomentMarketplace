@@ -19,32 +19,19 @@ class Urls {
 
   //** serivce api */
   static const String service = '$baseUrl/api/v1/services';
+  static String updateService(String id) => '$baseUrl/api/v1/services/$id';
+  static String deleteService(String id) => '$baseUrl/api/v1/services/$id';
   //Calender and availibility
   static const String calenderSettings = '$baseUrl/api/v1/availability';
-    
+
   static const String myListingApi = '$baseUrl/api/v1/services/my/services';
-  static String getSingleList(String id)  => '$baseUrl/api/v1/services/$id';
+  static String getSingleList(String id) => '$baseUrl/api/v1/services/$id';
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  //--------------------------------------User site api----------------------------------------------------------
 
   //** user service */
   static const String userService = '';
 
   //** category api */
-  static const String categories = '$baseUrl/api/v1/categories';
-
+  static const String categories = '$baseUrl/api/v1/category';
 }

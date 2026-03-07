@@ -4,8 +4,10 @@ import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/provider/screen/provider_create_listing_screen.dart';
 import 'package:photopia/features/provider/screen/provider_listing_details_screen.dart';
 import 'package:photopia/controller/provider/my_listing_controller.dart';
+import 'package:photopia/controller/provider/service_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/data/models/my_listing_model.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
 
 class ProviderOverviewScreen extends StatefulWidget {
   const ProviderOverviewScreen({super.key});
@@ -306,7 +308,31 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                 child: _buildListingButton(
                   icon: Icons.edit_outlined,
                   label: 'Edit',
-                  onTap: () {},
+                  onTap: () async {
+                    // We need full details to edit, so we fetch it first
+                    final success = await context
+                        .read<MyListingController>()
+                        .getSingleListing(listing.sId ?? '');
+
+                    if (success && mounted) {
+                      final fullListing = context
+                          .read<MyListingController>()
+                          .singleListingData;
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProviderCreateListingScreen(
+                            existingListing: fullListing,
+                          ),
+                        ),
+                      ).then((value) {
+                        if (value == true) {
+                          context.read<MyListingController>().getMyListings();
+                        }
+                      });
+                    }
+                  },
                 ),
               ),
               SizedBox(width: 12.w),
@@ -316,7 +342,9 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                   icon: Icons.delete_outline,
                   label: '',
                   isDelete: true,
-                  onTap: () {},
+                  onTap: () {
+                    _showDeleteConfirmationDialog(context, listing.sId ?? '');
+                  },
                 ),
               ),
             ],
@@ -420,6 +448,149 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context, String listingId) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.r),
+        ),
+        child: Container(
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Cnfermation pop up',
+                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Icon(Icons.close, size: 20.sp),
+                  ),
+                ],
+              ),
+              SizedBox(height: 15.h),
+              Text(
+                'Are you want to Decline This',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              SizedBox(height: 25.h),
+              const Divider(height: 1),
+              SizedBox(height: 20.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Yes Button
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () async {
+                        Navigator.pop(context); // Close dialog
+
+                        // Show loading or just call API
+                        final success = await context
+                            .read<ServiceController>()
+                            .deleteService(listingId);
+
+                        if (success && mounted) {
+                          CustomSnackBar.show(
+                            context: context,
+                            message: "Service deleted successfully",
+                          );
+                          context
+                              .read<MyListingController>()
+                              .getMyListings(); // Refresh list
+                        } else if (mounted) {
+                          CustomSnackBar.show(
+                            context: context,
+                            message:
+                                context
+                                    .read<ServiceController>()
+                                    .errorMessage ??
+                                "Delete failed",
+                            isError: true,
+                          );
+                        }
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 10.h),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1FFF3),
+                          borderRadius: BorderRadius.circular(10.r),
+                          border: Border.all(color: const Color(0xFFB9F6C0)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.check,
+                              size: 16.sp,
+                              color: const Color(0xFF2E7D32),
+                            ),
+                            SizedBox(width: 8.w),
+                            Text(
+                              'Yes',
+                              style: TextStyle(
+                                color: const Color(0xFF2E7D32),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 15.w),
+                  // No Button
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 10.h),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF1F1),
+                          borderRadius: BorderRadius.circular(10.r),
+                          border: Border.all(color: const Color(0xFFFFCDD2)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.close,
+                              size: 16.sp,
+                              color: const Color(0xFFC62828),
+                            ),
+                            SizedBox(width: 8.w),
+                            Text(
+                              'No',
+                              style: TextStyle(
+                                color: const Color(0xFFC62828),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

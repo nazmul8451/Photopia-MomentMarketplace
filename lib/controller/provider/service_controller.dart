@@ -115,6 +115,130 @@ class ServiceController extends ChangeNotifier {
     }
   }
 
+  Future<bool> updateService(
+    String id,
+    Data serviceData,
+    List<File>? newImages,
+  ) async {
+    _inProgress = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      String? token = AuthController.accessToken;
+      if (token == null || token.isEmpty) {
+        token = await _storage.read(key: 'access_token');
+      }
+
+      final Uri uri = Uri.parse(Urls.updateService(id));
+      final request = http.MultipartRequest('PATCH', uri);
+
+      // Add Headers
+      if (token != null && token.isNotEmpty) {
+        request.headers['Authorization'] = token.startsWith('Bearer ')
+            ? token
+            : 'Bearer $token';
+      }
+      request.headers['Accept'] = 'application/json';
+
+      // Prepare data map for backend
+      final Map<String, dynamic> dataMap = serviceData.toJson();
+
+      if (serviceData.category != null) {
+        dataMap['category'] =
+            serviceData.category?.sId ?? serviceData.category?.id ?? "";
+      }
+
+      if (dataMap['location'] != null) {
+        dataMap['location']['address'] = dataMap['location']['address'] ?? "";
+      }
+
+      // Ensure required update fields are present even if they were omitted
+      dataMap['status'] = serviceData.status ?? "ACTIVE";
+      dataMap['isActive'] = serviceData.isActive ?? true;
+      dataMap['isVerified'] = serviceData.isVerified ?? false;
+      if (serviceData.coverMedia != null &&
+          serviceData.coverMedia!.isNotEmpty) {
+        // Prepend base URL but avoid duplication
+        dataMap['coverMedia'] = serviceData.coverMedia!.startsWith('http')
+            ? serviceData.coverMedia
+            : "${Urls.baseUrl}${serviceData.coverMedia}";
+      } else if (newImages == null || newImages.isEmpty) {
+        // Zod requires a valid url string. If no new images and no existing, use placeholder.
+        dataMap['coverMedia'] = "${Urls.baseUrl}/images/placeholder.jpg";
+      } else {
+        // If we HAVE new images, we can send a temporary valid URL to satisfy Zod
+        // the backend will replace it with the uploaded file
+        dataMap['coverMedia'] = "${Urls.baseUrl}/images/temp_upload.jpg";
+      }
+
+      // Format gallery paths into full URLs if not already to satisfy Zod
+      if (serviceData.gallery != null && serviceData.gallery!.isNotEmpty) {
+        dataMap['gallery'] = serviceData.gallery!.map((img) {
+          return img.startsWith('http') ? img : "${Urls.baseUrl}$img";
+        }).toList();
+      }
+
+      // Remove fields that should not be sent for update
+      dataMap.remove('_id');
+      dataMap.remove('id');
+      dataMap.remove('createdAt');
+      dataMap.remove('updatedAt');
+      dataMap.remove('__v');
+      dataMap.remove('providerId');
+      // DO NOT remove 'gallery' here!
+
+      request.fields['data'] = jsonEncode(dataMap);
+
+      // Add new images if provided
+      if (newImages != null && newImages.isNotEmpty) {
+        for (int i = 0; i < newImages.length; i++) {
+          final file = newImages[i];
+          final stream = http.ByteStream(file.openRead());
+          final length = await file.length();
+
+          final multipartFile = http.MultipartFile(
+            'images',
+            stream,
+            length,
+            filename: file.path.split(Platform.pathSeparator).last,
+            contentType: MediaType('image', 'jpeg'),
+          );
+          request.files.add(multipartFile);
+        }
+      }
+
+      debugPrint('🚀 Sending Service Update Request to ${uri.toString()}');
+      debugPrint('📦 Data: ${request.fields['data']}');
+      debugPrint('🖼️ New Images: ${newImages?.length ?? 0}');
+
+      final streamedResponse = await request.send().timeout(
+        const Duration(seconds: 30),
+      );
+      final response = await http.Response.fromStream(streamedResponse);
+
+      _inProgress = false;
+      debugPrint('📊 Update Status Code: ${response.statusCode}');
+      debugPrint('📦 Update Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        notifyListeners();
+        return true;
+      } else {
+        final Map<String, dynamic> responseBody = jsonDecode(response.body);
+        _errorMessage = responseBody['message'] ?? 'Failed to update service';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      debugPrint('❌ Update Service Error: $e');
+      _inProgress = false;
+      _errorMessage = 'An unexpected error occurred';
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<List<Category>> getCategories() async {
     try {
       final NetworkResponse response = await NetworkCaller.getRequest(
@@ -133,9 +257,9 @@ class ServiceController extends ChangeNotifier {
       debugPrint(
         '⚠️ API Response for categories: ${response.statusCode} - ${response.body}',
       );
-      debugPrint('⚠️ No categories from API or API failed, using fallback');
+      debugPrint('No categories from API or API failed, using fallback');
     } catch (e) {
-      debugPrint('❌ Get Categories Exception: $e');
+      debugPrint('Get Categories Exception: $e');
     }
 
     // Fallback categories with the working ID provided by the user
@@ -147,5 +271,33 @@ class ServiceController extends ChangeNotifier {
       Category(sId: "65e8a5b4f1a2b3c4d5e6f702", name: "Videography"),
       Category(sId: "65e8a5b4f1a2b3c4d5e6f703", name: "Video Editing"),
     ];
+  }
+
+  Future<bool> deleteService(String id) async {
+    _inProgress = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await NetworkCaller.deleteRequest(
+        url: Urls.deleteService(id),
+      );
+
+      _inProgress = false;
+      if (response.isSuccess) {
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = response.errorMessage ?? "Failed to delete service";
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _inProgress = false;
+      _errorMessage = "An unexpected error occurred";
+      notifyListeners();
+      debugPrint("Delete Service Error: $e");
+      return false;
+    }
   }
 }

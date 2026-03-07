@@ -3,6 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/controller/provider/my_listing_controller.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/network/urls.dart';
+import 'package:photopia/core/widgets/custom_network_image.dart';
+import 'package:photopia/core/widgets/my_loader.dart';
+import 'package:photopia/features/provider/screen/provider_create_listing_screen.dart';
 import 'package:provider/provider.dart';
 
 class ProviderListingDetailsScreen extends StatefulWidget {
@@ -59,7 +62,7 @@ class _ProviderListingDetailsScreenState
       body: Consumer<MyListingController>(
         builder: (context, controller, child) {
           if (controller.isSingleListingProgress) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: MyLoader());
           }
 
           final listing = controller.singleListingData;
@@ -75,19 +78,30 @@ class _ProviderListingDetailsScreenState
 
           // Build image list from coverMedia + gallery
           final List<String> images = [];
+
+          // Always add coverMedia first if it exists
+          if (listing.coverMedia != null && listing.coverMedia!.isNotEmpty) {
+            final path = listing.coverMedia!;
+            images.add(path.startsWith('http') ? path : '${Urls.baseUrl}$path');
+          }
+
+          // Add all gallery images
           if (listing.gallery != null && listing.gallery!.isNotEmpty) {
             for (final img in listing.gallery!) {
               if (img != null && img.toString().isNotEmpty) {
-                images.add('${Urls.baseUrl}${img.toString()}');
+                final path = img.toString();
+                final url = path.startsWith('http')
+                    ? path
+                    : '${Urls.baseUrl}$path';
+                if (!images.contains(url)) {
+                  images.add(url);
+                }
               }
             }
           }
-          // Add coverMedia as fallback if gallery is empty or it's not already included
-          if (images.isEmpty &&
-              listing.coverMedia != null &&
-              listing.coverMedia!.isNotEmpty) {
-            images.add('${Urls.baseUrl}${listing.coverMedia}');
-          }
+
+          debugPrint('📸 Image count: ${images.length}');
+          debugPrint('📸 Images: $images');
 
           return SingleChildScrollView(
             padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -119,34 +133,11 @@ class _ProviderListingDetailsScreenState
                                   setState(() => _currentImageIndex = index);
                                 },
                                 itemBuilder: (context, index) {
-                                  return Image.network(
-                                    images[index],
+                                  return CustomNetworkImage(
+                                    imageUrl: images[index],
                                     height: 200.h,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
-                                    loadingBuilder: (context, child, progress) {
-                                      if (progress == null) return child;
-                                      return Container(
-                                        height: 200.h,
-                                        color: Colors.grey[200],
-                                        child: const Center(
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    errorBuilder:
-                                        (context, error, stackTrace) =>
-                                            Container(
-                                              height: 200.h,
-                                              color: Colors.grey[200],
-                                              child: Icon(
-                                                Icons.broken_image_outlined,
-                                                size: 50.sp,
-                                                color: Colors.grey[400],
-                                              ),
-                                            ),
                                   );
                                 },
                               ),
@@ -370,7 +361,22 @@ class _ProviderListingDetailsScreenState
                     Expanded(
                       flex: 4,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProviderCreateListingScreen(
+                                existingListing: listing,
+                              ),
+                            ),
+                          );
+                          // If edit was successful, refresh the details
+                          if (result == true && mounted) {
+                            context
+                                .read<MyListingController>()
+                                .getSingleListing(widget.listingId);
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.black,
                           minimumSize: Size(0, 50.h),

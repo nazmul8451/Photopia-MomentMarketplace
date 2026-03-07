@@ -2,14 +2,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/widgets/custom_snacbar.dart';
+import 'package:photopia/core/network/urls.dart';
 import 'package:photopia/controller/provider/service_controller.dart';
 import 'package:photopia/data/models/provider_service_model.dart';
 import 'package:provider/provider.dart';
 
 class ProviderCreateListingScreen extends StatefulWidget {
-  const ProviderCreateListingScreen({super.key});
+  final Data? existingListing;
+  const ProviderCreateListingScreen({super.key, this.existingListing});
 
   @override
   State<ProviderCreateListingScreen> createState() =>
@@ -22,6 +25,8 @@ class _ProviderCreateListingScreenState
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _countryController = TextEditingController();
   final TextEditingController _durationController = TextEditingController();
   final TextEditingController _equipmentController = TextEditingController();
 
@@ -51,12 +56,84 @@ class _ProviderCreateListingScreenState
   bool _acceptOutsideRadius = false;
   final List<String> _equipment = [];
   final List<File> _selectedImages = [];
+  final List<String> _existingNetworkImages = []; // Track original images URL
   final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
     _fetchCategories();
+    _populateExistingData();
+  }
+
+  void _populateExistingData() {
+    if (widget.existingListing != null) {
+      final listing = widget.existingListing!;
+      _titleController.text = listing.title ?? '';
+      _descriptionController.text = listing.description ?? '';
+      _locationController.text = listing.location?.city ?? '';
+      _addressController.text = listing.location?.address ?? '';
+      _countryController.text = listing.location?.country ?? '';
+      _durationController.text = listing.duration ?? '';
+
+      if (listing.tags != null && listing.tags!.isNotEmpty) {
+        _selectedServiceType = listing.tags!.first;
+      }
+
+      if (listing.equipment != null) {
+        _equipment.addAll(listing.equipment!);
+      }
+
+      if (listing.pricingType != null) {
+        if (listing.pricingType == "HOURLY") {
+          _selectedPricingModel = 'By Hour';
+          _hourlyRateController.text = listing.price?.toString() ?? '';
+        } else if (listing.pricingType == "DAILY") {
+          _selectedPricingModel = 'By Day';
+          _dailyRateController.text = listing.price?.toString() ?? '';
+        } else if (listing.pricingType == "PACKAGE") {
+          _selectedPricingModel = 'By Service';
+          if (listing.pricingModel?.packages != null) {
+            for (var pkg in listing.pricingModel!.packages!) {
+              if (pkg.name == 'Basic') {
+                _basicPackagePriceController.text = pkg.price?.toString() ?? '';
+              }
+              if (pkg.name == 'Standard') {
+                _standardPackagePriceController.text =
+                    pkg.price?.toString() ?? '';
+              }
+              if (pkg.name == 'Premium') {
+                _premiumPackagePriceController.text =
+                    pkg.price?.toString() ?? '';
+              }
+            }
+          } else {
+            _basicPackagePriceController.text = listing.price?.toString() ?? '';
+          }
+        }
+      }
+
+      if (listing.location?.serviceRadiusKm != null) {
+        _serviceRadius = listing.location!.serviceRadiusKm!.toDouble();
+      }
+
+      _acceptOutsideRadius = listing.allowOutsideRadius ?? false;
+
+      // Populate existing images
+      if (listing.coverMedia != null && listing.coverMedia!.isNotEmpty) {
+        _existingNetworkImages.add(listing.coverMedia!);
+      }
+      if (listing.gallery != null) {
+        // filter out nulls or duplicates
+        for (var img in listing.gallery!) {
+          if (img != null &&
+              img.isNotEmpty &&
+              !_existingNetworkImages.contains(img)) {
+            _existingNetworkImages.add(img);
+          }
+        }
+      }
+    }
   }
 
   Future<void> _fetchCategories() async {
@@ -75,7 +152,18 @@ class _ProviderCreateListingScreenState
             Category(sId: "65e8a5b4f1a2b3c4d5e6f703", name: "Video Editing"),
           ];
         }
-        _selectedCategory = _categories.first;
+        if (widget.existingListing != null &&
+            widget.existingListing!.category != null) {
+          final existingCatId =
+              widget.existingListing!.category!.sId ??
+              widget.existingListing!.category!.id;
+          _selectedCategory = _categories.firstWhere(
+            (c) => c.sId == existingCatId,
+            orElse: () => _categories.first,
+          );
+        } else {
+          _selectedCategory = _categories.first;
+        }
         _isLoadingCategories = false;
       });
     }
@@ -86,6 +174,8 @@ class _ProviderCreateListingScreenState
     _titleController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
+    _addressController.dispose();
+    _countryController.dispose();
     _durationController.dispose();
     _equipmentController.dispose();
     _hourlyRateController.dispose();
@@ -106,7 +196,10 @@ class _ProviderCreateListingScreenState
       imageQuality: 80,
     );
     if (images.isNotEmpty) {
-      if (_selectedImages.length + images.length > 5) {
+      if (_selectedImages.length +
+              _existingNetworkImages.length +
+              images.length >
+          5) {
         if (mounted) {
           CustomSnackBar.show(
             context: context,
@@ -116,12 +209,38 @@ class _ProviderCreateListingScreenState
         }
         return;
       }
-      setState(() {
-        _selectedImages.addAll(
-          images.map((xFile) => File(xFile.path)).toList(),
+
+      // Fix EXIF orientation by compressing and stripping metadata
+      List<File> processedImages = [];
+      for (var xFile in images) {
+        final tempDir = Directory.systemTemp;
+        final targetPath =
+            '${tempDir.path}/${DateTime.now().microsecondsSinceEpoch}.jpg';
+
+        final compressedFile = await FlutterImageCompress.compressAndGetFile(
+          xFile.path,
+          targetPath,
+          quality: 90,
+          format: CompressFormat.jpeg,
         );
+
+        if (compressedFile != null) {
+          processedImages.add(File(compressedFile.path));
+        } else {
+          processedImages.add(File(xFile.path));
+        }
+      }
+
+      setState(() {
+        _selectedImages.addAll(processedImages);
       });
     }
+  }
+
+  void _removeExistingImage(int index) {
+    setState(() {
+      _existingNetworkImages.removeAt(index);
+    });
   }
 
   void _removeImage(int index) {
@@ -134,7 +253,9 @@ class _ProviderCreateListingScreenState
     if (_titleController.text.isEmpty ||
         _descriptionController.text.isEmpty ||
         _locationController.text.isEmpty ||
-        _selectedImages.isEmpty ||
+        _addressController.text.isEmpty ||
+        _countryController.text.isEmpty ||
+        (_selectedImages.isEmpty && _existingNetworkImages.isEmpty) ||
         _selectedCategory == null) {
       return false;
     }
@@ -185,13 +306,21 @@ class _ProviderCreateListingScreenState
           : "PACKAGE",
       location: Location(
         type: "ONSITE",
-        country: "USA", // Default for now, can be sophisticated
+        country: _countryController.text.trim(),
         city: _locationController.text.trim(),
+        address: _addressController.text.trim(),
         serviceRadiusKm: _serviceRadius.toInt(),
       ),
       allowOutsideRadius: _acceptOutsideRadius,
       duration: _durationController.text.trim(),
       pricingRules: [], // Optional
+      // Preserve existing images, just use the raw paths
+      coverMedia: _existingNetworkImages.isNotEmpty
+          ? _existingNetworkImages.first
+          : null,
+      gallery: _existingNetworkImages.length > 1
+          ? _existingNetworkImages.sublist(1)
+          : [],
     );
 
     // Setup packages if SERVICE pricing
@@ -218,24 +347,38 @@ class _ProviderCreateListingScreenState
       );
     }
 
+    final isEdit = widget.existingListing != null;
     final controller = context.read<ServiceController>();
-    final success = await controller.createService(
-      serviceData,
-      _selectedImages,
-    );
+
+    bool success;
+    if (isEdit) {
+      final listingId =
+          widget.existingListing!.sId ?? widget.existingListing!.id ?? '';
+      success = await controller.updateService(
+        listingId,
+        serviceData,
+        _selectedImages.isNotEmpty ? _selectedImages : null,
+      );
+    } else {
+      success = await controller.createService(serviceData, _selectedImages);
+    }
 
     if (mounted) {
       if (success) {
         CustomSnackBar.show(
           context: context,
-          message: 'Listing published successfully!',
+          message: isEdit
+              ? 'Listing updated successfully!'
+              : 'Listing published successfully!',
           isError: false,
         );
-        Navigator.pop(context);
+        Navigator.pop(context, true);
       } else {
         CustomSnackBar.show(
           context: context,
-          message: controller.errorMessage ?? 'Publishing failed',
+          message:
+              controller.errorMessage ??
+              (isEdit ? 'Update failed' : 'Publishing failed'),
           isError: true,
         );
       }
@@ -255,7 +398,7 @@ class _ProviderCreateListingScreenState
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Create Listing',
+          widget.existingListing != null ? 'Edit Listing' : 'Create Listing',
           style: TextStyle(
             color: Colors.black,
             fontSize: AppTypography.h1,
@@ -358,10 +501,24 @@ class _ProviderCreateListingScreenState
                   ),
                   SizedBox(height: 20.h),
 
-                  _buildLabel('Location (City)'),
+                  _buildLabel('Country'),
                   _buildTextField(
-                    hintText: 'New York, NY',
+                    hintText: 'Enter Country (e.g. Germany)',
+                    controller: _countryController,
+                  ),
+                  SizedBox(height: 20.h),
+
+                  _buildLabel('City'),
+                  _buildTextField(
+                    hintText: 'Enter City',
                     controller: _locationController,
+                  ),
+                  SizedBox(height: 20.h),
+
+                  _buildLabel('Street Address'),
+                  _buildTextField(
+                    hintText: 'Enter Street Address',
+                    controller: _addressController,
                   ),
                   SizedBox(height: 20.h),
 
@@ -379,9 +536,15 @@ class _ProviderCreateListingScreenState
                   if (_equipment.isNotEmpty) _buildEquipmentList(),
                   SizedBox(height: 20.h),
 
-                  _buildLabel('Photos (Max 5)'),
+                  _buildLabel(
+                    widget.existingListing != null
+                        ? 'Photos (Max 5, existing kept if not removed)'
+                        : 'Photos (Max 5)',
+                  ),
                   _buildPhotoUploadArea(),
-                  if (_selectedImages.isNotEmpty) _buildSelectedImagesGrid(),
+                  if (_existingNetworkImages.isNotEmpty ||
+                      _selectedImages.isNotEmpty)
+                    _buildSelectedImagesGrid(),
                   SizedBox(height: 30.h),
 
                   _buildFooterButtons(controller.inProgress),
@@ -812,6 +975,9 @@ class _ProviderCreateListingScreenState
   }
 
   Widget _buildSelectedImagesGrid() {
+    // Combine existing and new for display
+    final totalItems = _existingNetworkImages.length + _selectedImages.length;
+
     return Padding(
       padding: EdgeInsets.only(top: 15.h),
       child: GridView.builder(
@@ -823,24 +989,51 @@ class _ProviderCreateListingScreenState
           mainAxisSpacing: 10.h,
           childAspectRatio: 1,
         ),
-        itemCount: _selectedImages.length,
+        itemCount: totalItems,
         itemBuilder: (context, index) {
+          final isExisting = index < _existingNetworkImages.length;
+          final String? existingUrl = isExisting
+              ? (_existingNetworkImages[index].startsWith('http')
+                    ? _existingNetworkImages[index]
+                    : "${Urls.baseUrl}${_existingNetworkImages[index]}")
+              : null;
+          final File? newFile = !isExisting
+              ? _selectedImages[index - _existingNetworkImages.length]
+              : null;
+
           return Stack(
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10.r),
-                child: Image.file(
-                  _selectedImages[index],
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
-                ),
+                child: isExisting
+                    ? Image.network(
+                        existingUrl!,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: Colors.grey[200],
+                          child: const Icon(Icons.error),
+                        ),
+                      )
+                    : Image.file(
+                        newFile!,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
               ),
               Positioned(
                 top: 5,
                 right: 5,
                 child: GestureDetector(
-                  onTap: () => _removeImage(index),
+                  onTap: () {
+                    if (isExisting) {
+                      _removeExistingImage(index);
+                    } else {
+                      _removeImage(index - _existingNetworkImages.length);
+                    }
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(2),
                     decoration: const BoxDecoration(
@@ -901,7 +1094,7 @@ class _ProviderCreateListingScreenState
                 child: inProgress
                     ? const CircularProgressIndicator(color: Colors.white)
                     : Text(
-                        'Publish',
+                        widget.existingListing != null ? 'Update' : 'Publish',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: AppTypography.bodyLarge,
