@@ -232,7 +232,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
           Row(
             children: [
               Text(
-                'Photography', // Replace with listing.category if available and not null
+                listing.category?.name ?? 'No Category',
                 style: TextStyle(
                   fontSize: AppTypography.bodyMedium,
                   color: Colors.grey[600],
@@ -293,7 +293,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                       context,
                       MaterialPageRoute(
                         builder: (context) => ProviderListingDetailsScreen(
-                          listing: listing.toJson(),
+                          listingId: listing.sId ?? '',
                         ),
                       ),
                     );

@@ -23,7 +23,7 @@ class Urls {
   static const String calenderSettings = '$baseUrl/api/v1/availability';
     
   static const String myListingApi = '$baseUrl/api/v1/services/my/services';
-
+  static String getSingleList(String id)  => '$baseUrl/api/v1/services/$id';
 
 
 

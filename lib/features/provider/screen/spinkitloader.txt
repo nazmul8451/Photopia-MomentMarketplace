@@ -1,0 +1,37 @@
+dependencies:
+flutter_spinkit: ^5.2.1
+ 
+import 'package:flutter/material.dart';
+
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+ 
+class MyLoader extends StatelessWidget {
+
+  @override
+
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+
+      backgroundColor: Colors.white,
+
+      body: Center(
+
+        child: SpinKitFadingCircle(
+
+          color: Colors.blue, // আপনার পছন্দের নীল রঙ
+
+          size: 50.0,         // সাইজ সেট করুন
+
+        ),
+
+      ),
+
+    );
+
+  }
+
+}
+ 
+ 
+ 

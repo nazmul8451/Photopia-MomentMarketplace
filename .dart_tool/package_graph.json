@@ -13,6 +13,7 @@
         "flutter_image_compress",
         "flutter_screenutil",
         "flutter_secure_storage",
+        "flutter_spinkit",
         "get_storage",
         "http",
         "image_picker",
@@ -47,6 +48,13 @@
         "stream_channel",
         "test_api",
         "vector_math"
+      ]
+    },
+    {
+      "name": "flutter_spinkit",
+      "version": "5.2.2",
+      "dependencies": [
+        "flutter"
       ]
     },
     {

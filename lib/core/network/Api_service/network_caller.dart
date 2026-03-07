@@ -128,7 +128,10 @@ class NetworkCaller {
         addBearer: addBearer,
       );
 
-      final Response response = await get(uri, headers: headers);
+      final Response response = await get(
+        uri,
+        headers: headers,
+      ).timeout(const Duration(seconds: 15));
       return _handleResponse(response, url, "GET");
     } catch (e) {
       debugPrint("GET request error: $e");

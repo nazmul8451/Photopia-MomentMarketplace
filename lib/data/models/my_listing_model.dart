@@ -84,14 +84,14 @@ class Listing {
   String? sId;
   ProviderId? providerId;
   String? title;
-  Null? category;
+  Category? category;
   int? price;
   String? currency;
   String? duration;
   Location? location;
   String? coverMedia;
   String? status;
-  Null? isActive;
+  bool? isActive;
 
   Listing({
     this.sId,
@@ -113,7 +113,9 @@ class Listing {
         ? new ProviderId.fromJson(json['providerId'])
         : null;
     title = json['title'];
-    category = json['category'];
+    category = json['category'] != null
+        ? new Category.fromJson(json['category'])
+        : null;
     price = json['price'];
     currency = json['currency'];
     duration = json['duration'];
@@ -132,7 +134,9 @@ class Listing {
       data['providerId'] = this.providerId!.toJson();
     }
     data['title'] = this.title;
-    data['category'] = this.category;
+    if (this.category != null) {
+      data['category'] = this.category!.toJson();
+    }
     data['price'] = this.price;
     data['currency'] = this.currency;
     data['duration'] = this.duration;
@@ -142,6 +146,28 @@ class Listing {
     data['coverMedia'] = this.coverMedia;
     data['status'] = this.status;
     data['isActive'] = this.isActive;
+    return data;
+  }
+}
+
+class Category {
+  String? sId;
+  String? name;
+  String? image;
+
+  Category({this.sId, this.name, this.image});
+
+  Category.fromJson(Map<String, dynamic> json) {
+    sId = json['_id'];
+    name = json['name'];
+    image = json['image'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['_id'] = this.sId;
+    data['name'] = this.name;
+    data['image'] = this.image;
     return data;
   }
 }
@@ -177,7 +203,7 @@ class Location {
   String? city;
   String? address;
   int? serviceRadiusKm;
-  Null? nId;
+  String? nId;
 
   Location({
     this.type,

@@ -51,6 +51,7 @@ class Data {
   String? duration;
   Location? location;
   List<dynamic>? gallery;
+  String? coverMedia;
   String? status;
   bool? isVerified;
   bool? isActive;
@@ -80,6 +81,7 @@ class Data {
     this.duration,
     this.location,
     this.gallery,
+    this.coverMedia,
     this.status,
     this.isVerified,
     this.isActive,
@@ -124,6 +126,7 @@ class Data {
     gallery = json['gallery'] != null
         ? List<dynamic>.from(json['gallery'])
         : null;
+    coverMedia = json['coverMedia'];
     status = json['status'];
     isVerified = json['isVerified'];
     isActive = json['isActive'];
@@ -172,6 +175,7 @@ class Data {
     if (this.gallery != null) {
       data['gallery'] = this.gallery!.toList();
     }
+    data['coverMedia'] = this.coverMedia;
     data['status'] = this.status;
     data['isVerified'] = this.isVerified;
     data['isActive'] = this.isActive;

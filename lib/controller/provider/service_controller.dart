@@ -43,8 +43,6 @@ class ServiceController extends ChangeNotifier {
       // Prepare data map for backend
       final Map<String, dynamic> dataMap = serviceData.toJson();
 
-      // Sanitization for backend Zod validation
-      // 1. category must be an ObjectId (string)
       if (serviceData.category != null) {
         dataMap['category'] =
             serviceData.category?.sId ?? serviceData.category?.id ?? "";
