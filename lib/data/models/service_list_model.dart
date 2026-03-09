@@ -1,3 +1,5 @@
+import 'package:photopia/core/network/urls.dart';
+
 class ServiceListModel {
   int? statusCode;
   bool? success;
@@ -94,6 +96,9 @@ class ServiceItem {
   bool? isActive;
   double? rating;
   int? reviews;
+  String? description;
+  List<String>? equipment;
+  List<dynamic>? gallery;
 
   ServiceItem({
     this.sId,
@@ -109,7 +114,16 @@ class ServiceItem {
     this.isActive,
     this.rating,
     this.reviews,
+    this.description,
+    this.equipment,
+    this.gallery,
   });
+
+  String? _formatUrl(String? url) {
+    if (url == null || url.isEmpty) return url;
+    if (url.startsWith('http')) return url;
+    return "${Urls.baseUrl}$url";
+  }
 
   ServiceItem.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -126,11 +140,20 @@ class ServiceItem {
     location = json['location'] != null
         ? LocationInfo.fromJson(json['location'])
         : null;
-    coverMedia = json['coverMedia'];
+    coverMedia = _formatUrl(json['coverMedia']);
     status = json['status'];
     isActive = json['isActive'];
     rating = (json['rating'] ?? 0.0).toDouble();
     reviews = json['reviews'] ?? 0;
+    description = json['description'];
+    equipment = json['equipment'] != null
+        ? List<String>.from(json['equipment'])
+        : null;
+    gallery = json['gallery'] != null
+        ? (json['gallery'] as List)
+              .map((e) => _formatUrl(e.toString()))
+              .toList()
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -154,6 +177,9 @@ class ServiceItem {
     data['isActive'] = isActive;
     data['rating'] = rating;
     data['reviews'] = reviews;
+    data['description'] = description;
+    data['equipment'] = equipment;
+    data['gallery'] = gallery;
     return data;
   }
 }
@@ -166,11 +192,17 @@ class ProviderInfo {
 
   ProviderInfo({this.sId, this.name, this.email, this.profile});
 
+  String? _formatUrl(String? url) {
+    if (url == null || url.isEmpty) return url;
+    if (url.startsWith('http')) return url;
+    return "${Urls.baseUrl}$url";
+  }
+
   ProviderInfo.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     name = json['name'];
     email = json['email'];
-    profile = json['profile'];
+    profile = _formatUrl(json['profile']);
   }
 
   Map<String, dynamic> toJson() {

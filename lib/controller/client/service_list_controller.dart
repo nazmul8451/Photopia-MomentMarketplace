@@ -13,6 +13,9 @@ class ServiceListController extends ChangeNotifier {
   List<ServiceItem> _services = [];
   List<ServiceItem> get services => _services;
 
+  ServiceItem? _serviceDetail;
+  ServiceItem? get serviceDetail => _serviceDetail;
+
   Future<bool> getAllServices() async {
     _isLoading = true;
     _errorMessage = null;
@@ -39,6 +42,72 @@ class ServiceListController extends ChangeNotifier {
       }
     } else {
       _errorMessage = response.errorMessage ?? "Failed to fetch services";
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> getProviderServices(String providerId) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    // Passing the providerId to the query params to filter
+    final response = await NetworkCaller.getRequest(
+      url: '${Urls.getAllservice}?providerId=$providerId',
+      requireAuth: false,
+    );
+
+    _isLoading = false;
+
+    if (response.isSuccess && response.body != null) {
+      try {
+        final model = ServiceListModel.fromJson(response.body!);
+        _services = model.data?.data ?? [];
+        notifyListeners();
+        return true;
+      } catch (e) {
+        _errorMessage = "Error parsing provider services: $e";
+        debugPrint("ServiceListController parsing error: $e");
+        notifyListeners();
+        return false;
+      }
+    } else {
+      _errorMessage =
+          response.errorMessage ?? "Failed to fetch provider services";
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> getServiceById(String id) async {
+    _isLoading = true;
+    _serviceDetail = null;
+    _errorMessage = null;
+    notifyListeners();
+
+    final response = await NetworkCaller.getRequest(
+      url: Urls.getSingleList(id),
+      requireAuth: false,
+    );
+
+    _isLoading = false;
+
+    if (response.isSuccess && response.body != null) {
+      try {
+        final data = response.body!['data'];
+        _serviceDetail = ServiceItem.fromJson(data);
+        notifyListeners();
+        return true;
+      } catch (e) {
+        _errorMessage = "Error parsing detail data: $e";
+        debugPrint("ServiceListController parsing error: $e");
+        notifyListeners();
+        return false;
+      }
+    } else {
+      _errorMessage =
+          response.errorMessage ?? "Failed to fetch service details";
       notifyListeners();
       return false;
     }

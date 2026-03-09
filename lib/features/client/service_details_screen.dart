@@ -7,6 +7,8 @@ import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
+import 'package:photopia/controller/client/service_list_controller.dart';
+import 'package:photopia/core/widgets/video_player_screen.dart';
 
 class ServiceDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> service;
@@ -22,98 +24,153 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
   final PageController _pageController = PageController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final id = widget.service['id'] ?? widget.service['_id'];
+      if (id != null) {
+        context.read<ServiceListController>().getServiceById(id);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: Stack(
         children: [
           // Main Scrollable Content
-          SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Media Section
-                _buildTopMedia(),
+          Consumer<ServiceListController>(
+            builder: (context, controller, child) {
+              final serviceDetail = controller.serviceDetail;
+              final isLoading = controller.isLoading;
 
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 20.h),
-                      // Title
-                      Text(
-                        widget.service['title'] ??
-                            'Romantic Wedding Photography',
-                        style: TextStyle(
-                          fontSize: 20.sp.clamp(20, 22),
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
+              // Use details if available, else fallback to initial data from widget.service
+              final String title =
+                  serviceDetail?.title ??
+                  widget.service['title'] ??
+                  'Service Details';
+              final String description =
+                  serviceDetail?.description ?? 'No description available.';
+              final List<String> equipment = serviceDetail?.equipment ?? [];
+              final List<dynamic> gallery = serviceDetail?.gallery ?? [];
+              final String coverMedia =
+                  serviceDetail?.coverMedia ?? widget.service['imageUrl'] ?? '';
+              final String providerName =
+                  serviceDetail?.providerId?.name ??
+                  widget.service['subtitle'] ??
+                  'Professional';
+              final String providerAvatar =
+                  serviceDetail?.providerId?.profile ??
+                  'assets/images/img6.png';
+              final double rating =
+                  serviceDetail?.rating ??
+                  (widget.service['rating'] ?? 0.0).toDouble();
+              final int reviews =
+                  serviceDetail?.reviews ?? widget.service['reviews'] ?? 0;
+              final List<String> tags = serviceDetail?.category != null
+                  ? [serviceDetail!.category!.name!]
+                  : (widget.service['tags'] as List<String>? ?? []);
 
-                      SizedBox(height: 20.h),
-                      // Provider Section
-                      Text(
-                        'Provider',
-                        style: TextStyle(
-                          fontSize: 14.sp.clamp(14, 16),
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                      ),
-                      SizedBox(height: 12.h),
-                      _buildProviderCard(),
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Top Media Section
+                    _buildTopMedia(coverMedia, gallery, isLoading),
 
-                      SizedBox(height: 20.h),
-                      // Stats Row
-                      _buildStatsRow(),
-
-                      SizedBox(height: 25.h),
-                      // About Section
-                      _buildSectionTitle('About'),
-                      SizedBox(height: 8.h),
-                      Text(
-                        'Capturing your most precious moments with artistic vision and professional expertise. Specializing in romantic, candid wedding photography that tells your unique love story.',
-                        style: TextStyle(
-                          fontSize: 13.sp.clamp(13, 14),
-                          color: Colors.black87,
-                          height: 1.5,
-                        ),
-                      ),
-
-                      SizedBox(height: 25.h),
-                      // Equipment Section
-                      Row(
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(
-                            Icons.camera_alt_outlined,
-                            size: 20.sp,
-                            color: Colors.black87,
+                          SizedBox(height: 20.h),
+                          // Title
+                          Text(
+                            title,
+                            style: TextStyle(
+                              fontSize: 20.sp.clamp(20, 22),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
                           ),
-                          SizedBox(width: 8.w),
-                          _buildSectionTitle('Equipment'),
+
+                          SizedBox(height: 20.h),
+                          // Provider Section
+                          Text(
+                            'Provider',
+                            style: TextStyle(
+                              fontSize: 14.sp.clamp(14, 16),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          SizedBox(height: 12.h),
+                          _buildProviderCard(
+                            providerName,
+                            providerAvatar,
+                            rating,
+                            reviews,
+                          ),
+
+                          SizedBox(height: 20.h),
+                          // Stats Row
+                          _buildStatsRow(),
+
+                          SizedBox(height: 25.h),
+                          // About Section
+                          _buildSectionTitle('About'),
+                          SizedBox(height: 8.h),
+                          Text(
+                            description,
+                            style: TextStyle(
+                              fontSize: 13.sp.clamp(13, 14),
+                              color: Colors.black87,
+                              height: 1.5,
+                            ),
+                          ),
+
+                          if (equipment.isNotEmpty) ...[
+                            SizedBox(height: 25.h),
+                            // Equipment Section
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.camera_alt_outlined,
+                                  size: 20.sp,
+                                  color: Colors.black87,
+                                ),
+                                SizedBox(width: 8.w),
+                                _buildSectionTitle('Equipment'),
+                              ],
+                            ),
+                            SizedBox(height: 12.h),
+                            _buildEquipmentTags(equipment),
+                          ],
+
+                          if (gallery.isNotEmpty) ...[
+                            SizedBox(height: 25.h),
+                            // Portfolio Section
+                            _buildSectionTitle('Portfolio'),
+                            SizedBox(height: 12.h),
+                            _buildPortfolioGrid(gallery),
+                          ],
+
+                          SizedBox(height: 25.h),
+                          // Extra Tags Section
+                          _buildBottomTags(tags),
+
+                          SizedBox(
+                            height: 120.h,
+                          ), // Space for sticky bottom bar
                         ],
                       ),
-                      SizedBox(height: 12.h),
-                      _buildEquipmentTags(),
-
-                      SizedBox(height: 25.h),
-                      // Portfolio Section
-                      _buildSectionTitle('Portfolio'),
-                      SizedBox(height: 12.h),
-                      _buildPortfolioGrid(),
-
-                      SizedBox(height: 25.h),
-                      // Extra Tags Section
-                      _buildBottomTags(),
-
-                      SizedBox(height: 120.h), // Space for sticky bottom bar
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              );
+            },
           ),
 
           // Sticky Bottom Bar
@@ -123,12 +180,42 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
     );
   }
 
-  Widget _buildTopMedia() {
-    final List<String> images = [
-      widget.service['imageUrl'] ?? 'assets/images/img1.png',
-      'assets/images/img2.png',
-      'assets/images/img3.png',
-    ];
+  bool _isVideo(String url) {
+    final String lower = url.toLowerCase();
+    return lower.endsWith('.mp4') ||
+        lower.endsWith('.mov') ||
+        lower.endsWith('.avi') ||
+        lower.endsWith('.mkv') ||
+        lower.endsWith('.webm');
+  }
+
+  Widget _buildTopMedia(
+    String coverMedia,
+    List<dynamic> gallery,
+    bool isLoading,
+  ) {
+    final List<String> images = [];
+
+    // Add cover image first
+    if (coverMedia.isNotEmpty) {
+      images.add(coverMedia);
+    }
+
+    // Add gallery images, avoiding duplication of cover
+    for (var item in gallery) {
+      final String path = item.toString();
+      if (path.isNotEmpty && !images.contains(path)) {
+        images.add(path);
+      }
+    }
+
+    // Fallback if empty
+    if (images.isEmpty) {
+      images.add('assets/images/img1.png');
+    }
+
+    // Ensure _currentPage is within bounds
+    final int safeIndex = _currentPage < images.length ? _currentPage : 0;
 
     return Stack(
       children: [
@@ -150,18 +237,34 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
           ),
         ),
         // Play Icon Overlay
-        Positioned.fill(
-          child: Center(
-            child: Container(
-              padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.3),
-                shape: BoxShape.circle,
+        if (images.isNotEmpty && _isVideo(images[safeIndex]))
+          Positioned.fill(
+            child: Center(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          VideoPlayerScreen(videoUrl: images[safeIndex]),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.play_arrow,
+                    color: Colors.white,
+                    size: 30.sp,
+                  ),
+                ),
               ),
-              child: Icon(Icons.play_arrow, color: Colors.white, size: 30.sp),
             ),
           ),
-        ),
         // Dots Indicator
         Positioned(
           bottom: 20.h,
@@ -263,7 +366,12 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
     );
   }
 
-  Widget _buildProviderCard() {
+  Widget _buildProviderCard(
+    String name,
+    String avatar,
+    double rating,
+    int reviews,
+  ) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -271,8 +379,8 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
           MaterialPageRoute(
             builder: (context) => ProviderProfileScreen(
               provider: {
-                'name': widget.service['subtitle'] ?? 'Emma Wilson',
-                'avatar': 'assets/images/img6.png',
+                'name': name,
+                'avatar': avatar,
                 'id': widget.service['providerId'],
                 '_id': widget.service['providerId'],
               },
@@ -284,7 +392,9 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
         children: [
           CircleAvatar(
             radius: 25.r,
-            backgroundImage: const AssetImage('assets/images/img6.png'),
+            backgroundImage: avatar.startsWith('http')
+                ? NetworkImage(avatar) as ImageProvider<Object>
+                : AssetImage(avatar),
           ),
           SizedBox(width: 12.w),
           Expanded(
@@ -334,7 +444,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                     Icon(Icons.star, color: Colors.orange, size: 14.sp),
                     SizedBox(width: 4.w),
                     Text(
-                      '${widget.service['rating'] ?? 4.9} (${widget.service['reviews'] ?? 127} reviews)',
+                      '${rating} (${reviews} reviews)',
                       style: TextStyle(
                         fontSize: 12.sp.clamp(12, 13),
                         color: Colors.grey,
@@ -400,13 +510,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
     );
   }
 
-  Widget _buildEquipmentTags() {
-    final tags = [
-      'Canon EOS R5',
-      'Sony A7 III',
-      'DJI Mavic 3',
-      'Professional Lighting',
-    ];
+  Widget _buildEquipmentTags(List<String> tags) {
     return Wrap(
       spacing: 8.w,
       runSpacing: 8.h,
@@ -432,14 +536,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
     );
   }
 
-  Widget _buildPortfolioGrid() {
-    final images = [
-      'assets/images/img1.png',
-      'assets/images/img2.png',
-      'assets/images/img3.png',
-      'assets/images/img4.png',
-    ];
-
+  Widget _buildPortfolioGrid(List<dynamic> images) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -455,7 +552,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
           ),
           itemCount: images.length,
           itemBuilder: (context, index) {
-            final String path = images[index];
+            final String path = images[index].toString();
             return CustomNetworkImage(
               imageUrl: path,
               fit: BoxFit.cover,
@@ -467,10 +564,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
     );
   }
 
-  Widget _buildBottomTags() {
-    final tags =
-        widget.service['tags'] as List<String>? ??
-        ['#Wedding', '#Outdoor', '#Candid', '#Portrait'];
+  Widget _buildBottomTags(List<String> tags) {
     return Wrap(
       spacing: 8.w,
       runSpacing: 8.h,

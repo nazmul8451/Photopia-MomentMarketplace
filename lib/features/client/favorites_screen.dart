@@ -149,7 +149,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
               imageUrl: service['coverMedia'] ?? service['imageUrl'] ?? '',
               rating: (service['rating'] ?? 0.0).toDouble(),
               reviews: service['reviews'] ?? 0,
-              priceRange: service['priceRange'] ?? '€${service['price'] ?? 0}',
+              priceRange:
+                  service['priceRange'] ??
+                  '${service['currency'] ?? '\$'} ${service['price'] ?? 0}',
               tags: List<String>.from(service['tags'] ?? []),
               isPremium: service['isPremium'] ?? false,
               providerId: service['providerId'] is Map

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
+import 'package:photopia/core/widgets/custom_network_image.dart';
 
 class ProviderCard extends StatelessWidget {
   final Map<String, dynamic> provider;
@@ -32,12 +33,19 @@ class ProviderCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 30.r,
-                backgroundImage: AssetImage(
-                  provider['avatar'] ?? 'assets/images/img6.png',
-                ),
-              ),
+              provider['profile'] != null || provider['avatar'] != null
+                  ? CustomNetworkImage(
+                      imageUrl: provider['profile'] ?? provider['avatar'] ?? '',
+                      width: 60.r,
+                      height: 60.r,
+                      borderRadius: BorderRadius.circular(30).r,
+                    )
+                  : CircleAvatar(
+                      radius: 30.r,
+                      backgroundImage: const AssetImage(
+                        'assets/images/img6.png',
+                      ),
+                    ),
               SizedBox(width: 12.w),
               Expanded(
                 child: Column(

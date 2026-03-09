@@ -5,9 +5,12 @@ import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/client/widgets/service_card.dart';
 import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:provider/provider.dart';
-import 'package:photopia/controller/client/favorites_controller.dart';
+import 'package:photopia/controller/client/service_list_controller.dart';
+import 'package:photopia/controller/client/provider_details_controller.dart';
+import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
+import 'package:photopia/controller/client/favorites_controller.dart';
 
 class ProviderProfileScreen extends StatefulWidget {
   final Map<String, dynamic> provider;
@@ -21,7 +24,6 @@ class ProviderProfileScreen extends StatefulWidget {
 class _ProviderProfileScreenState extends State<ProviderProfileScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _isLoading = true;
 
   @override
   void initState() {
@@ -30,12 +32,14 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
     _tabController.addListener(() {
       setState(() {});
     });
-    // Simulate loading data
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final providerId = widget.provider['_id'] ?? widget.provider['id'];
+      if (providerId != null) {
+        context.read<ServiceListController>().getProviderServices(providerId);
+        context.read<ProviderDetailsController>().getProviderDetails(
+          providerId,
+        );
       }
     });
   }
@@ -134,7 +138,11 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                   bottom: -5.h,
                   left: 6.w,
                   right: 6.w,
-                  child: _buildProfileInfo(),
+                  child: Consumer<ProviderDetailsController>(
+                    builder: (context, controller, child) {
+                      return _buildProfileInfo(controller);
+                    },
+                  ),
                 ),
 
                 // Overlapping Stats Row
@@ -144,7 +152,11 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                   right: 0,
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10.w),
-                    child: _buildStatsRow(),
+                    child: Consumer<ProviderDetailsController>(
+                      builder: (context, controller, child) {
+                        return _buildStatsRow(controller);
+                      },
+                    ),
                   ),
                 ),
               ],
@@ -171,7 +183,25 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
     );
   }
 
-  Widget _buildProfileInfo() {
+  Widget _buildProfileInfo(ProviderDetailsController controller) {
+    final providerDetails = controller.providerDetails;
+    final isLoading = controller.isLoading;
+
+    // Fallback to widget.provider if API data is loading or missing
+    final avatar = providerDetails?.profile ?? widget.provider['avatar'];
+    final name =
+        providerDetails?.fullName ?? widget.provider['name'] ?? 'Provider Name';
+
+    // Handle category name extraction
+    String categoryDisplay = 'Wedding & Event Photography';
+    if (providerDetails?.specialty != null &&
+        providerDetails!.specialty!.isNotEmpty) {
+      categoryDisplay = providerDetails.specialty!;
+    } else if (widget.provider['category'] != null &&
+        widget.provider['category'].toString().isNotEmpty) {
+      categoryDisplay = widget.provider['category'].toString();
+    }
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(10.r),
       child: BackdropFilter(
@@ -206,12 +236,17 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2.5.w),
-                      image: DecorationImage(
-                        image: AssetImage(
-                          widget.provider['avatar'] ?? 'assets/images/img6.png',
-                        ),
-                        fit: BoxFit.cover,
-                      ),
+                    ),
+                    child: ClipOval(
+                      child: avatar != null && avatar.toString().isNotEmpty
+                          ? CustomNetworkImage(
+                              imageUrl: avatar,
+                              fit: BoxFit.cover,
+                            )
+                          : Image.asset(
+                              'assets/images/img6.png',
+                              fit: BoxFit.cover,
+                            ),
                     ),
                   ),
                   SizedBox(width: 18.w),
@@ -220,22 +255,36 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.provider['name'] ?? 'Emma Wilson',
+                          name,
                           style: TextStyle(
                             fontSize: 19.sp,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 2.h),
-                        Text(
-                          'Wedding & Event Photography',
-                          style: TextStyle(
-                            fontSize: 13.sp,
-                            color: Colors.white.withOpacity(0.9),
-                            fontWeight: FontWeight.w400,
+                        if (isLoading)
+                          SizedBox(
+                            height: 14.h,
+                            width: 100.w,
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white54,
+                            ),
+                          )
+                        else
+                          Text(
+                            categoryDisplay,
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              color: Colors.white.withOpacity(0.9),
+                              fontWeight: FontWeight.w400,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
                         SizedBox(height: 6.h),
                         Container(
                           padding: EdgeInsets.symmetric(
@@ -279,14 +328,39 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
     );
   }
 
-  Widget _buildStatsRow() {
+  Widget _buildStatsRow(ProviderDetailsController controller) {
+    if (controller.isLoading) {
+      return SizedBox(
+        height: 90.h,
+        child: const Center(
+          child: CircularProgressIndicator(color: Colors.black54),
+        ),
+      );
+    }
+
+    // Always display the cards, fallback to defaults or placeholders if data is missing.
+    final dynamic providerData =
+        controller.providerDetails?.toJson() ?? widget.provider;
+
+    final rating = providerData['rating']?.toString() ?? '4.9';
+    final reviews = providerData['reviews']?.toString() ?? '127';
+    final responseRate = providerData['responseRate']?.toString() ?? '95%';
+    final projectsCount =
+        providerData['projectsCount']?.toString() ??
+        providerData['projects']?.toString() ??
+        '342';
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildStatItem(Icons.star_border, '4.9', 'Rating'),
-        _buildStatItem(Icons.verified_outlined, '127', 'Reviews'),
-        _buildStatItem(Icons.military_tech_outlined, '95%', 'Response Rate'),
-        _buildStatItem(Icons.camera_alt_outlined, '342', 'Projects'),
+        _buildStatItem(Icons.star_border, rating, 'Rating'),
+        _buildStatItem(Icons.verified_outlined, reviews, 'Reviews'),
+        _buildStatItem(
+          Icons.military_tech_outlined,
+          responseRate,
+          'Response Rate',
+        ),
+        _buildStatItem(Icons.camera_alt_outlined, projectsCount, 'Projects'),
       ],
     );
   }
@@ -370,11 +444,18 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
           Tab(
             child: FittedBox(fit: BoxFit.scaleDown, child: Text('Portfolio')),
           ),
-          Tab(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text('Reviews (127)'),
-            ),
+          Consumer<ProviderDetailsController>(
+            builder: (context, controller, child) {
+              final dynamic providerData =
+                  controller.providerDetails?.toJson() ?? widget.provider;
+              final reviews = providerData['reviews']?.toString() ?? '127';
+              return Tab(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text('Reviews ($reviews)'),
+                ),
+              );
+            },
           ),
           Tab(
             child: FittedBox(fit: BoxFit.scaleDown, child: Text('About')),
@@ -396,85 +477,145 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
   }
 
   Widget _buildPortfolioContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Services Offered',
-          style: TextStyle(
-            fontSize: AppTypography.h2,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        SizedBox(height: 15.h),
-        GridView.builder(
-          padding: EdgeInsets.zero,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: 15.h,
-            crossAxisSpacing: 15.w,
-            childAspectRatio: 0.55,
-          ),
-          itemCount: _isLoading ? 2 : 3,
-          itemBuilder: (context, index) {
-            if (_isLoading) return ServiceCardSkeleton();
-            return ServiceCard(
-              id: '65e9b7f1b1c3a12345678905',
-              title: 'Romantic Wedding Photography',
-              subtitle: widget.provider['name'] ?? 'Emma Wilson',
-              imageUrl: 'assets/images/img2.png',
-              rating: 4.9,
-              reviews: 127,
-              priceRange: '€800 - €2,500',
-              tags: const ['Wedding', 'Outdoor'],
-              isPremium: true,
-              providerId: widget.provider['_id'] ?? widget.provider['id'],
-            );
-          },
-        ),
-        SizedBox(height: 30.h),
-        Text(
-          'Recent Work',
-          style: TextStyle(
-            fontSize: AppTypography.h2,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        SizedBox(height: 15.h),
-        GridView.builder(
-          padding: EdgeInsets.zero,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: 12.h,
-            crossAxisSpacing: 12.w,
-            childAspectRatio: 1,
-          ),
-          itemCount: 8,
-          itemBuilder: (context, index) {
-            final images = [
-              'assets/images/img1.png',
-              'assets/images/img2.png',
-              'assets/images/img3.png',
-              'assets/images/img4.png',
-              'assets/images/img5.png',
-              'assets/images/img6.png',
-              'assets/images/img7.jpg',
-              'assets/images/img8.jpg',
-            ];
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(12).r,
-              child: Image.asset(
-                images[index % images.length],
-                fit: BoxFit.cover,
+    return Consumer<ServiceListController>(
+      builder: (context, controller, child) {
+        final isLoading = controller.isLoading;
+        final services = controller.services;
+
+        // Extract all gallery items from all services for the Recent Work section
+        final List<String> allGalleryImages = [];
+        for (var service in services) {
+          if (service.gallery != null) {
+            for (var img in service.gallery!) {
+              if (img != null && img.toString().isNotEmpty) {
+                allGalleryImages.add(img.toString());
+              }
+            }
+          }
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Services Offered',
+              style: TextStyle(
+                fontSize: AppTypography.h2,
+                fontWeight: FontWeight.bold,
               ),
-            );
-          },
-        ),
-      ],
+            ),
+            SizedBox(height: 15.h),
+            if (isLoading)
+              GridView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 15.h,
+                  crossAxisSpacing: 15.w,
+                  childAspectRatio: 0.55,
+                ),
+                itemCount: 2,
+                itemBuilder: (context, index) => const ServiceCardSkeleton(),
+              )
+            else if (services.isEmpty)
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20.h),
+                  child: Text(
+                    'No services found.',
+                    style: TextStyle(
+                      fontSize: AppTypography.bodyLarge,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              )
+            else
+              GridView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 15.h,
+                  crossAxisSpacing: 15.w,
+                  childAspectRatio: 0.55,
+                ),
+                itemCount: services.length,
+                itemBuilder: (context, index) {
+                  final service = services[index];
+                  return ServiceCard(
+                    id: service.sId ?? '',
+                    title: service.title ?? 'Service',
+                    subtitle:
+                        service.providerId?.name ??
+                        widget.provider['name'] ??
+                        'Provider',
+                    imageUrl: service.coverMedia ?? '',
+                    rating: service.rating ?? 0.0,
+                    reviews: service.reviews ?? 0,
+                    priceRange:
+                        '${service.currency ?? '\$'}${service.price ?? 0}',
+                    tags: const [], // tags not available in model
+                    isPremium: false, // isVerified not available in model
+                    providerId:
+                        service.providerId?.sId ??
+                        widget.provider['_id'] ??
+                        widget.provider['id'],
+                  );
+                },
+              ),
+            SizedBox(height: 30.h),
+            Text(
+              'Recent Work',
+              style: TextStyle(
+                fontSize: AppTypography.h2,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 15.h),
+            if (isLoading)
+              const Center(child: CircularProgressIndicator())
+            else if (allGalleryImages.isEmpty)
+              Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20.h),
+                  child: Text(
+                    'No recent work available.',
+                    style: TextStyle(
+                      fontSize: AppTypography.bodyLarge,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              )
+            else
+              GridView.builder(
+                padding: EdgeInsets.zero,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 12.h,
+                  crossAxisSpacing: 12.w,
+                  childAspectRatio: 1,
+                ),
+                itemCount: allGalleryImages.length,
+                itemBuilder: (context, index) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(12).r,
+                    child: CustomNetworkImage(
+                      imageUrl: allGalleryImages[index],
+                      fit: BoxFit.cover,
+                    ),
+                  );
+                },
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -576,68 +717,79 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
   }
 
   Widget _buildAboutContent() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'About Me',
-          style: TextStyle(
-            fontSize: AppTypography.bodyLarge,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        SizedBox(height: 10.h),
-        Text(
-          "Professional wedding and event photographer with over 8 years of experience capturing life's most precious moments. I specialize in candid, emotional photography that tells your unique story. My approach combines artistic vision with journalistic documentation to create timeless images you'll treasure forever.",
-          style: TextStyle(
-            fontSize: AppTypography.bodyMedium,
-            color: Colors.black87,
-            height: 1.5,
-          ),
-        ),
-        SizedBox(height: 15.h),
-        Text(
-          'Member since 2021',
-          style: TextStyle(
-            fontSize: AppTypography.bodySmall,
-            color: Colors.grey,
-          ),
-        ),
-        SizedBox(height: 30.h),
-        Text(
-          'Languages',
-          style: TextStyle(
-            fontSize: AppTypography.bodyLarge,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        SizedBox(height: 10.h),
-        Wrap(
-          spacing: 12.w,
+    return Consumer<ProviderDetailsController>(
+      builder: (context, controller, child) {
+        final description =
+            controller.providerDetails?.description ??
+            widget.provider['description'] ??
+            "Professional wedding and event photographer with over 8 years of experience capturing life's most precious moments. I specialize in candid, emotional photography that tells your unique story. My approach combines artistic vision with journalistic documentation to create timeless images you'll treasure forever.";
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildAboutChip('English'),
-            _buildAboutChip('Spanish'),
-            _buildAboutChip('Catalan'),
+            Text(
+              'About Me',
+              style: TextStyle(
+                fontSize: AppTypography.bodyLarge,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 10.h),
+            Text(
+              description.toString().isNotEmpty
+                  ? description
+                  : "No description available.",
+              style: TextStyle(
+                fontSize: AppTypography.bodyMedium,
+                color: Colors.black87,
+                height: 1.5,
+              ),
+            ),
+            SizedBox(height: 15.h),
+            Text(
+              'Member since 2021',
+              style: TextStyle(
+                fontSize: AppTypography.bodySmall,
+                color: Colors.grey,
+              ),
+            ),
+            SizedBox(height: 30.h),
+            Text(
+              'Languages',
+              style: TextStyle(
+                fontSize: AppTypography.bodyLarge,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 10.h),
+            Wrap(
+              spacing: 12.w,
+              children: [
+                _buildAboutChip('English'),
+                _buildAboutChip('Spanish'),
+                _buildAboutChip('Catalan'),
+              ],
+            ),
+            SizedBox(height: 30.h),
+            Text(
+              'Specializations',
+              style: TextStyle(
+                fontSize: AppTypography.bodyLarge,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 10.h),
+            Wrap(
+              spacing: 12.w,
+              children: [
+                _buildAboutChip('Wedding'),
+                _buildAboutChip('Event'),
+                _buildAboutChip('Portrait'),
+              ],
+            ),
           ],
-        ),
-        SizedBox(height: 30.h),
-        Text(
-          'Specializations',
-          style: TextStyle(
-            fontSize: AppTypography.bodyLarge,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        SizedBox(height: 10.h),
-        Wrap(
-          spacing: 12.w,
-          children: [
-            _buildAboutChip('Wedding'),
-            _buildAboutChip('Event'),
-            _buildAboutChip('Portrait'),
-          ],
-        ),
-      ],
+        );
+      },
     );
   }
 
