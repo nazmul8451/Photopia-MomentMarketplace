@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:photopia/features/client/widgets/category_bar.dart';
 import 'package:photopia/features/client/widgets/search_header.dart';
 import 'package:photopia/features/client/widgets/service_card.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
+import 'package:photopia/controller/client/service_list_controller.dart';
+import 'package:provider/provider.dart';
 
 class CategoryDetailsScreen extends StatefulWidget {
   const CategoryDetailsScreen({super.key});
@@ -16,18 +17,12 @@ class CategoryDetailsScreen extends StatefulWidget {
 }
 
 class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    // Simulate data loading
-    Timer(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+    // Fetch data from API
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ServiceListController>().getAllServices();
     });
   }
 
@@ -65,18 +60,7 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                   SearchHeader(
                     onFilterApplied: (filters) {
                       // Handle filtering logic here
-                      setState(() {
-                        _isLoading = true;
-                      });
-                      // Simulate fetching filtered data
-                      Timer(const Duration(seconds: 1), () {
-                        if (mounted) {
-                          setState(() {
-                            _isLoading = false;
-                            // In a real app, you'd update your data list based on 'filters'
-                          });
-                        }
-                      });
+                      context.read<ServiceListController>().getAllServices();
                     },
                   ),
 
@@ -99,75 +83,49 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                         childAspectRatio:
                             0.52, // Safe height for all screen sizes
                       ),
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        if (_isLoading) {
-                          return const ServiceCardSkeleton();
-                        }
-                        // Mock data for services
-                        final List<Map<String, dynamic>> services = [
-                          {
-                            'id': '65e9b7f1b1c3a12345678901',
-                            'providerId': '65e9b7f1b1c3a12345678961',
-                            'title': 'Romantic Wedding Shoot',
-                            'subtitle': 'Emma Wilson',
-                            'imageUrl': 'assets/images/img1.png',
-                            'rating': 4.9,
-                            'reviews': 127,
-                            'priceRange': '€800 - €2,500',
-                            'tags': ['Wedding', 'Outdoor', 'Luxury'],
-                            'isPremium': true,
-                          },
-                          {
-                            'id': '65e9b7f1b1c3a12345678902',
-                            'providerId': '65e9b7f1b1c3a12345678962',
-                            'title': 'Professional Portrait',
-                            'subtitle': 'Marco Silva',
-                            'imageUrl': 'assets/images/img2.png',
-                            'rating': 4.8,
-                            'reviews': 89,
-                            'priceRange': '€150 - €500',
-                            'tags': ['Portrait', 'Studio', 'Business'],
-                            'isPremium': false,
-                          },
-                          {
-                            'id': '65e9b7f1b1c3a12345678903',
-                            'providerId': '65e9b7f1b1c3a12345678963',
-                            'title': 'Corporate Video',
-                            'subtitle': 'Tech Media Studio',
-                            'imageUrl': 'assets/images/img3.png',
-                            'rating': 5.0,
-                            'reviews': 45,
-                            'priceRange': '€1,200 - €4,000',
-                            'tags': ['Corporate', 'Video', 'Event'],
-                            'isPremium': false,
-                          },
-                          {
-                            'id': '65e9b7f1b1c3a12345678904',
-                            'providerId': '65e9b7f1b1c3a12345678964',
-                            'title': 'Aerial Drone Photo',
-                            'subtitle': 'SkyView Productions',
-                            'imageUrl': 'assets/images/img4.png',
-                            'rating': 4.9,
-                            'reviews': 62,
-                            'priceRange': '€300 - €1,500',
-                            'tags': ['Drone', 'Aerial', 'Landscape'],
-                            'isPremium': true,
-                          },
-                        ];
-                        final service = services[index % services.length];
-                        return ServiceCard(
-                          id: service['id'],
-                          providerId: service['providerId'],
-                          title: service['title'],
-                          subtitle: service['subtitle'],
-                          imageUrl: service['imageUrl'],
-                          rating: service['rating'],
-                          reviews: service['reviews'],
-                          priceRange: service['priceRange'],
-                          tags: List<String>.from(service['tags']),
-                          isPremium: service['isPremium'],
-                        );
-                      }, childCount: _isLoading ? 6 : 10),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          return Consumer<ServiceListController>(
+                            builder: (context, controller, child) {
+                              if (controller.isLoading) {
+                                return const ServiceCardSkeleton();
+                              }
+
+                              if (controller.services.isEmpty) {
+                                // If no services, we might want to show a message,
+                                // but since this is in a grid, it's tricky.
+                                // For now, return skeleton if still "loading" in a sense
+                                // or just an empty container.
+                                return const SizedBox();
+                              }
+
+                              final service = controller
+                                  .services[index % controller.services.length];
+                              return ServiceCard(
+                                id: service.sId,
+                                providerId: service.providerId?.sId,
+                                title: service.title ?? '',
+                                subtitle:
+                                    service.providerId?.name ?? 'Professional',
+                                imageUrl: service.coverMedia ?? '',
+                                rating: service.rating ?? 0.0,
+                                reviews: service.reviews ?? 0,
+                                priceRange: "€${service.price ?? 0}",
+                                tags:
+                                    const [], // API model has tags, but let's keep it simple for now
+                                isPremium: false,
+                              );
+                            },
+                          );
+                        },
+                        childCount:
+                            context.watch<ServiceListController>().isLoading
+                            ? 6
+                            : context
+                                  .watch<ServiceListController>()
+                                  .services
+                                  .length,
+                      ),
                     ),
                   ),
                 ],

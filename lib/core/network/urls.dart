@@ -31,6 +31,9 @@ class Urls {
 
   //** user service */
   static const String userService = '';
+
+  //get all service from provider
+  static const String getAllservice = '$baseUrl/api/v1/services';
   //toggle fav api
   static const String toggleFav = "$baseUrl/api/v1/favourite/toggle";
   static const String getFavorites = "$baseUrl/api/v1/favourite/my-favourites";

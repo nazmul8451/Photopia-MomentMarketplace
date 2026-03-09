@@ -17,6 +17,7 @@ import 'package:photopia/controller/client/role_switch_controller.dart';
 import 'package:photopia/controller/provider/service_controller.dart';
 import 'package:photopia/controller/provider/calender_availibility_controller.dart';
 import 'package:photopia/controller/provider/my_listing_controller.dart';
+import 'package:photopia/controller/client/service_list_controller.dart';
 import 'package:photopia/controller/common/bottom_nav_controller.dart';
 import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/features/onboarding/get_started.dart';
@@ -47,6 +48,7 @@ class Photopia extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => RoleSwitchController()),
             ChangeNotifierProvider(create: (_) => MyListingController()),
             ChangeNotifierProvider(create: (_) => ServiceController()),
+            ChangeNotifierProvider(create: (_) => ServiceListController()),
             ChangeNotifierProvider(create: (_) => BottomNavController()),
             ChangeNotifierProvider(
               create: (_) => CalenderAvailibilityController(),
