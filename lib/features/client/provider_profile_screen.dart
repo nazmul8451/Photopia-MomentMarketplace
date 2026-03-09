@@ -62,7 +62,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
           Consumer<FavoritesController>(
             builder: (context, controller, child) {
               bool isFavorite = controller.isProviderFavorite(
-                widget.provider['name'] ?? '',
+                widget.provider['_id'] ?? widget.provider['id'],
               );
               return IconButton(
                 icon: Icon(
@@ -75,7 +75,16 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                     GuestDialogHelper.showGuestDialog(context);
                     return;
                   }
-                  controller.toggleFavoriteProvider(widget.provider);
+                  controller.toggleFavorite(
+                    providerId: widget.provider['_id'] ?? widget.provider['id'],
+                    optimisticData: {
+                      ...widget.provider,
+                      'isPremium': true,
+                      'category': 'Wedding & Event Photography',
+                      'location':
+                          'Barcelona, Spain', // Matching ProviderCard default for now
+                    },
+                  );
                 },
               );
             },
@@ -412,14 +421,16 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
           itemBuilder: (context, index) {
             if (_isLoading) return ServiceCardSkeleton();
             return ServiceCard(
+              id: '65e9b7f1b1c3a12345678905',
               title: 'Romantic Wedding Photography',
-              subtitle: 'Emma Wilson',
+              subtitle: widget.provider['name'] ?? 'Emma Wilson',
               imageUrl: 'assets/images/img2.png',
               rating: 4.9,
               reviews: 127,
               priceRange: '€800 - €2,500',
               tags: const ['Wedding', 'Outdoor'],
               isPremium: true,
+              providerId: widget.provider['_id'] ?? widget.provider['id'],
             );
           },
         ),

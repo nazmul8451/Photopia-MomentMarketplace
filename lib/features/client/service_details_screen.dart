@@ -5,6 +5,8 @@ import 'package:photopia/features/client/provider_profile_screen.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/controller/client/favorites_controller.dart';
 
 class ServiceDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> service;
@@ -207,26 +209,37 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
               ),
               Row(
                 children: [
-                  GestureDetector(
-                    onTap: () {
-                      if (!AuthController.isLoggedIn) {
-                        GuestDialogHelper.showGuestDialog(context);
-                        return;
-                      }
-                      // Handle bookmarking logic here
+                  Consumer<FavoritesController>(
+                    builder: (context, controller, child) {
+                      bool isFavorite = controller.isPostFavorite(
+                        widget.service['_id'] ?? widget.service['id'],
+                      );
+                      return GestureDetector(
+                        onTap: () {
+                          if (!AuthController.isLoggedIn) {
+                            GuestDialogHelper.showGuestDialog(context);
+                            return;
+                          }
+                          controller.toggleFavorite(
+                            serviceId:
+                                widget.service['_id'] ?? widget.service['id'],
+                            optimisticData: widget.service,
+                          );
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(8.w),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            isFavorite ? Icons.bookmark : Icons.bookmark_border,
+                            size: 20.sp,
+                            color: Colors.black,
+                          ),
+                        ),
+                      );
                     },
-                    child: Container(
-                      padding: EdgeInsets.all(8.w),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.bookmark_border,
-                        size: 20.sp,
-                        color: Colors.black,
-                      ),
-                    ),
                   ),
                   SizedBox(width: 12.w),
                   Container(
@@ -260,6 +273,8 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
               provider: {
                 'name': widget.service['subtitle'] ?? 'Emma Wilson',
                 'avatar': 'assets/images/img6.png',
+                'id': widget.service['providerId'],
+                '_id': widget.service['providerId'],
               },
             ),
           ),

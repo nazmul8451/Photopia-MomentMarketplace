@@ -28,6 +28,8 @@ class _MyHomePageState extends State<MyHomePage> {
   // Mock data for different sections
   final List<Map<String, dynamic>> _originalProjects = [
     {
+      'id': '65e9b7f1b1c3a12345678901',
+      'providerId': '65e9b7f1b1c3a12345678961',
       'title': 'Luxury Wedding Photography',
       'imageUrl': 'assets/images/img1.png',
       'providerName': 'Sarah Photography',
@@ -35,6 +37,8 @@ class _MyHomePageState extends State<MyHomePage> {
       'subtitle': 'Sarah Photography',
     },
     {
+      'id': '65e9b7f1b1c3a12345678902',
+      'providerId': '65e9b7f1b1c3a12345678962',
       'title': 'Portrait Session',
       'imageUrl': 'assets/images/img2.png',
       'providerName': 'John Studios',
@@ -42,6 +46,8 @@ class _MyHomePageState extends State<MyHomePage> {
       'subtitle': 'John Studios',
     },
     {
+      'id': '65e9b7f1b1c3a12345678903',
+      'providerId': '65e9b7f1b1c3a12345678963',
       'title': 'Home Decor Shoots',
       'imageUrl': 'assets/images/img3.png',
       'providerName': 'Creative Lens',
@@ -49,6 +55,8 @@ class _MyHomePageState extends State<MyHomePage> {
       'subtitle': 'Creative Lens',
     },
     {
+      'id': '65e9b7f1b1c3a12345678904',
+      'providerId': '65e9b7f1b1c3a12345678964',
       'title': 'Product Photography',
       'imageUrl': 'assets/images/img4.png',
       'providerName': 'Pro Shots',
@@ -59,6 +67,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final List<Map<String, dynamic>> _availableNow = [
     {
+      'id': '65e9b7f1b1c3a12345678911',
+      'providerId': '65e9b7f1b1c3a12345678971',
       'title': 'Event Photography',
       'imageUrl': 'assets/images/img5.png',
       'providerName': 'Quick Capture',
@@ -67,6 +77,8 @@ class _MyHomePageState extends State<MyHomePage> {
       'subtitle': 'Quick Capture',
     },
     {
+      'id': '65e9b7f1b1c3a12345678912',
+      'providerId': '65e9b7f1b1c3a12345678972',
       'title': 'Fashion Photography',
       'imageUrl': 'assets/images/img6.png',
       'providerName': 'Style Shots',
@@ -75,6 +87,8 @@ class _MyHomePageState extends State<MyHomePage> {
       'subtitle': 'Style Shots',
     },
     {
+      'id': '65e9b7f1b1c3a12345678913',
+      'providerId': '65e9b7f1b1c3a12345678973',
       'title': 'Corporate Headshots',
       'imageUrl': 'assets/images/img1.png',
       'providerName': 'Business Pro',
@@ -86,6 +100,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final List<Map<String, dynamic>> _trendingProjects = [
     {
+      'id': '65e9b7f1b1c3a12345678921',
+      'providerId': '65e9b7f1b1c3a12345678981',
       'title': 'Outdoor Photography',
       'imageUrl': 'assets/images/img3.png',
       'providerName': 'Nature Lens',
@@ -94,6 +110,8 @@ class _MyHomePageState extends State<MyHomePage> {
       'subtitle': 'Nature Lens',
     },
     {
+      'id': '65e9b7f1b1c3a12345678922',
+      'providerId': '65e9b7f1b1c3a12345678982',
       'title': 'Baby Photography',
       'imageUrl': 'assets/images/img4.png',
       'providerName': 'Little Moments',
@@ -102,6 +120,8 @@ class _MyHomePageState extends State<MyHomePage> {
       'subtitle': 'Little Moments',
     },
     {
+      'id': '65e9b7f1b1c3a12345678923',
+      'providerId': '65e9b7f1b1c3a12345678983',
       'title': 'Food Photography',
       'imageUrl': 'assets/images/img2.png',
       'providerName': 'Tasty Shots',
@@ -110,6 +130,8 @@ class _MyHomePageState extends State<MyHomePage> {
       'subtitle': 'Tasty Shots',
     },
     {
+      'id': '65e9b7f1b1c3a12345678924',
+      'providerId': '65e9b7f1b1c3a12345678984',
       'title': 'Architecture Photography',
       'imageUrl': 'assets/images/img5.png',
       'providerName': 'Urban Views',
@@ -188,6 +210,7 @@ class _MyHomePageState extends State<MyHomePage> {
             itemBuilder: (context, index) {
               final item = items[index];
               return HorizontalProjectCard(
+                id: item['id'],
                 imageUrl: item['imageUrl'],
                 title: item['title'],
                 providerName: item['providerName'],

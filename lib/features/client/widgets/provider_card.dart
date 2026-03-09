@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/provider_profile_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/controller/client/favorites_controller.dart';
+import 'package:photopia/controller/auth_controller.dart';
+import 'package:photopia/core/utils/guest_dialog_helper.dart';
 
 class ProviderCard extends StatelessWidget {
   final Map<String, dynamic> provider;
@@ -30,7 +34,9 @@ class ProviderCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 30.r,
-                backgroundImage: AssetImage(provider['avatar'] ?? 'assets/images/img6.png'),
+                backgroundImage: AssetImage(
+                  provider['avatar'] ?? 'assets/images/img6.png',
+                ),
               ),
               SizedBox(width: 12.w),
               Expanded(
@@ -49,18 +55,29 @@ class ProviderCard extends StatelessWidget {
                         ),
                         if (provider['isPremium'] ?? false)
                           Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 8.w,
+                              vertical: 2.h,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.black,
                               borderRadius: BorderRadius.circular(20).r,
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.stars, color: Colors.orange, size: 10.sp),
+                                Icon(
+                                  Icons.stars,
+                                  color: Colors.orange,
+                                  size: 10.sp,
+                                ),
                                 SizedBox(width: 2.w),
                                 Text(
                                   'Premium',
-                                  style: TextStyle(color: Colors.white, fontSize: 8.sp, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 8.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
@@ -84,17 +101,56 @@ class ProviderCard extends StatelessWidget {
                     ),
                     SizedBox(height: 4.h),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(Icons.star, color: Colors.orange, size: 12.sp),
-                        SizedBox(width: 4.w),
-                        Text(
-                          '${provider['rating'] ?? 4.9} (${provider['reviews'] ?? 127})',
-                          style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.bold),
+                        Row(
+                          children: [
+                            Icon(Icons.star, color: Colors.orange, size: 12.sp),
+                            SizedBox(width: 4.w),
+                            Text(
+                              '${provider['rating'] ?? 4.9} (${provider['reviews'] ?? 127})',
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(width: 12.w),
+                            Text(
+                              'Response: ${provider['responseTime'] ?? '95%'}',
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(width: 12.w),
-                        Text(
-                          'Response: ${provider['responseTime'] ?? '95%'}',
-                          style: TextStyle(fontSize: 11.sp, color: Colors.grey),
+                        Consumer<FavoritesController>(
+                          builder: (context, controller, child) {
+                            String? providerId =
+                                provider['_id'] ?? provider['id'];
+                            bool isFavorite = controller.isProviderFavorite(
+                              providerId,
+                            );
+                            return GestureDetector(
+                              onTap: () {
+                                if (!AuthController.isLoggedIn) {
+                                  GuestDialogHelper.showGuestDialog(context);
+                                  return;
+                                }
+                                controller.toggleFavorite(
+                                  providerId: providerId,
+                                  optimisticData: provider,
+                                );
+                              },
+                              child: Icon(
+                                isFavorite
+                                    ? Icons.bookmark
+                                    : Icons.bookmark_border,
+                                color: Colors.black,
+                                size: 20.sp,
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -112,10 +168,19 @@ class ProviderCard extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 12.h),
                     side: const BorderSide(color: Color(0xFFE9ECEF)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8).r),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8).r,
+                    ),
                     backgroundColor: const Color(0xFF1A1A1A),
                   ),
-                  child: Text('Message', style: TextStyle(color: Colors.white, fontSize: 13.sp, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    'Message',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
               SizedBox(width: 12.w),
@@ -125,17 +190,27 @@ class ProviderCard extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProviderProfileScreen(provider: provider),
+                        builder: (context) =>
+                            ProviderProfileScreen(provider: provider),
                       ),
                     );
                   },
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 12.h),
                     side: const BorderSide(color: Colors.transparent),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8).r),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8).r,
+                    ),
                     backgroundColor: const Color(0xFFF1F3F5),
                   ),
-                  child: Text('View Profile', style: TextStyle(color: Colors.black, fontSize: 13.sp, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    'View Profile',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ],

@@ -17,19 +17,14 @@ class FavoritesScreen extends StatefulWidget {
 class _FavoritesScreenState extends State<FavoritesScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    // Simulate loading
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+    // Fetch favorites on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FavoritesController>().fetchFavorites();
     });
   }
 
@@ -117,21 +112,21 @@ class _FavoritesScreenState extends State<FavoritesScreen>
   }
 
   Widget _buildPostsList() {
-    if (_isLoading) {
-      return GridView.builder(
-        padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 100.h),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 15.h,
-          crossAxisSpacing: 15.w,
-          childAspectRatio: 0.55,
-        ),
-        itemCount: 4,
-        itemBuilder: (context, index) => ServiceCardSkeleton(),
-      );
-    }
     return Consumer<FavoritesController>(
       builder: (context, controller, child) {
+        if (controller.isLoading) {
+          return GridView.builder(
+            padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 100.h),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 15.h,
+              crossAxisSpacing: 15.w,
+              childAspectRatio: 0.55,
+            ),
+            itemCount: 4,
+            itemBuilder: (context, index) => ServiceCardSkeleton(),
+          );
+        }
         if (controller.favoritePosts.isEmpty) {
           return _buildEmptyState('No favorite posts yet');
         }
@@ -147,14 +142,19 @@ class _FavoritesScreenState extends State<FavoritesScreen>
           itemBuilder: (context, index) {
             final service = controller.favoritePosts[index];
             return ServiceCard(
-              title: service['title'],
-              subtitle: service['subtitle'],
-              imageUrl: service['imageUrl'],
-              rating: service['rating'],
-              reviews: service['reviews'],
-              priceRange: service['priceRange'],
-              tags: List<String>.from(service['tags']),
-              isPremium: service['isPremium'],
+              id: service['_id'] ?? service['id'],
+              title: service['title'] ?? '',
+              subtitle:
+                  service['subtitle'] ?? (service['providerId']?['name'] ?? ''),
+              imageUrl: service['coverMedia'] ?? service['imageUrl'] ?? '',
+              rating: (service['rating'] ?? 0.0).toDouble(),
+              reviews: service['reviews'] ?? 0,
+              priceRange: service['priceRange'] ?? '€${service['price'] ?? 0}',
+              tags: List<String>.from(service['tags'] ?? []),
+              isPremium: service['isPremium'] ?? false,
+              providerId: service['providerId'] is Map
+                  ? service['providerId']['_id']
+                  : service['providerId'],
             );
           },
         );
@@ -163,15 +163,15 @@ class _FavoritesScreenState extends State<FavoritesScreen>
   }
 
   Widget _buildProvidersList() {
-    if (_isLoading) {
-      return ListView.builder(
-        padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 100.h),
-        itemCount: 3,
-        itemBuilder: (context, index) => ProviderCardSkeleton(),
-      );
-    }
     return Consumer<FavoritesController>(
       builder: (context, controller, child) {
+        if (controller.isLoading) {
+          return ListView.builder(
+            padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 100.h),
+            itemCount: 3,
+            itemBuilder: (context, index) => ProviderCardSkeleton(),
+          );
+        }
         if (controller.favoriteProviders.isEmpty) {
           return _buildEmptyState('No favorite providers yet');
         }

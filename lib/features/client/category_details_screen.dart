@@ -44,8 +44,7 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
         body: Column(
           children: [
             Container(
-              padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).padding.top),
+              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(
@@ -80,7 +79,7 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                       });
                     },
                   ),
-              
+
                   SizedBox(height: 5.h),
                 ],
               ),
@@ -100,68 +99,75 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                         childAspectRatio:
                             0.52, // Safe height for all screen sizes
                       ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          if (_isLoading) {
-                            return const ServiceCardSkeleton();
-                          }
-                          // Mock data for services
-                          final List<Map<String, dynamic>> services = [
-                            {
-                              'title': 'Romantic Wedding Shoot',
-                              'subtitle': 'Emma Wilson',
-                              'imageUrl': 'assets/images/img1.png',
-                              'rating': 4.9,
-                              'reviews': 127,
-                              'priceRange': '€800 - €2,500',
-                              'tags': ['Wedding', 'Outdoor', 'Luxury'],
-                              'isPremium': true,
-                            },
-                            {
-                              'title': 'Professional Portrait',
-                              'subtitle': 'Marco Silva',
-                              'imageUrl': 'assets/images/img2.png',
-                              'rating': 4.8,
-                              'reviews': 89,
-                              'priceRange': '€150 - €500',
-                              'tags': ['Portrait', 'Studio', 'Business'],
-                              'isPremium': false,
-                            },
-                            {
-                              'title': 'Corporate Video',
-                              'subtitle': 'Tech Media Studio',
-                              'imageUrl': 'assets/images/img3.png',
-                              'rating': 5.0,
-                              'reviews': 45,
-                              'priceRange': '€1,200 - €4,000',
-                              'tags': ['Corporate', 'Video', 'Event'],
-                              'isPremium': false,
-                            },
-                            {
-                              'title': 'Aerial Drone Photo',
-                              'subtitle': 'SkyView Productions',
-                              'imageUrl': 'assets/images/img4.png',
-                              'rating': 4.9,
-                              'reviews': 62,
-                              'priceRange': '€300 - €1,500',
-                              'tags': ['Drone', 'Aerial', 'Landscape'],
-                              'isPremium': true,
-                            },
-                          ];
-                          final service = services[index % services.length];
-                          return ServiceCard(
-                            title: service['title'],
-                            subtitle: service['subtitle'],
-                            imageUrl: service['imageUrl'],
-                            rating: service['rating'],
-                            reviews: service['reviews'],
-                            priceRange: service['priceRange'],
-                            tags: service['tags'],
-                            isPremium: service['isPremium'],
-                          );
-                        },
-                        childCount: _isLoading ? 6 : 10,
-                      ),
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        if (_isLoading) {
+                          return const ServiceCardSkeleton();
+                        }
+                        // Mock data for services
+                        final List<Map<String, dynamic>> services = [
+                          {
+                            'id': '65e9b7f1b1c3a12345678901',
+                            'providerId': '65e9b7f1b1c3a12345678961',
+                            'title': 'Romantic Wedding Shoot',
+                            'subtitle': 'Emma Wilson',
+                            'imageUrl': 'assets/images/img1.png',
+                            'rating': 4.9,
+                            'reviews': 127,
+                            'priceRange': '€800 - €2,500',
+                            'tags': ['Wedding', 'Outdoor', 'Luxury'],
+                            'isPremium': true,
+                          },
+                          {
+                            'id': '65e9b7f1b1c3a12345678902',
+                            'providerId': '65e9b7f1b1c3a12345678962',
+                            'title': 'Professional Portrait',
+                            'subtitle': 'Marco Silva',
+                            'imageUrl': 'assets/images/img2.png',
+                            'rating': 4.8,
+                            'reviews': 89,
+                            'priceRange': '€150 - €500',
+                            'tags': ['Portrait', 'Studio', 'Business'],
+                            'isPremium': false,
+                          },
+                          {
+                            'id': '65e9b7f1b1c3a12345678903',
+                            'providerId': '65e9b7f1b1c3a12345678963',
+                            'title': 'Corporate Video',
+                            'subtitle': 'Tech Media Studio',
+                            'imageUrl': 'assets/images/img3.png',
+                            'rating': 5.0,
+                            'reviews': 45,
+                            'priceRange': '€1,200 - €4,000',
+                            'tags': ['Corporate', 'Video', 'Event'],
+                            'isPremium': false,
+                          },
+                          {
+                            'id': '65e9b7f1b1c3a12345678904',
+                            'providerId': '65e9b7f1b1c3a12345678964',
+                            'title': 'Aerial Drone Photo',
+                            'subtitle': 'SkyView Productions',
+                            'imageUrl': 'assets/images/img4.png',
+                            'rating': 4.9,
+                            'reviews': 62,
+                            'priceRange': '€300 - €1,500',
+                            'tags': ['Drone', 'Aerial', 'Landscape'],
+                            'isPremium': true,
+                          },
+                        ];
+                        final service = services[index % services.length];
+                        return ServiceCard(
+                          id: service['id'],
+                          providerId: service['providerId'],
+                          title: service['title'],
+                          subtitle: service['subtitle'],
+                          imageUrl: service['imageUrl'],
+                          rating: service['rating'],
+                          reviews: service['reviews'],
+                          priceRange: service['priceRange'],
+                          tags: List<String>.from(service['tags']),
+                          isPremium: service['isPremium'],
+                        );
+                      }, childCount: _isLoading ? 6 : 10),
                     ),
                   ),
                 ],

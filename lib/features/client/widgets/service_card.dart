@@ -19,6 +19,8 @@ class ServiceCard extends StatelessWidget {
   final List<String> tags;
   final bool isPremium;
   final bool isLoading;
+  final String? id;
+  final String? providerId;
 
   const ServiceCard({
     super.key,
@@ -31,6 +33,8 @@ class ServiceCard extends StatelessWidget {
     this.tags = const [],
     this.isPremium = false,
     this.isLoading = false,
+    this.id,
+    this.providerId,
   });
 
   @override
@@ -53,6 +57,9 @@ class ServiceCard extends StatelessWidget {
                 'priceRange': priceRange,
                 'tags': tags,
                 'isPremium': isPremium,
+                'id': id,
+                '_id': id,
+                'providerId': providerId,
               },
             ),
           ),
@@ -123,23 +130,29 @@ class ServiceCard extends StatelessWidget {
                   right: 8.w,
                   child: Consumer<FavoritesController>(
                     builder: (context, controller, child) {
-                      bool isFavorite = controller.isPostFavorite(title);
+                      bool isFavorite = controller.isPostFavorite(id);
                       return GestureDetector(
                         onTap: () {
                           if (!AuthController.isLoggedIn) {
                             GuestDialogHelper.showGuestDialog(context);
                             return;
                           }
-                          controller.toggleFavoritePost({
-                            'title': title,
-                            'subtitle': subtitle,
-                            'imageUrl': imageUrl,
-                            'rating': rating,
-                            'reviews': reviews,
-                            'priceRange': priceRange,
-                            'tags': tags,
-                            'isPremium': isPremium,
-                          });
+                          controller.toggleFavorite(
+                            serviceId: id,
+                            optimisticData: {
+                              '_id': id,
+                              'id': id,
+                              'title': title,
+                              'subtitle': subtitle,
+                              'imageUrl': imageUrl,
+                              'rating': rating,
+                              'reviews': reviews,
+                              'priceRange': priceRange,
+                              'tags': tags,
+                              'isPremium': isPremium,
+                              'providerId': providerId,
+                            },
+                          );
                         },
                         child: ClipOval(
                           child: BackdropFilter(

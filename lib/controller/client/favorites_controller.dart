@@ -1,43 +1,124 @@
 import 'package:flutter/material.dart';
+import 'package:photopia/core/network/Api_service/network_caller.dart';
+import 'package:photopia/core/network/urls.dart';
 
 class FavoritesController extends ChangeNotifier {
-  // Store full objects for easy UI rendering without secondary lookup
-  // In a real API scenario, these might be IDs and we'd fetch details
-  final List<Map<String, dynamic>> _favoritePosts = [];
-  final List<Map<String, dynamic>> _favoriteProviders = [];
+  bool _isLoading = false;
+  String? _errorMessage;
 
+  List<Map<String, dynamic>> _favoritePosts = [];
+  List<Map<String, dynamic>> _favoriteProviders = [];
+
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
   List<Map<String, dynamic>> get favoritePosts => _favoritePosts;
   List<Map<String, dynamic>> get favoriteProviders => _favoriteProviders;
 
-  void toggleFavoritePost(Map<String, dynamic> service) {
-    final index = _favoritePosts.indexWhere(
-      (element) => element['title'] == service['title'],
-    );
-    if (index >= 0) {
-      _favoritePosts.removeAt(index);
-    } else {
-      _favoritePosts.add(service);
+  Future<void> fetchFavorites() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final NetworkResponse response = await NetworkCaller.getRequest(
+        url: Urls.getFavorites,
+      );
+
+      if (response.isSuccess && response.body != null) {
+        final List<dynamic> data = response.body?['data'] ?? [];
+        _favoritePosts = [];
+        _favoriteProviders = [];
+
+        for (var item in data) {
+          if (item['serviceId'] != null) {
+            _favoritePosts.add(item['serviceId']);
+          } else if (item['providerId'] != null) {
+            _favoriteProviders.add(item['providerId']);
+          }
+        }
+      } else {
+        _errorMessage = response.errorMessage ?? "Failed to fetch favorites";
+      }
+    } catch (e) {
+      _errorMessage = "An unexpected error occurred while fetching favorites";
+      debugPrint("fetchFavorites error: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> toggleFavorite({
+    String? serviceId,
+    String? providerId,
+    Map<String, dynamic>? optimisticData,
+  }) async {
+    final Map<String, dynamic> body = {};
+    if (serviceId != null) {
+      body['service'] = serviceId;
+      body['favouriteType'] = 'service';
+    } else if (providerId != null) {
+      body['provider'] = providerId;
+      body['favouriteType'] = 'professional';
+    }
+
+    if (body.isEmpty) {
+      debugPrint("toggleFavorite: Both serviceId and providerId are null.");
+      return false;
+    }
+
+    bool wasFavorite = false;
+    if (serviceId != null) {
+      wasFavorite = isPostFavorite(serviceId);
+      if (wasFavorite) {
+        _favoritePosts.removeWhere((p) => (p['_id'] ?? p['id']) == serviceId);
+      } else if (optimisticData != null) {
+        _favoritePosts.add(optimisticData);
+      }
+    } else if (providerId != null) {
+      wasFavorite = isProviderFavorite(providerId);
+      if (wasFavorite) {
+        _favoriteProviders.removeWhere(
+          (p) => (p['_id'] ?? p['id']) == providerId,
+        );
+      } else if (optimisticData != null) {
+        _favoriteProviders.add(optimisticData);
+      }
     }
     notifyListeners();
-  }
 
-  void toggleFavoriteProvider(Map<String, dynamic> provider) {
-    final index = _favoriteProviders.indexWhere(
-      (element) => element['name'] == provider['name'],
-    );
-    if (index >= 0) {
-      _favoriteProviders.removeAt(index);
-    } else {
-      _favoriteProviders.add(provider);
+    try {
+      final NetworkResponse response = await NetworkCaller.postRequest(
+        url: Urls.toggleFav,
+        body: body,
+      );
+
+      if (!response.isSuccess) {
+        // Revert optimistic update on failure
+        await fetchFavorites();
+        return false;
+      }
+      // Refresh to ensure synced with server
+      await fetchFavorites();
+      return true;
+    } catch (e) {
+      debugPrint("toggleFavorite error: $e");
+      await fetchFavorites();
+      return false;
     }
-    notifyListeners();
   }
 
-  bool isPostFavorite(String title) {
-    return _favoritePosts.any((element) => element['title'] == title);
+  bool isPostFavorite(String? id) {
+    if (id == null) return false;
+    return _favoritePosts.any(
+      (element) => (element['_id'] ?? element['id']) == id,
+    );
   }
 
-  bool isProviderFavorite(String name) {
-    return _favoriteProviders.any((element) => element['name'] == name);
+  bool isProviderFavorite(String? id) {
+    if (id == null) return false;
+    return _favoriteProviders.any(
+      (element) => (element['_id'] ?? element['id']) == id,
+    );
   }
 }

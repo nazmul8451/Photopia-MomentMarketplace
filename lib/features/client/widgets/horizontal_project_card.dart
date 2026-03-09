@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/controller/client/favorites_controller.dart';
+import 'package:photopia/controller/auth_controller.dart';
+import 'package:photopia/core/utils/guest_dialog_helper.dart';
+import 'dart:ui';
 
 class HorizontalProjectCard extends StatelessWidget {
   final String imageUrl;
@@ -8,6 +13,7 @@ class HorizontalProjectCard extends StatelessWidget {
   final double? rating;
   final bool isAvailable;
   final int? likeCount;
+  final String? id;
   final VoidCallback? onTap;
 
   const HorizontalProjectCard({
@@ -18,6 +24,7 @@ class HorizontalProjectCard extends StatelessWidget {
     this.rating,
     this.isAvailable = false,
     this.likeCount,
+    this.id,
     this.onTap,
   });
 
@@ -101,6 +108,58 @@ class HorizontalProjectCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                // Favorite Toggle Badge
+                Positioned(
+                  top: 8.h,
+                  left: 8.w,
+                  child: Consumer<FavoritesController>(
+                    builder: (context, controller, child) {
+                      bool isFavorite = controller.isPostFavorite(id);
+                      return GestureDetector(
+                        onTap: () {
+                          if (!AuthController.isLoggedIn) {
+                            GuestDialogHelper.showGuestDialog(context);
+                            return;
+                          }
+                          controller.toggleFavorite(
+                            serviceId: id,
+                            optimisticData: {
+                              '_id': id,
+                              'id': id,
+                              'title': title,
+                              'providerName': providerName,
+                              'imageUrl': imageUrl,
+                              'rating': rating,
+                            },
+                          );
+                        },
+                        child: ClipOval(
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                            child: Container(
+                              padding: EdgeInsets.all(4.w),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Icon(
+                                isFavorite
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: Colors.red,
+                                size: 16.sp,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
                 // Like Count Badge
                 if (likeCount != null)
                   Positioned(
