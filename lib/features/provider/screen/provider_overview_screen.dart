@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/provider/screen/provider_create_listing_screen.dart';
 import 'package:photopia/features/provider/screen/provider_listing_details_screen.dart';
 import 'package:photopia/controller/provider/my_listing_controller.dart';
 import 'package:photopia/controller/provider/service_controller.dart';
+import 'package:photopia/controller/common/bottom_nav_controller.dart';
+import 'package:photopia/features/provider/widgets/provider_overview_shimmer.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/data/models/my_listing_model.dart';
 import 'package:photopia/core/widgets/custom_snacbar.dart';
@@ -94,7 +97,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
       body: Consumer<MyListingController>(
         builder: (context, controller, child) {
           if (controller.isProgress) {
-            return const Center(child: CircularProgressIndicator());
+            return const ProviderOverviewShimmer();
           }
 
           if (controller.errorMessage != null) {
@@ -104,7 +107,10 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
           final listings = _getFilteredListings(controller.listings);
 
           return RefreshIndicator(
-            onRefresh: () => controller.getMyListings(),
+            onRefresh: () async {
+              HapticFeedback.lightImpact();
+              await controller.getMyListings();
+            },
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: 20.w),
               physics: const AlwaysScrollableScrollPhysics(),
@@ -271,11 +277,17 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                 ),
               ),
               SizedBox(width: 16.w),
-              Text(
-                '8 bookings', // Not in model yet
-                style: TextStyle(
-                  fontSize: AppTypography.bodyMedium,
-                  color: const Color(0xFF636AFF),
+              GestureDetector(
+                onTap: () {
+                  context.read<BottomNavController>().setIndex(0);
+                },
+                child: Text(
+                  '8 bookings', // Not in model yet
+                  style: TextStyle(
+                    fontSize: AppTypography.bodyMedium,
+                    color: const Color(0xFF636AFF),
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
             ],

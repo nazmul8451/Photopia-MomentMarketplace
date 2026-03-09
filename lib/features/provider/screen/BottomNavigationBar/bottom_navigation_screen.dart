@@ -6,18 +6,21 @@ import 'package:photopia/features/provider/screen/provider_message_screen.dart';
 import 'package:photopia/features/provider/screen/provider_menu_screen.dart';
 import 'package:photopia/features/provider/widgets/provider_custom_bottom_nav_bar.dart';
 
+import 'package:photopia/controller/common/bottom_nav_controller.dart';
+import 'package:provider/provider.dart';
+
 class ProviderBottomNavigationScreen extends StatefulWidget {
   final int initialIndex;
-  const ProviderBottomNavigationScreen({super.key, this.initialIndex = 0});
+  const ProviderBottomNavigationScreen({super.key, this.initialIndex = 2});
   static const String name = "/provider-bottom-navigation";
 
   @override
-  State<ProviderBottomNavigationScreen> createState() => _ProviderBottomNavigationScreenState();
+  State<ProviderBottomNavigationScreen> createState() =>
+      _ProviderBottomNavigationScreenState();
 }
 
-class _ProviderBottomNavigationScreenState extends State<ProviderBottomNavigationScreen> {
-  late int _selectedIndex;
-  
+class _ProviderBottomNavigationScreenState
+    extends State<ProviderBottomNavigationScreen> {
   // Navigation keys for each tab
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
     GlobalKey<NavigatorState>(),
@@ -30,46 +33,47 @@ class _ProviderBottomNavigationScreenState extends State<ProviderBottomNavigatio
   @override
   void initState() {
     super.initState();
-    _selectedIndex = widget.initialIndex;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<BottomNavController>().setIndex(widget.initialIndex);
+    });
   }
 
   void _onItemSelected(int index) {
-    if (_selectedIndex == index) {
+    final controller = context.read<BottomNavController>();
+    if (controller.selectedIndex == index) {
       // If tapping the same tab, pop to the first screen of that tab's navigator
       _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
     } else {
-      setState(() {
-        _selectedIndex = index;
-      });
+      controller.setIndex(index);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final selectedIndex = context.watch<BottomNavController>().selectedIndex;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        
-        final NavigatorState? currentNavigator = _navigatorKeys[_selectedIndex].currentState;
+
+        final NavigatorState? currentNavigator =
+            _navigatorKeys[selectedIndex].currentState;
         if (currentNavigator != null && currentNavigator.canPop()) {
           currentNavigator.pop();
         } else {
-          // If we can't pop anymore in the current tab, we could either:
-          // 1. Exit the app (default behavior if we allow pop)
-          // 2. Switch to the first tab (e.g., Orders)
-          // For now, let's allow it to exit the app if we're on the first tab and it can't pop
-          if (_selectedIndex != 0) {
-            setState(() => _selectedIndex = 0);
+          // If we can't pop anymore in the current tab, switch to the default tab (Listing)
+          if (selectedIndex != 2) {
+            context.read<BottomNavController>().setIndex(2);
           } else {
             // Re-invoke pop if we're on the very first screen of the first tab
-             Navigator.of(context).pop();
+            Navigator.of(context).pop();
           }
         }
       },
       child: Scaffold(
         body: IndexedStack(
-          index: _selectedIndex,
+          index: selectedIndex,
           children: [
             _buildTabNavigator(0, const ProviderOrdersScreen()),
             _buildTabNavigator(1, const ProviderCalendarScreen()),
@@ -79,7 +83,7 @@ class _ProviderBottomNavigationScreenState extends State<ProviderBottomNavigatio
           ],
         ),
         bottomNavigationBar: ProviderCustomBottomNavBar(
-          selectedIndex: _selectedIndex,
+          selectedIndex: selectedIndex,
           onItemSelected: _onItemSelected,
         ),
       ),
@@ -90,9 +94,7 @@ class _ProviderBottomNavigationScreenState extends State<ProviderBottomNavigatio
     return Navigator(
       key: _navigatorKeys[index],
       onGenerateRoute: (routeSettings) {
-        return MaterialPageRoute(
-          builder: (context) => rootPage,
-        );
+        return MaterialPageRoute(builder: (context) => rootPage);
       },
     );
   }

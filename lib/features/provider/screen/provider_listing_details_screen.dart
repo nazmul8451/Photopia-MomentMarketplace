@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/controller/common/bottom_nav_controller.dart';
 import 'package:photopia/controller/provider/my_listing_controller.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/network/urls.dart';
@@ -330,25 +331,34 @@ class _ProviderListingDetailsScreenState
                       ),
                     ),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '00',
-                            style: TextStyle(
-                              fontSize: AppTypography.h1,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                      child: GestureDetector(
+                        onTap: () {
+                          context.read<BottomNavController>().setIndex(0);
+                          Navigator.pop(
+                            context,
+                          ); // Go back to main screen which will show the new tab
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '00',
+                              style: TextStyle(
+                                fontSize: AppTypography.h1,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF636AFF),
+                                decoration: TextDecoration.underline,
+                              ),
                             ),
-                          ),
-                          Text(
-                            'Bookings',
-                            style: TextStyle(
-                              fontSize: AppTypography.bodySmall,
-                              color: Colors.grey,
+                            Text(
+                              'Bookings',
+                              style: TextStyle(
+                                fontSize: AppTypography.bodySmall,
+                                color: Colors.grey,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
