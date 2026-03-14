@@ -6,6 +6,8 @@ import 'package:photopia/features/provider/screen/provider_notification_screen.d
 import 'package:photopia/features/provider/screen/booking_details_screen.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:get/get.dart';
+import 'package:photopia/controller/provider/provider_orders_controller.dart';
 
 class ProviderOrdersScreen extends StatefulWidget {
   const ProviderOrdersScreen({super.key});
@@ -17,24 +19,13 @@ class ProviderOrdersScreen extends StatefulWidget {
 class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final ProviderOrdersController _ordersController = Get.put(ProviderOrdersController());
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _simulateLoading();
-  }
-
-  bool _isLoading = true;
-
-  void _simulateLoading() {
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    });
+    _ordersController.getMyOrders();
   }
 
   @override
@@ -160,13 +151,17 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
 
             // Tab Bar View
             Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _isLoading ? _buildShimmerLoading() : _buildTodayTab(),
-                  _isLoading ? _buildShimmerLoading() : _buildUpcomingTab(),
-                  _isLoading ? _buildShimmerLoading() : _buildPendingTab(),
-                ],
+              child: GetBuilder<ProviderOrdersController>(
+                builder: (controller) {
+                  return TabBarView(
+                    controller: _tabController,
+                    children: [
+                      controller.inProgress ? _buildShimmerLoading() : _buildTodayTab(controller),
+                      controller.inProgress ? _buildShimmerLoading() : _buildUpcomingTab(controller),
+                      controller.inProgress ? _buildShimmerLoading() : _buildPendingTab(controller),
+                    ],
+                  );
+                }
               ),
             ),
           ],
@@ -175,149 +170,165 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
     );
   }
 
-  Widget _buildTodayTab() {
-    return ListView(
+  Widget _buildTodayTab(ProviderOrdersController controller) {
+    final todayOrders = controller.orders; // Replace with proper date filtering later
+    return ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "Today's Bookings",
-              style: TextStyle(
-                fontSize: AppTypography.h1,
-                fontWeight: FontWeight.bold,
+      itemCount: todayOrders.isEmpty ? 1 : todayOrders.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Today's Bookings",
+                    style: TextStyle(
+                      fontSize: AppTypography.h1,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '${todayOrders.length} bookings',
+                    style: TextStyle(
+                      fontSize: AppTypography.bodySmall,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
               ),
-            ),
-            Text(
-              '2 bookings',
-              style: TextStyle(
-                fontSize: AppTypography.bodySmall,
-                color: Colors.grey[500],
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 15.h),
-        _buildTodayBookingCard(
-          name: 'Marie Dubois',
-          service: 'Portrait Photo Session',
-          time: '10:00 - 11:30',
-          location: 'Central Park, New York',
-          price: '150',
-          imageUrl: 'assets/images/img1.png',
-          status: 'Confirmed',
-        ),
-        _buildTodayBookingCard(
-          name: 'Jean Martin',
-          service: 'Event Photography',
-          time: '14:00 - 17:00',
-          location: 'Grand Ballroom, Manhattan',
-          price: '450',
-          imageUrl: 'assets/images/img2.png',
-          status: 'Confirmed',
-        ),
-      ],
+              SizedBox(height: 15.h),
+              if (todayOrders.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 50.h),
+                    child: Text('No bookings right now'),
+                  ),
+                ),
+            ],
+          );
+        }
+        
+        final order = todayOrders[index - 1];
+        return _buildTodayBookingCard(
+          name: order['client']?['name'] ?? 'Unknown Client',
+          service: order['service']?['title'] ?? 'Unknown Service',
+          time: order['time'] ?? 'N/A',
+          location: order['location'] ?? 'Location N/A',
+          price: order['price']?.toString() ?? '0',
+          imageUrl: order['client']?['profile'] ?? 'assets/images/img1.png',
+          status: order['status'] ?? 'Confirmed',
+        );
+      },
     );
   }
 
-  Widget _buildUpcomingTab() {
-    return ListView(
+  Widget _buildUpcomingTab(ProviderOrdersController controller) {
+    final upcomingOrders = controller.orders.where((o) => o['status'] == 'Confirmed').toList();
+    return ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "Upcoming Bookings",
-              style: TextStyle(
-                fontSize: AppTypography.h1,
-                fontWeight: FontWeight.bold,
+      itemCount: upcomingOrders.isEmpty ? 1 : upcomingOrders.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Upcoming Bookings",
+                    style: TextStyle(
+                      fontSize: AppTypography.h1,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '${upcomingOrders.length} bookings',
+                    style: TextStyle(
+                      fontSize: AppTypography.bodySmall,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
               ),
-            ),
-            Text(
-              '3 bookings',
-              style: TextStyle(
-                fontSize: AppTypography.bodySmall,
-                color: Colors.grey[500],
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 15.h),
-        _buildUpcomingBookingCard(
-          name: 'Sophie Laurent',
-          service: 'Corporate Video',
-          date: '2025-12-22',
-          time: '09:00 - 12:00',
-          price: '800',
-          status: 'Pending',
-        ),
-        _buildUpcomingBookingCard(
-          name: 'Pierre Durand',
-          service: 'Drone Shoot',
-          date: '2025-12-25',
-          time: '15:00 - 18:00',
-          price: '600',
-          status: 'Confirmed',
-        ),
-        _buildUpcomingBookingCard(
-          name: 'Emma Wilson',
-          service: 'Wedding Photography',
-          date: '2025-12-28',
-          time: '10:00 - 20:00',
-          price: '2500',
-          status: 'Confirmed',
-        ),
-      ],
+              SizedBox(height: 15.h),
+              if (upcomingOrders.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 50.h),
+                    child: Text('No upcoming bookings'),
+                  ),
+                ),
+            ],
+          );
+        }
+        
+        final order = upcomingOrders[index - 1];
+        return _buildUpcomingBookingCard(
+          name: order['client']?['name'] ?? 'Unknown Client',
+          service: order['service']?['title'] ?? 'Unknown Service',
+          date: order['date'] ?? 'N/A',
+          time: order['time'] ?? 'N/A',
+          price: order['price']?.toString() ?? '0',
+          status: order['status'] ?? 'Confirmed',
+        );
+      },
     );
   }
 
-  Widget _buildPendingTab() {
-    return ListView(
+  Widget _buildPendingTab(ProviderOrdersController controller) {
+    final pendingOrders = controller.orders.where((o) => o['status'] == 'Pending').toList();
+    return ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "Pending Approval",
-              style: TextStyle(
-                fontSize: AppTypography.h1,
-                fontWeight: FontWeight.bold,
+      itemCount: pendingOrders.isEmpty ? 1 : pendingOrders.length + 1,
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Pending Approval",
+                    style: TextStyle(
+                      fontSize: AppTypography.h1,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '${pendingOrders.length} requests',
+                    style: TextStyle(
+                      fontSize: AppTypography.bodySmall,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
               ),
-            ),
-            Text(
-              '2 requests',
-              style: TextStyle(
-                fontSize: AppTypography.bodySmall,
-                color: Colors.grey[500],
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 15.h),
-        _buildPendingBookingCard(
-          name: 'Robert Chen',
-          service: 'Product Photography',
-          requestedAgo: 'Requested 5 hours ago',
-          date: '2025-12-26',
-          time: '10:00 - 14:00',
-          location: 'Client Office, Manhattan',
-          price: '500',
-          imageUrl: 'assets/images/img3.png',
-        ),
-        _buildPendingBookingCard(
-          name: 'Lisa Anderson',
-          service: 'Event Coverage',
-          requestedAgo: 'Requested 1 day ago',
-          date: '2025-12-30',
-          time: '18:00 - 22:00',
-          location: 'Convention Center, Brooklyn',
-          price: '500',
-          imageUrl: 'assets/images/img4.png',
-        ),
-      ],
+              SizedBox(height: 15.h),
+              if (pendingOrders.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 50.h),
+                    child: Text('No pending requests'),
+                  ),
+                ),
+            ],
+          );
+        }
+        
+        final order = pendingOrders[index - 1];
+        return _buildPendingBookingCard(
+          name: order['client']?['name'] ?? 'Unknown Client',
+          service: order['service']?['title'] ?? 'Unknown Service',
+          requestedAgo: 'Requested recently',
+          date: order['date'] ?? 'N/A',
+          time: order['time'] ?? 'N/A',
+          location: order['location'] ?? 'Location N/A',
+          price: order['price']?.toString() ?? '0',
+          imageUrl: order['client']?['profile'] ?? 'assets/images/img3.png',
+        );
+      },
     );
   }
 

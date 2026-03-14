@@ -27,6 +27,7 @@ class Urls {
 
   static const String myListingApi = '$baseUrl/api/v1/services/my/services';
   static String getSingleList(String id) => '$baseUrl/api/v1/services/$id';
+  static String getMyOrders = '$baseUrl/api/v1/booking/my-bookings';
 
   //--------------------------------------User site api----------------------------------------------------------
 
