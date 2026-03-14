@@ -1,29 +1,34 @@
-import 'package:get/get.dart';
+import 'package:flutter/material.dart';
 import 'package:photopia/core/network/Api_service/network_caller.dart';
 import 'package:photopia/core/network/urls.dart';
 
-class ProviderOrdersController extends GetxController {
-  bool inProgress = false;
-  String errorMessage = '';
-  List<dynamic> orders = [];
+class ProviderOrdersController extends ChangeNotifier {
+  bool _inProgress = false;
+  String _errorMessage = '';
+  List<dynamic> _orders = [];
+
+  bool get inProgress => _inProgress;
+  String get errorMessage => _errorMessage;
+  List<dynamic> get orders => _orders;
 
   Future<bool> getMyOrders() async {
-    inProgress = true;
-    update();
+    _inProgress = true;
+    _errorMessage = '';
+    notifyListeners();
 
     final response = await NetworkCaller.getRequest(url: Urls.getMyOrders);
 
-    inProgress = false;
+    _inProgress = false;
 
     if (response.isSuccess) {
       if (response.body != null && response.body!['data'] != null) {
-        orders = response.body!['data']; // Will update with proper model later
+        _orders = response.body!['data'];
       }
-      update();
+      notifyListeners();
       return true;
     } else {
-      errorMessage = response.errorMessage ?? 'Failed to fetch orders';
-      update();
+      _errorMessage = response.errorMessage ?? 'Failed to fetch orders';
+      notifyListeners();
       return false;
     }
   }

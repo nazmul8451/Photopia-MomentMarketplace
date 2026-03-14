@@ -18,6 +18,7 @@ import 'package:photopia/controller/provider/service_controller.dart';
 import 'package:photopia/controller/provider/calender_availibility_controller.dart';
 import 'package:photopia/controller/provider/my_listing_controller.dart';
 import 'package:photopia/controller/client/service_list_controller.dart';
+import 'package:photopia/controller/provider/provider_orders_controller.dart';
 import 'package:photopia/controller/client/provider_details_controller.dart';
 import 'package:photopia/controller/common/bottom_nav_controller.dart';
 import 'package:photopia/core/routes/app_routes.dart';
@@ -55,6 +56,7 @@ class Photopia extends StatelessWidget {
               create: (_) => CalenderAvailibilityController(),
             ),
             ChangeNotifierProvider(create: (_) => ProviderDetailsController()),
+            ChangeNotifierProvider(create: (_) => ProviderOrdersController()),
           ],
           child: MaterialApp(
             debugShowCheckedModeBanner: false,

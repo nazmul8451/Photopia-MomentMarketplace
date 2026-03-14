@@ -6,7 +6,7 @@ import 'package:photopia/features/provider/screen/provider_notification_screen.d
 import 'package:photopia/features/provider/screen/booking_details_screen.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_orders_controller.dart';
 
 class ProviderOrdersScreen extends StatefulWidget {
@@ -19,13 +19,14 @@ class ProviderOrdersScreen extends StatefulWidget {
 class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final ProviderOrdersController _ordersController = Get.put(ProviderOrdersController());
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _ordersController.getMyOrders();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProviderOrdersController>().getMyOrders();
+    });
   }
 
   @override
@@ -151,8 +152,8 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
 
             // Tab Bar View
             Expanded(
-              child: GetBuilder<ProviderOrdersController>(
-                builder: (controller) {
+              child: Consumer<ProviderOrdersController>(
+                builder: (context, controller, child) {
                   return TabBarView(
                     controller: _tabController,
                     children: [
@@ -161,7 +162,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                       controller.inProgress ? _buildShimmerLoading() : _buildPendingTab(controller),
                     ],
                   );
-                }
+                },
               ),
             ),
           ],
