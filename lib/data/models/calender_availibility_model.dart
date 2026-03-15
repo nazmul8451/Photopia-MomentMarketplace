@@ -28,9 +28,11 @@ class CalenderSettingsModel {
 
 class Data {
   DefaultSchedule? defaultSchedule;
+  Pricing? pricing;
   GoogleCalendarSync? googleCalendarSync;
   String? sId;
   String? providerId;
+  String? serviceId;
   List<CustomDates>? customDates;
   List<RecurringRules>? recurringRules;
   int? bufferMinutes;
@@ -46,9 +48,11 @@ class Data {
 
   Data(
       {this.defaultSchedule,
+      this.pricing,
       this.googleCalendarSync,
       this.sId,
       this.providerId,
+      this.serviceId,
       this.customDates,
       this.recurringRules,
       this.bufferMinutes,
@@ -66,11 +70,14 @@ class Data {
     defaultSchedule = json['defaultSchedule'] != null
         ? new DefaultSchedule.fromJson(json['defaultSchedule'])
         : null;
+    pricing =
+        json['pricing'] != null ? new Pricing.fromJson(json['pricing']) : null;
     googleCalendarSync = json['googleCalendarSync'] != null
         ? new GoogleCalendarSync.fromJson(json['googleCalendarSync'])
         : null;
     sId = json['_id'];
     providerId = json['providerId'];
+    serviceId = json['serviceId'];
     if (json['customDates'] != null) {
       customDates = <CustomDates>[];
       json['customDates'].forEach((v) {
@@ -100,11 +107,15 @@ class Data {
     if (this.defaultSchedule != null) {
       data['defaultSchedule'] = this.defaultSchedule!.toJson();
     }
+    if (this.pricing != null) {
+      data['pricing'] = this.pricing!.toJson();
+    }
     if (this.googleCalendarSync != null) {
       data['googleCalendarSync'] = this.googleCalendarSync!.toJson();
     }
     data['_id'] = this.sId;
     data['providerId'] = this.providerId;
+    data['serviceId'] = this.serviceId;
     if (this.customDates != null) {
       data['customDates'] = this.customDates!.map((v) => v.toJson()).toList();
     }
@@ -122,6 +133,28 @@ class Data {
     data['updatedAt'] = this.updatedAt;
     data['__v'] = this.iV;
     data['id'] = this.id;
+    return data;
+  }
+}
+
+class Pricing {
+  String? model;
+  double? baseRate;
+  double? weekendRate;
+
+  Pricing({this.model, this.baseRate, this.weekendRate});
+
+  Pricing.fromJson(Map<String, dynamic> json) {
+    model = json['model'];
+    baseRate = (json['baseRate'] as num?)?.toDouble();
+    weekendRate = (json['weekendRate'] as num?)?.toDouble();
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['model'] = model;
+    data['baseRate'] = baseRate;
+    data['weekendRate'] = weekendRate;
     return data;
   }
 }
@@ -308,7 +341,6 @@ class RecurringRules {
     end = json['end'];
     maxBookings = json['maxBookings'];
   }
-
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['type'] = this.type;

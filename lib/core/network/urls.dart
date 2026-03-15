@@ -22,6 +22,8 @@ class Urls {
   static const String service = '$baseUrl/api/v1/services';
   static String updateService(String id) => '$baseUrl/api/v1/services/$id';
   static String deleteService(String id) => '$baseUrl/api/v1/services/$id';
+  static String toggleServiceStatus(String id) => '$baseUrl/api/v1/services/$id/status';
+  static String getServicesByProvider(String providerId) => '$baseUrl/api/v1/services/provider/$providerId';
   //Calender and availibility
   static const String calenderSettings = '$baseUrl/api/v1/availability';
 

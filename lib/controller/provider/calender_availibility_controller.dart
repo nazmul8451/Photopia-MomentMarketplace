@@ -29,6 +29,7 @@ class CalenderAvailibilityController extends ChangeNotifier {
       body.remove('__v');
 
       // Note: providerId is kept as it was present in user's example payload
+      body.removeWhere((key, value) => value == null);
 
       debugPrint(
         '🚀 Sending Calendar Availability Request to ${Urls.calenderSettings}',

@@ -17,6 +17,10 @@ class ServiceController extends ChangeNotifier {
   // getters
   bool get inProgress => _inProgress;
   String? get errorMessage => _errorMessage;
+  List<Data> _myServices = [];
+  List<Data> get myServices => _myServices;
+  Data? _currentService;
+  Data? get currentService => _currentService;
 
   Future<bool> createService(Data serviceData, List<File> images) async {
     _inProgress = true;
@@ -297,6 +301,101 @@ class ServiceController extends ChangeNotifier {
       _errorMessage = "An unexpected error occurred";
       notifyListeners();
       debugPrint("Delete Service Error: $e");
+      return false;
+    }
+  }
+
+  Future<bool> getMyServices() async {
+    _inProgress = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final NetworkResponse response = await NetworkCaller.getRequest(
+        url: Urls.myListingApi,
+        requireAuth: true,
+      );
+
+      _inProgress = false;
+      if (response.isSuccess && response.body != null) {
+        final listModel = ProviderServiceListModel.fromJson(response.body!);
+        _myServices = listModel.data ?? [];
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = response.errorMessage ?? 'Failed to fetch services';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _inProgress = false;
+      _errorMessage = 'An unexpected error occurred: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> getSingleService(String id) async {
+    _inProgress = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final NetworkResponse response = await NetworkCaller.getRequest(
+        url: Urls.getSingleList(id),
+        requireAuth: true,
+      );
+
+      _inProgress = false;
+      if (response.isSuccess && response.body != null) {
+        final model = ProviderServiceModel.fromJson(response.body!);
+        _currentService = model.data;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage =
+            response.errorMessage ?? 'Failed to fetch service details';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _inProgress = false;
+      _errorMessage = 'An unexpected error occurred: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> toggleServiceStatus(String id, String status) async {
+    _inProgress = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final NetworkResponse response = await NetworkCaller.patchRequest(
+        url: Urls.toggleServiceStatus(id),
+        body: {'status': status},
+        requireAuth: true,
+      );
+
+      _inProgress = false;
+      if (response.isSuccess) {
+        // Update local list if it exists
+        final index = _myServices.indexWhere((s) => s.id == id || s.sId == id);
+        if (index != -1) {
+          _myServices[index].status = status;
+        }
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = response.errorMessage ?? 'Failed to update status';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _inProgress = false;
+      _errorMessage = 'An unexpected error occurred: $e';
+      notifyListeners();
       return false;
     }
   }

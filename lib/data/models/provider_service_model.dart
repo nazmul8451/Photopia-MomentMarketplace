@@ -1,4 +1,39 @@
-import 'dart:convert';
+class ProviderServiceListModel {
+  int? statusCode;
+  bool? success;
+  String? message;
+  List<Data>? data;
+
+  ProviderServiceListModel({
+    this.statusCode,
+    this.success,
+    this.message,
+    this.data,
+  });
+
+  ProviderServiceListModel.fromJson(Map<String, dynamic> json) {
+    statusCode = json['statusCode'];
+    success = json['success'];
+    message = json['message'];
+    if (json['data'] != null) {
+      data = <Data>[];
+      json['data'].forEach((v) {
+        data!.add(new Data.fromJson(v));
+      });
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['statusCode'] = this.statusCode;
+    data['success'] = this.success;
+    data['message'] = this.message;
+    if (this.data != null) {
+      data['data'] = this.data!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
 
 class ProviderServiceModel {
   int? statusCode;
@@ -37,6 +72,8 @@ class Data {
   String? title;
   String? description;
   Category? category;
+  String? subCategory;
+  String? serviceType;
   List<String>? tags;
   List<String>? equipment;
   int? price;
@@ -102,6 +139,8 @@ class Data {
     category = json['category'] != null
         ? new Category.fromJson(json['category'])
         : null;
+    subCategory = json['subCategory'];
+    serviceType = json['serviceType'];
     tags = json['tags'] != null ? List<String>.from(json['tags']) : null;
     equipment = json['equipment'] != null
         ? List<String>.from(json['equipment'])
@@ -153,6 +192,8 @@ class Data {
     if (this.category != null) {
       data['category'] = this.category!.toJson();
     }
+    data['subCategory'] = this.subCategory;
+    data['serviceType'] = this.serviceType;
     data['tags'] = this.tags;
     data['equipment'] = this.equipment;
     data['price'] = this.price;
@@ -367,6 +408,7 @@ class Location {
   String? country;
   String? city;
   String? address;
+  Coordinates? coordinates;
   int? serviceRadiusKm;
   String? sId;
 
@@ -384,6 +426,9 @@ class Location {
     country = json['country'];
     city = json['city'];
     address = json['address'];
+    coordinates = json['coordinates'] != null
+        ? new Coordinates.fromJson(json['coordinates'])
+        : null;
     serviceRadiusKm = json['serviceRadiusKm'];
     sId = json['_id'];
   }
@@ -394,8 +439,30 @@ class Location {
     data['country'] = this.country;
     data['city'] = this.city;
     data['address'] = this.address;
+    if (this.coordinates != null) {
+      data['coordinates'] = this.coordinates!.toJson();
+    }
     data['serviceRadiusKm'] = this.serviceRadiusKm;
     data['_id'] = this.sId;
+    return data;
+  }
+}
+
+class Coordinates {
+  double? lat;
+  double? lng;
+
+  Coordinates({this.lat, this.lng});
+
+  Coordinates.fromJson(Map<String, dynamic> json) {
+    lat = (json['lat'] as num?)?.toDouble();
+    lng = (json['lng'] as num?)?.toDouble();
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['lat'] = this.lat;
+    data['lng'] = this.lng;
     return data;
   }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class BottomNavController extends ChangeNotifier {
-  int _selectedIndex = 2; // Default to Listing tab
+  int _selectedIndex = 0; // Default to Orders tab
 
   int get selectedIndex => _selectedIndex;
 
@@ -13,7 +13,7 @@ class BottomNavController extends ChangeNotifier {
   }
 
   void resetToHome() {
-    _selectedIndex = 2;
+    _selectedIndex = 0;
     notifyListeners();
   }
 }

@@ -11,7 +11,7 @@ import 'package:provider/provider.dart';
 
 class ProviderBottomNavigationScreen extends StatefulWidget {
   final int initialIndex;
-  const ProviderBottomNavigationScreen({super.key, this.initialIndex = 2});
+  const ProviderBottomNavigationScreen({super.key, this.initialIndex = 0});
   static const String name = "/provider-bottom-navigation";
 
   @override
@@ -62,9 +62,9 @@ class _ProviderBottomNavigationScreenState
         if (currentNavigator != null && currentNavigator.canPop()) {
           currentNavigator.pop();
         } else {
-          // If we can't pop anymore in the current tab, switch to the default tab (Listing)
-          if (selectedIndex != 2) {
-            context.read<BottomNavController>().setIndex(2);
+          // If we can't pop anymore in the current tab, switch to the default tab (Orders)
+          if (selectedIndex != 0) {
+            context.read<BottomNavController>().setIndex(0);
           } else {
             // Re-invoke pop if we're on the very first screen of the first tab
             Navigator.of(context).pop();

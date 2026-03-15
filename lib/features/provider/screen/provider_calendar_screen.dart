@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/calender_availibility_controller.dart';
 import 'package:photopia/controller/client/user_profile_controller.dart';
 import 'package:photopia/data/models/calender_availibility_model.dart';
+import 'package:photopia/controller/provider/service_controller.dart';
 
 class ProviderCalendarScreen extends StatefulWidget {
   const ProviderCalendarScreen({super.key});
@@ -46,6 +47,12 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
     final controller = context.read<CalenderAvailibilityController>();
     final settingsModel = await controller.getAvailabilitySettings();
 
+    // Fetch services to have a valid serviceId if needed
+    final serviceController = context.read<ServiceController>();
+    if (serviceController.myServices.isEmpty) {
+      await serviceController.getMyServices();
+    }
+
     if (mounted && settingsModel != null && settingsModel.data != null) {
       setState(() {
         _availabilityData = settingsModel.data;
@@ -68,6 +75,24 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
       if (schedule.saturday?.isActive == false) _blockedDays.add('Saturday');
       if (schedule.sunday?.isActive == false) _blockedDays.add('Sunday');
     }
+
+    // Map Pricing Data
+    if (data.pricing != null) {
+      final model = data.pricing!.model?.toLowerCase();
+      if (model == 'hourly') {
+        _selectedPricingModel = 'By Hour';
+      } else if (model == 'daily') {
+        _selectedPricingModel = 'By Day';
+      } else if (model == 'service') {
+        _selectedPricingModel = 'By Service';
+      } else {
+        _selectedPricingModel = data.pricing!.model ?? 'By Hour';
+      }
+
+      _defaultRateController.text = data.pricing!.baseRate?.toString() ?? '100';
+      _weekendRateController.text =
+          data.pricing!.weekendRate?.toString() ?? '120';
+    }
   }
 
   Future<void> _saveSettings() async {
@@ -88,6 +113,28 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
     // Prepare the data to save
     final Data dataToSave = _availabilityData ?? Data();
     dataToSave.providerId = providerId;
+
+    // Use the first service ID if serviceId is currently null
+    if (dataToSave.serviceId == null) {
+      final serviceController = context.read<ServiceController>();
+      if (serviceController.myServices.isNotEmpty) {
+        dataToSave.serviceId = serviceController.myServices.first.id ??
+            serviceController.myServices.first.sId;
+      }
+    }
+
+    // Map Pricing Data
+    final String pricingModelValue = _selectedPricingModel == 'By Hour'
+        ? 'hourly'
+        : _selectedPricingModel == 'By Day'
+            ? 'daily'
+            : 'service';
+
+    dataToSave.pricing = Pricing(
+      model: pricingModelValue,
+      baseRate: double.tryParse(_defaultRateController.text) ?? 100.0,
+      weekendRate: double.tryParse(_weekendRateController.text) ?? 120.0,
+    );
 
     // Update schedule based on blocked days
     dataToSave.defaultSchedule ??= DefaultSchedule(
