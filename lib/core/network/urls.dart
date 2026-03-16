@@ -26,6 +26,8 @@ class Urls {
   static String getServicesByProvider(String providerId) => '$baseUrl/api/v1/services/provider/$providerId';
   //Calender and availibility
   static const String calenderSettings = '$baseUrl/api/v1/availability';
+  //get provider availibility
+  static String getProviderAvailability(String providerId) => '$baseUrl/api/v1/availability/$providerId';
 
   static const String myListingApi = '$baseUrl/api/v1/services/my/services';
   static String getSingleList(String id) => '$baseUrl/api/v1/services/$id';

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:photopia/core/constants/app_typography.dart';
 import 'package:intl/intl.dart';
-import 'package:photopia/core/widgets/custom_snacbar.dart';
-import 'package:provider/provider.dart';
+import 'package:photopia/core/constants/app_typography.dart';
+import 'package:photopia/features/provider/screen/provider_availability_settings_screen.dart';
 import 'package:photopia/controller/provider/calender_availibility_controller.dart';
 import 'package:photopia/controller/client/user_profile_controller.dart';
 import 'package:photopia/data/models/calender_availibility_model.dart';
-import 'package:photopia/controller/provider/service_controller.dart';
+import 'package:provider/provider.dart';
 
 class ProviderCalendarScreen extends StatefulWidget {
   const ProviderCalendarScreen({super.key});
@@ -20,16 +19,6 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
   int _selectedViewIndex = 1; // 0: Week, 1: Month, 2: Year
   DateTime _currentDate = DateTime.now();
   DateTime? _selectedDate;
-
-  // Automation Settings State
-  String _selectedPricingModel = 'By Hour';
-  final TextEditingController _defaultRateController = TextEditingController(
-    text: '100',
-  );
-  final TextEditingController _weekendRateController = TextEditingController(
-    text: '120',
-  );
-  List<String> _blockedDays = [];
   bool _isLoading = false;
   Data? _availabilityData;
 
@@ -38,190 +27,68 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
     super.initState();
     _selectedDate = _currentDate;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchAvailability();
+      _fetchAvailabilityData();
     });
   }
 
-  Future<void> _fetchAvailability() async {
+  Future<void> _fetchAvailabilityData() async {
     setState(() => _isLoading = true);
-    final controller = context.read<CalenderAvailibilityController>();
-    final settingsModel = await controller.getAvailabilitySettings();
-
-    // Fetch services to have a valid serviceId if needed
-    final serviceController = context.read<ServiceController>();
-    if (serviceController.myServices.isEmpty) {
-      await serviceController.getMyServices();
+    final availabilityController = context.read<CalenderAvailibilityController>();
+    final profileController = context.read<UserProfileController>();
+    
+    if (profileController.userProfile == null) {
+      await profileController.getUserProfile();
     }
 
-    if (mounted && settingsModel != null && settingsModel.data != null) {
-      setState(() {
-        _availabilityData = settingsModel.data;
-        // Map data to UI if needed
-        _updateUIFromData(_availabilityData!);
-      });
+    final String? providerId = profileController.userProfile?.id;
+    debugPrint('🔍 Fetching availability for ProviderID: $providerId');
+    
+    if (providerId != null) {
+      final settingsModel = await availabilityController.getAvailabilitySettings(providerId: providerId);
+      if (mounted && settingsModel != null) {
+        debugPrint('✅ Availability Data Received: ${settingsModel.data?.defaultSchedule?.monday?.isActive}');
+        setState(() {
+          _availabilityData = settingsModel.data;
+        });
+      }
     }
+    
     if (mounted) setState(() => _isLoading = false);
   }
 
-  void _updateUIFromData(Data data) {
-    _blockedDays.clear();
-    final schedule = data.defaultSchedule;
-    if (schedule != null) {
-      if (schedule.monday?.isActive == false) _blockedDays.add('Monday');
-      if (schedule.tuesday?.isActive == false) _blockedDays.add('Tuesday');
-      if (schedule.wednesday?.isActive == false) _blockedDays.add('Wednesday');
-      if (schedule.thursday?.isActive == false) _blockedDays.add('Thursday');
-      if (schedule.friday?.isActive == false) _blockedDays.add('Friday');
-      if (schedule.saturday?.isActive == false) _blockedDays.add('Saturday');
-      if (schedule.sunday?.isActive == false) _blockedDays.add('Sunday');
-    }
+  // Helper to check if a specific date is "Working"
+  bool _isDayWorking(DateTime date) {
+    if (_availabilityData == null) return true;
 
-    // Map Pricing Data
-    if (data.pricing != null) {
-      final model = data.pricing!.model?.toLowerCase();
-      if (model == 'hourly') {
-        _selectedPricingModel = 'By Hour';
-      } else if (model == 'daily') {
-        _selectedPricingModel = 'By Day';
-      } else if (model == 'service') {
-        _selectedPricingModel = 'By Service';
-      } else {
-        _selectedPricingModel = data.pricing!.model ?? 'By Hour';
-      }
-
-      _defaultRateController.text = data.pricing!.baseRate?.toString() ?? '100';
-      _weekendRateController.text =
-          data.pricing!.weekendRate?.toString() ?? '120';
-    }
-  }
-
-  Future<void> _saveSettings() async {
-    final profileController = context.read<UserProfileController>();
-    final availabilityController = context
-        .read<CalenderAvailibilityController>();
-
-    final String? providerId = profileController.userProfile?.id;
-    if (providerId == null) {
-      CustomSnackBar.show(
-        context: context,
-        message: 'Provider ID not found',
-        isError: true,
-      );
-      return;
-    }
-
-    // Prepare the data to save
-    final Data dataToSave = _availabilityData ?? Data();
-    dataToSave.providerId = providerId;
-
-    // Use the first service ID if serviceId is currently null
-    if (dataToSave.serviceId == null) {
-      final serviceController = context.read<ServiceController>();
-      if (serviceController.myServices.isNotEmpty) {
-        dataToSave.serviceId = serviceController.myServices.first.id ??
-            serviceController.myServices.first.sId;
+    // 1. Check Custom Dates (Exceptions) first
+    
+    if (_availabilityData!.customDates != null) {
+      for (var cd in _availabilityData!.customDates!) {
+        if (cd.date != null) {
+          DateTime? exceptionDate = DateTime.tryParse(cd.date!);
+          if (exceptionDate != null && 
+              exceptionDate.year == date.year && 
+              exceptionDate.month == date.month && 
+              exceptionDate.day == date.day) {
+            return cd.type == 'available';
+          }
+        }
       }
     }
 
-    // Map Pricing Data
-    final String pricingModelValue = _selectedPricingModel == 'By Hour'
-        ? 'hourly'
-        : _selectedPricingModel == 'By Day'
-            ? 'daily'
-            : 'service';
-
-    dataToSave.pricing = Pricing(
-      model: pricingModelValue,
-      baseRate: double.tryParse(_defaultRateController.text) ?? 100.0,
-      weekendRate: double.tryParse(_weekendRateController.text) ?? 120.0,
-    );
-
-    // Update schedule based on blocked days
-    dataToSave.defaultSchedule ??= DefaultSchedule(
-      monday: Monday(
-        start: "09:00",
-        end: "18:00",
-        isActive: true,
-        maxBookings: 2,
-      ),
-      tuesday: Monday(
-        start: "09:00",
-        end: "18:00",
-        isActive: true,
-        maxBookings: 2,
-      ),
-      wednesday: Monday(
-        start: "09:00",
-        end: "18:00",
-        isActive: true,
-        maxBookings: 2,
-      ),
-      thursday: Monday(
-        start: "09:00",
-        end: "18:00",
-        isActive: true,
-        maxBookings: 2,
-      ),
-      friday: Monday(
-        start: "09:00",
-        end: "18:00",
-        isActive: true,
-        maxBookings: 2,
-      ),
-      saturday: Monday(
-        start: "10:00",
-        end: "16:00",
-        isActive: true,
-        maxBookings: 1,
-      ),
-      sunday: Monday(
-        start: "10:00",
-        end: "16:00",
-        isActive: false,
-        maxBookings: 1,
-      ),
-    );
-
-    final schedule = dataToSave.defaultSchedule!;
-    schedule.monday?.isActive = !_blockedDays.contains('Monday');
-    schedule.tuesday?.isActive = !_blockedDays.contains('Tuesday');
-    schedule.wednesday?.isActive = !_blockedDays.contains('Wednesday');
-    schedule.thursday?.isActive = !_blockedDays.contains('Thursday');
-    schedule.friday?.isActive = !_blockedDays.contains('Friday');
-    schedule.saturday?.isActive = !_blockedDays.contains('Saturday');
-    schedule.sunday?.isActive = !_blockedDays.contains('Sunday');
-
-    // Default values if empty
-    dataToSave.bufferMinutes ??= 15;
-    dataToSave.advanceNoticeHours ??= 24;
-    dataToSave.maxBookingsPerDay ??= 3;
-    dataToSave.maxBookingsPerWeek ??= 10;
-    dataToSave.autoBlockAfterBooking ??= true;
-    dataToSave.autoBlockDuration ??= 30;
-    dataToSave.googleCalendarSync ??= GoogleCalendarSync(
-      calendarId: "primary",
-      syncEnabled: false,
-    );
-
-    final success = await availabilityController.updateAvailability(dataToSave);
-
-    if (mounted) {
-      CustomSnackBar.show(
-        context: context,
-        message: success
-            ? 'Settings saved successfully!'
-            : (availabilityController.errorMessage ??
-                  'Failed to save settings'),
-        isError: !success,
-      );
+    // 2. Check Default Schedule using weekday integer (1=Mon, 7=Sun)
+    Monday? daySchedule;
+    switch (date.weekday) {
+      case DateTime.monday: daySchedule = _availabilityData!.defaultSchedule?.monday; break;
+      case DateTime.tuesday: daySchedule = _availabilityData!.defaultSchedule?.tuesday; break;
+      case DateTime.wednesday: daySchedule = _availabilityData!.defaultSchedule?.wednesday; break;
+      case DateTime.thursday: daySchedule = _availabilityData!.defaultSchedule?.thursday; break;
+      case DateTime.friday: daySchedule = _availabilityData!.defaultSchedule?.friday; break;
+      case DateTime.saturday: daySchedule = _availabilityData!.defaultSchedule?.saturday; break;
+      case DateTime.sunday: daySchedule = _availabilityData!.defaultSchedule?.sunday; break;
     }
-  }
 
-  @override
-  void dispose() {
-    _defaultRateController.dispose();
-    _weekendRateController.dispose();
-    super.dispose();
+    return daySchedule?.isActive ?? true;
   }
 
   void _nextMonth() {
@@ -268,33 +135,48 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
               color: Colors.black,
               size: 24.sp,
             ),
-            onPressed: () {},
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProviderAvailabilitySettingsScreen(),
+                ),
+              );
+              // Re-fetch data on return
+              _fetchAvailabilityData();
+            },
           ),
           SizedBox(width: 8.w),
         ],
       ),
       body: Column(
         children: [
-          SizedBox(height: 10.h),
-          // View Toggle
-          _buildViewToggle(),
-          SizedBox(height: 20.h),
-          // Scrollable Content
           Expanded(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: _buildSelectedView(),
-            ),
+            child: _isLoading 
+              ? const Center(child: CircularProgressIndicator(color: Colors.black))
+              : SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(horizontal: 20.w),
+                  child: _buildCalendarView(),
+                ),
           ),
         ],
       ),
-      floatingActionButton: null,
+    );
+  }
+
+  Widget _buildCalendarView() {
+    return Column(
+      children: [
+        SizedBox(height: 10.h),
+        _buildViewToggle(),
+        SizedBox(height: 20.h),
+        _buildSelectedView(),
+      ],
     );
   }
 
   Widget _buildViewToggle() {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20.w),
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
         color: const Color(0xFFF1F1F1),
@@ -352,7 +234,6 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Month Selector
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -374,7 +255,6 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
           ],
         ),
         SizedBox(height: 15.h),
-        // Day Labels
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -418,13 +298,8 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
   }
 
   Widget _buildCalendarGrid() {
-    final daysInMonth = DateTime(
-      _currentDate.year,
-      _currentDate.month + 1,
-      0,
-    ).day;
+    final daysInMonth = DateTime(_currentDate.year, _currentDate.month + 1, 0).day;
     final firstDayOfMonth = DateTime(_currentDate.year, _currentDate.month, 1);
-    // Adjusted weekday: (firstDayOfMonth.weekday - 1) makes Mon=0, Sun=6
     final firstWeekday = firstDayOfMonth.weekday - 1;
 
     final totalItems = daysInMonth + firstWeekday;
@@ -444,23 +319,21 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
         int dayNum = index - firstWeekday + 1;
         if (dayNum < 1 || dayNum > daysInMonth) return const SizedBox();
 
-        bool isSelected =
-            _selectedDate?.day == dayNum &&
+        bool isSelected = _selectedDate?.day == dayNum &&
             _selectedDate?.month == _currentDate.month &&
             _selectedDate?.year == _currentDate.year;
 
-        // Mocked indicators for demonstration
-        bool hasBlocked = dayNum == 21;
+        DateTime date = DateTime(_currentDate.year, _currentDate.month, dayNum);
+        bool isWorking = _isDayWorking(date);
+        
+        // Mock data for blocked/pending indicators for now
+        bool hasBlocked = dayNum == 21; 
         bool hasPending = dayNum == 22;
 
         return GestureDetector(
           onTap: () {
             setState(() {
-              _selectedDate = DateTime(
-                _currentDate.year,
-                _currentDate.month,
-                dayNum,
-              );
+              _selectedDate = date;
             });
           },
           child: Container(
@@ -477,16 +350,16 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                   style: TextStyle(
                     fontSize: AppTypography.bodyLarge,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w400,
-                    color: isSelected ? Colors.black : Colors.black87,
+                    color: isWorking ? Colors.black : Colors.grey[300],
                   ),
                 ),
-                if (hasBlocked || hasPending)
+                if (isWorking)
                   Container(
                     margin: EdgeInsets.only(top: 4.h),
                     width: 4.w,
                     height: 4.w,
                     decoration: BoxDecoration(
-                      color: hasBlocked ? Colors.green : Colors.orange,
+                      color: hasBlocked ? Colors.red : (hasPending ? Colors.orange : Colors.green),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -585,11 +458,7 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                       ),
                     ),
                     SizedBox(width: 15.w),
-                    Icon(
-                      Icons.location_on_outlined,
-                      size: 14.sp,
-                      color: Colors.grey,
-                    ),
+                    Icon(Icons.location_on_outlined, size: 14.sp, color: Colors.grey),
                     SizedBox(width: 5.w),
                     Expanded(
                       child: Text(
@@ -623,122 +492,14 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Automation Settings Card
-        Container(
-          padding: EdgeInsets.all(20.w),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(15.r),
-            border: Border.all(color: Colors.grey[200]!),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Text(
-                      'Automation Settings',
-                      style: TextStyle(
-                        fontSize: AppTypography.h2,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: () {},
-                    child: Icon(Icons.close, size: 18.sp, color: Colors.grey),
-                  ),
-                ],
-              ),
-              SizedBox(height: 15.h),
-              Text(
-                'Block Days',
-                style: TextStyle(
-                  fontSize: AppTypography.bodyMedium,
-                  color: Colors.grey[700],
-                ),
-              ),
-              SizedBox(height: 8.h),
-              _buildBlockDaysDropdown(),
-              SizedBox(height: 15.h),
-              Text(
-                'Pricing Model',
-                style: TextStyle(
-                  fontSize: AppTypography.bodyMedium,
-                  color: Colors.grey[700],
-                ),
-              ),
-              SizedBox(height: 10.h),
-              Row(
-                children: [
-                  _buildPricingOption('By Hour'),
-                  SizedBox(width: 10.w),
-                  _buildPricingOption('By Day'),
-                  SizedBox(width: 10.w),
-                  _buildPricingOption('By Service'),
-                ],
-              ),
-              SizedBox(height: 15.h),
-              Text(
-                'Default Rate (\$/hour)',
-                style: TextStyle(
-                  fontSize: AppTypography.bodyMedium,
-                  color: Colors.grey[700],
-                ),
-              ),
-              SizedBox(height: 8.h),
-              _buildEditableRateField(_defaultRateController),
-              SizedBox(height: 15.h),
-              Text(
-                'Weekend Rate (\$/hour)',
-                style: TextStyle(
-                  fontSize: AppTypography.bodyMedium,
-                  color: Colors.grey[700],
-                ),
-              ),
-              SizedBox(height: 8.h),
-              _buildEditableRateField(_weekendRateController),
-              SizedBox(height: 20.h),
-              Consumer<CalenderAvailibilityController>(
-                builder: (context, controller, child) {
-                  return ElevatedButton(
-                    onPressed: (controller.inProgress || _isLoading)
-                        ? null
-                        : _saveSettings,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      minimumSize: Size(double.infinity, 50.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.r),
-                      ),
-                    ),
-                    child: (controller.inProgress || _isLoading)
-                        ? SizedBox(
-                            height: 20.h,
-                            width: 20.h,
-                            child: const CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Text(
-                            'Save Settings',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: AppTypography.bodyLarge,
-                            ),
-                          ),
-                  );
-                },
-              ),
-            ],
+        Text(
+          'Weekly Overview',
+          style: TextStyle(
+            fontSize: AppTypography.h1,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 30.h),
-        // Day Labels for Week View
+        SizedBox(height: 15.h),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -762,153 +523,63 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: List.generate(7, (index) => _buildWeekDayItem(index + 1)),
         ),
+        SizedBox(height: 30.h),
+        Text(
+          'Upcoming this week',
+          style: TextStyle(
+            fontSize: AppTypography.h2,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 15.h),
+        _buildScheduleItem(
+          title: 'Fashion Shoot',
+          client: 'Marc Jacobs',
+          time: '2:00 PM',
+          location: 'SoHo Studio',
+          cost: '€450',
+          status: 'pending',
+        ),
         SizedBox(height: 20.h),
       ],
     );
   }
 
-  Widget _buildBlockDaysDropdown() {
-    final allDays = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 15.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          isExpanded: true,
-          hint: Text(
-            _blockedDays.isEmpty
-                ? 'Select days to block'
-                : _blockedDays.join(', '),
-            style: TextStyle(
-              fontSize: AppTypography.bodyMedium,
-              color: Colors.grey[600],
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          items: allDays.map((day) {
-            return DropdownMenuItem<String>(
-              value: day,
-              child: StatefulBuilder(
-                builder: (context, setSubState) {
-                  bool isChecked = _blockedDays.contains(day);
-                  return CheckboxListTile(
-                    title: Text(
-                      day,
-                      style: TextStyle(fontSize: AppTypography.bodyLarge),
-                    ),
-                    value: isChecked,
-                    onChanged: (val) {
-                      setState(() {
-                        if (val == true) {
-                          _blockedDays.add(day);
-                        } else {
-                          _blockedDays.remove(day);
-                        }
-                      });
-                      setSubState(() {});
-                    },
-                    controlAffinity: ListTileControlAffinity.trailing,
-                  );
-                },
-              ),
-            );
-          }).toList(),
-          onChanged: (_) {},
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPricingOption(String label) {
-    bool isSelected = _selectedPricingModel == label;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedPricingModel = label),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 8.h),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.black : Colors.white,
-            borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(
-              color: isSelected ? Colors.black : Colors.grey[300]!,
-            ),
-          ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: AppTypography.bodySmall,
-                color: isSelected ? Colors.white : Colors.grey[600],
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEditableRateField(TextEditingController controller) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 15.w),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFBFBFB),
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: TextField(
-        controller: controller,
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(
-          border: InputBorder.none,
-          isDense: true,
-          contentPadding: EdgeInsets.symmetric(vertical: 12),
-        ),
-        style: TextStyle(
-          fontSize: AppTypography.bodyLarge,
-          color: Colors.black,
-        ),
-      ),
-    );
-  }
-
   Widget _buildWeekDayItem(int dayOffset) {
-    // Basic week view logic
+    // Calculate the date for this day of the week
+    final now = DateTime.now();
+    final firstDayOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    final date = firstDayOfWeek.add(Duration(days: dayOffset - 1));
+    bool isWorking = _isDayWorking(date);
+
     return Expanded(
       child: Container(
         margin: EdgeInsets.symmetric(horizontal: 2.w),
         padding: EdgeInsets.symmetric(vertical: 15.h),
         decoration: BoxDecoration(
-          color: const Color(0xFFFBFBFB),
+          color: isWorking ? const Color(0xFFFBFBFB) : const Color(0xFFF5F5F5),
           borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(color: Colors.grey[200]!),
+          border: Border.all(color: isWorking ? Colors.grey[200]! : Colors.grey[100]!),
         ),
         child: Column(
           children: [
             Text(
-              dayOffset.toString(),
+              date.day.toString(),
               style: TextStyle(
                 fontSize: AppTypography.h2,
                 fontWeight: FontWeight.bold,
+                color: isWorking ? Colors.black : Colors.grey[400],
               ),
             ),
             SizedBox(height: 5.h),
-            const SizedBox(height: 12),
+            Text(
+              isWorking ? 'ON' : 'OFF',
+              style: TextStyle(
+                fontSize: 8.sp,
+                fontWeight: FontWeight.w600,
+                color: isWorking ? Colors.green : Colors.redAccent,
+              ),
+            ),
           ],
         ),
       ),
@@ -919,7 +590,6 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Year Selector
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -941,7 +611,6 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
           ],
         ),
         SizedBox(height: 20.h),
-        // Month Grid
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -953,15 +622,12 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
           ),
           itemCount: 12,
           itemBuilder: (context, index) {
-            String monthName = DateFormat(
-              'MMMM',
-            ).format(DateTime(_currentDate.year, index + 1));
-
+            String monthName = DateFormat('MMMM').format(DateTime(_currentDate.year, index + 1));
             return GestureDetector(
               onTap: () {
                 setState(() {
                   _currentDate = DateTime(_currentDate.year, index + 1);
-                  _selectedViewIndex = 1; // Switch to Month view
+                  _selectedViewIndex = 1;
                 });
               },
               child: Container(
@@ -970,294 +636,21 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(color: Colors.grey[100]!),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.01),
-                      blurRadius: 5,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      monthName,
-                      style: TextStyle(
-                        fontSize: AppTypography.bodyLarge,
-                        fontWeight: FontWeight.w600,
-                      ),
+                child: Center(
+                  child: Text(
+                    monthName,
+                    style: TextStyle(
+                      fontSize: AppTypography.bodyLarge,
+                      fontWeight: FontWeight.w600,
                     ),
-                    if (index == 11) ...[
-                      // Mock example for December
-                      SizedBox(height: 5.h),
-                      Text(
-                        '2 bookings',
-                        style: TextStyle(
-                          fontSize: AppTypography.bodySmall,
-                          color: Colors.grey[400],
-                        ),
-                      ),
-                    ],
-                  ],
+                  ),
                 ),
               ),
             );
           },
         ),
-        SizedBox(height: 20.h),
       ],
-    );
-  }
-
-  void _showSetAvailabilityDialog(
-    BuildContext context, {
-    required DateTime date,
-  }) {
-    final TextEditingController rateController = TextEditingController(
-      text: _defaultRateController.text,
-    );
-    bool isUnavailable = false;
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => Dialog(
-          backgroundColor: Colors.transparent,
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15.r),
-            ),
-            padding: EdgeInsets.all(20.w),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Set Availability',
-                      style: TextStyle(
-                        fontSize: AppTypography.h1,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Icon(
-                        Icons.close,
-                        size: 24.sp,
-                        color: Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20.h),
-                Text(
-                  'Date',
-                  style: TextStyle(
-                    fontSize: AppTypography.bodyMedium,
-                    color: Colors.grey[700],
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                _buildDropdown(DateFormat('EEE MMM dd yyyy').format(date)),
-                SizedBox(height: 15.h),
-                Text(
-                  'Hourly Rate (\$/)',
-                  style: TextStyle(
-                    fontSize: AppTypography.bodyMedium,
-                    color: Colors.grey[700],
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                _buildEditableRateField(rateController),
-                SizedBox(height: 15.h),
-                Text(
-                  'Available Hours',
-                  style: TextStyle(
-                    fontSize: AppTypography.bodyMedium,
-                    color: Colors.grey[700],
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'From',
-                            style: TextStyle(
-                              fontSize: AppTypography.bodySmall,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          SizedBox(height: 4.h),
-                          _buildTextField('09:00 AM'),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: 15.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'To',
-                            style: TextStyle(
-                              fontSize: AppTypography.bodySmall,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          SizedBox(height: 4.h),
-                          _buildTextField('05:00 PM'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 15.h),
-                GestureDetector(
-                  onTap: () =>
-                      setDialogState(() => isUnavailable = !isUnavailable),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Mark as unavailable',
-                        style: TextStyle(
-                          fontSize: AppTypography.bodyLarge,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Container(
-                        width: 20.w,
-                        height: 20.w,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isUnavailable
-                                ? Colors.black
-                                : Colors.grey[400]!,
-                          ),
-                        ),
-                        child: Center(
-                          child: isUnavailable
-                              ? Container(
-                                  width: 10.w,
-                                  height: 10.w,
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.black,
-                                  ),
-                                )
-                              : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 25.h),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: Size(0, 50.h),
-                          side: BorderSide(color: Colors.grey[300]!),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.r),
-                          ),
-                        ),
-                        child: Text(
-                          'Cancel',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: AppTypography.bodyLarge,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 15.w),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          CustomSnackBar.show(
-                            context: context,
-                            message:
-                                'Availability set for ${DateFormat('MMM dd').format(date)}',
-                            isError: false,
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          minimumSize: Size(0, 50.h),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.r),
-                          ),
-                        ),
-                        child: Text(
-                          'Save',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDropdown(String text) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 12.h),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            text,
-            style: TextStyle(fontSize: 13.sp, color: Colors.grey[600]),
-          ),
-          Icon(Icons.keyboard_arrow_down, size: 20.sp, color: Colors.grey),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTextField(String value) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 12.h),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFBFBFB),
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Text(
-        value,
-        style: TextStyle(fontSize: 14.sp, color: Colors.black),
-      ),
     );
   }
 }
