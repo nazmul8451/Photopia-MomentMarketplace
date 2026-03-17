@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:photopia/controller/auth_controller.dart';
+import 'package:photopia/core/network/urls.dart';
 
 class NetworkResponse {
   final bool isSuccess;
@@ -113,6 +114,58 @@ class NetworkCaller {
     }
   }
 
+  // ─── Refresh Token ────────────────────────────────────────────────────────
+
+  /// Attempts to refresh the access token using the stored cookie.
+  /// Returns true if successful.
+  static Future<bool> _refreshAccessToken() async {
+    final cookie = AuthController.refreshTokenCookie;
+    if (cookie == null || cookie.isEmpty) {
+      debugPrint('🔴 No refresh cookie stored. Cannot refresh token.');
+      return false;
+    }
+    try {
+      final uri = Uri.parse(Urls.refreshToken);
+      final response = await get(uri, headers: {
+        'Accept': 'application/json',
+        'Cookie': cookie,
+      }).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final newToken = body['data']?['accessToken'];
+        if (newToken != null) {
+          await AuthController.saveUserToken(newToken);
+          debugPrint('✅ Token refreshed successfully.');
+
+          // If user was in professional mode, re-switch role
+          // because the refreshed token may default to client role
+          final storedRole = AuthController.activeRole;
+          if (storedRole == 'professional') {
+            debugPrint('🔄 Re-applying professional role after token refresh...');
+            try {
+              final roleUri = Uri.parse(Urls.role);
+              final roleHeaders = await _getHeaders(requireAuth: true);
+              await patch(
+                roleUri,
+                headers: roleHeaders,
+                body: jsonEncode({'role': 'professional'}),
+              ).timeout(const Duration(seconds: 10));
+              debugPrint('✅ Role re-applied: professional');
+            } catch (e) {
+              debugPrint('⚠️ Role re-apply failed: $e');
+            }
+          }
+
+          return true;
+        }
+      }
+    } catch (e) {
+      debugPrint('🔴 Token refresh error: $e');
+    }
+    return false;
+  }
+
   // GET Request
   static Future<NetworkResponse> getRequest({
     required String url,
@@ -132,9 +185,27 @@ class NetworkCaller {
         uri,
         headers: headers,
       ).timeout(const Duration(seconds: 15));
-      return _handleResponse(response, url, "GET");
+
+      if (response.statusCode == 401 && requireAuth) {
+        final refreshed = await _refreshAccessToken();
+        if (refreshed) {
+          // Retry with new token
+          final retryHeaders = await _getHeaders(requireAuth: requireAuth);
+          final retryResponse = await get(uri, headers: retryHeaders)
+              .timeout(const Duration(seconds: 15));
+          return _handleResponse(retryResponse, url, 'GET');
+        } else {
+          await AuthController.forceLogout();
+          return NetworkResponse(
+            isSuccess: false,
+            statusCode: 401,
+            errorMessage: _unAuthorizedErrorMessage,
+          );
+        }
+      }
+      return _handleResponse(response, url, 'GET');
     } catch (e) {
-      debugPrint("GET request error: $e");
+      debugPrint('GET request error: $e');
       return NetworkResponse(
         isSuccess: false,
         statusCode: -1,
@@ -159,7 +230,7 @@ class NetworkCaller {
         addBearer: addBearer,
       );
 
-      _logRequest("POST", url, body ?? {}, headers);
+      _logRequest('POST', url, body ?? {}, headers);
 
       final Response response = await post(
         uri,
@@ -167,9 +238,25 @@ class NetworkCaller {
         body: body != null ? jsonEncode(body) : null,
       );
 
-      return _handleResponse(response, url, "POST");
+      if (response.statusCode == 401 && requireAuth) {
+        final refreshed = await _refreshAccessToken();
+        if (refreshed) {
+          final retryHeaders = await _getHeaders(requireAuth: requireAuth);
+          final retryResponse = await post(uri,
+              headers: retryHeaders, body: body != null ? jsonEncode(body) : null);
+          return _handleResponse(retryResponse, url, 'POST');
+        } else {
+          await AuthController.forceLogout();
+          return NetworkResponse(
+            isSuccess: false,
+            statusCode: 401,
+            errorMessage: _unAuthorizedErrorMessage,
+          );
+        }
+      }
+      return _handleResponse(response, url, 'POST');
     } catch (e) {
-      debugPrint("POST request error: $e");
+      debugPrint('POST request error: $e');
       return NetworkResponse(
         isSuccess: false,
         statusCode: -1,
@@ -194,7 +281,7 @@ class NetworkCaller {
         addBearer: addBearer,
       );
 
-      _logRequest("PATCH", url, body ?? {}, headers);
+      _logRequest('PATCH', url, body ?? {}, headers);
 
       final Response response = await patch(
         uri,
@@ -202,9 +289,25 @@ class NetworkCaller {
         body: body != null ? jsonEncode(body) : null,
       );
 
-      return _handleResponse(response, url, "PATCH");
+      if (response.statusCode == 401 && requireAuth) {
+        final refreshed = await _refreshAccessToken();
+        if (refreshed) {
+          final retryHeaders = await _getHeaders(requireAuth: requireAuth);
+          final retryResponse = await patch(uri,
+              headers: retryHeaders, body: body != null ? jsonEncode(body) : null);
+          return _handleResponse(retryResponse, url, 'PATCH');
+        } else {
+          await AuthController.forceLogout();
+          return NetworkResponse(
+            isSuccess: false,
+            statusCode: 401,
+            errorMessage: _unAuthorizedErrorMessage,
+          );
+        }
+      }
+      return _handleResponse(response, url, 'PATCH');
     } catch (e) {
-      debugPrint("PATCH request error: $e");
+      debugPrint('PATCH request error: $e');
       return NetworkResponse(
         isSuccess: false,
         statusCode: -1,
@@ -228,13 +331,28 @@ class NetworkCaller {
         addBearer: addBearer,
       );
 
-      _logRequest("DELETE", url, {}, headers);
+      _logRequest('DELETE', url, {}, headers);
 
       final Response response = await delete(uri, headers: headers);
 
-      return _handleResponse(response, url, "DELETE");
+      if (response.statusCode == 401 && requireAuth) {
+        final refreshed = await _refreshAccessToken();
+        if (refreshed) {
+          final retryHeaders = await _getHeaders(requireAuth: requireAuth);
+          final retryResponse = await delete(uri, headers: retryHeaders);
+          return _handleResponse(retryResponse, url, 'DELETE');
+        } else {
+          await AuthController.forceLogout();
+          return NetworkResponse(
+            isSuccess: false,
+            statusCode: 401,
+            errorMessage: _unAuthorizedErrorMessage,
+          );
+        }
+      }
+      return _handleResponse(response, url, 'DELETE');
     } catch (e) {
-      debugPrint("DELETE request error: $e");
+      debugPrint('DELETE request error: $e');
       return NetworkResponse(
         isSuccess: false,
         statusCode: -1,

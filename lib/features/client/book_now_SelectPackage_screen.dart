@@ -3,7 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/book_now_confirmation_screen.dart';
 
 class SelectPackageScreen extends StatefulWidget {
-  const SelectPackageScreen({super.key});
+  final Map<String, dynamic>? service;
+  const SelectPackageScreen({super.key, this.service});
 
   @override
   State<SelectPackageScreen> createState() => _SelectPackageScreenState();
@@ -206,7 +207,9 @@ class _SelectPackageScreenState extends State<SelectPackageScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const BookingConfirmationScreen(),
+                  builder: (context) => BookingConfirmationScreen(
+                    service: widget.service,
+                  ),
                 ),
               );
             },

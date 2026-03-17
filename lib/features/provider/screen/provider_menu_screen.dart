@@ -5,9 +5,9 @@ import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/features/provider/screen/provider_subscription_screen.dart';
 import 'package:photopia/features/provider/screen/provider_profile_screen.dart';
 import 'package:photopia/features/provider/screen/provider_wallet_screen.dart';
-import 'package:photopia/controller/client/log_out_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_profile_controller.dart';
+import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/features/client/widgets/auth_profile_image.dart';
 
 class ProviderMenuScreen extends StatefulWidget {
@@ -530,15 +530,8 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
       height: 48.h.clamp(44, 52),
       child: OutlinedButton.icon(
         onPressed: () async {
-          final logOutController = context.read<LogOutController>();
-          final result = await logOutController.logOut("dummy_token");
-          if (result && context.mounted) {
-            Navigator.pushNamedAndRemoveUntil(
-              context,
-              AppRoutes.log_in,
-              (route) => false,
-            );
-          }
+          // Clears tokens, role, cookie and navigates to login
+          await AuthController.forceLogout();
         },
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Colors.red, width: 1.5),

@@ -59,6 +59,7 @@ class Photopia extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => ProviderOrdersController()),
           ],
           child: MaterialApp(
+            navigatorKey: navigatorKey,
             debugShowCheckedModeBanner: false,
             useInheritedMediaQuery: true,
             theme: ThemeData(

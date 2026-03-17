@@ -638,7 +638,9 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const SelectPackageScreen(),
+                    builder: (context) => SelectPackageScreen(
+                      service: widget.service,
+                    ),
                   ),
                 );
               },

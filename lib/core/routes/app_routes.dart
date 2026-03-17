@@ -40,13 +40,12 @@ class AppRoutes {
       ProviderBottomNavigationScreen.name;
   static const String splash = "/";
 
-  static Map<String, WidgetBuilder> get routes => {
-    sign_up: (context) => const SignUpScreen(),
+  static Map<String, WidgetBuilder> get routes => {    sign_up: (context) => const SignUpScreen(),
     forgot_password: (context) => const ForgotPasswordScreen(),
     otp_verification: (context) {
       final email = ModalRoute.of(context)?.settings.arguments as String? ?? '';
       return OtpVerificationScreen(email: email);
-    },
+    }, 
     new_password: (context) {
       final args =
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
