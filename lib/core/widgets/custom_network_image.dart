@@ -3,7 +3,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class CustomNetworkImage extends StatelessWidget {
-  final String imageUrl;
+  final dynamic imageUrl;
   final double? width;
   final double? height;
   final BoxFit fit;
@@ -24,7 +24,18 @@ class CustomNetworkImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isAsset = imageUrl.startsWith('assets/');
+    String url = "";
+    if (imageUrl == null) {
+      url = "";
+    } else if (imageUrl is String) {
+      url = imageUrl;
+    } else if (imageUrl is Map && imageUrl.containsKey('url')) {
+      url = imageUrl['url']?.toString() ?? "";
+    } else {
+      url = imageUrl.toString();
+    }
+
+    final bool isAsset = url.startsWith('assets/');
     
     return ClipRRect(
       borderRadius: shape == BoxShape.circle 
@@ -32,7 +43,7 @@ class CustomNetworkImage extends StatelessWidget {
           : (borderRadius ?? BorderRadius.zero),
       child: isAsset 
           ? Image.asset(
-              imageUrl,
+              url,
               width: width,
               height: height,
               fit: fit,
@@ -41,7 +52,7 @@ class CustomNetworkImage extends StatelessWidget {
               },
             )
           : Image.network(
-              imageUrl,
+              url,
               width: width,
               height: height,
               fit: fit,

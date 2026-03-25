@@ -1,6 +1,5 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:photopia/core/network/Api_service/network_caller.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/network/urls.dart';
 
@@ -14,25 +13,21 @@ class SignInController extends ChangeNotifier {
 
   //sign in api call
   Future<bool> signIn(String email, String password) async {
-    bool isSuccess = false;
     _inProgress = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
-      final uri = Uri.parse(Urls.signIn);
-      final response = await http.post(
-        uri,
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({"email": email, "password": password}),
+      final NetworkResponse response = await NetworkCaller.postRequest(
+        url: Urls.signIn,
+        body: {"email": email, "password": password},
+        requireAuth: false, // Login is public
       );
 
       _inProgress = false;
 
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        final body = jsonDecode(response.body) as Map<String, dynamic>;
+      if (response.isSuccess && response.body != null) {
+        final body = response.body!;
         final token = body['data']?['accessToken'];
         final role = body['data']?['user']?['activeRole'];
 
@@ -43,24 +38,22 @@ class SignInController extends ChangeNotifier {
           await AuthController.saveUserRole(role);
         }
 
-        // Capture the Set-Cookie header so we can use it for token refresh later
-        final setCookie = response.headers['set-cookie'];
-        if (setCookie != null && setCookie.isNotEmpty) {
-          await AuthController.saveRefreshCookie(setCookie);
-          debugPrint('🍪 Refresh cookie saved: $setCookie');
-        }
-
-        isSuccess = true;
+        // Capture the Set-Cookie header if provided (though NetworkCaller uses JSON body usually)
+        // Note: NetworkCaller doesn't return headers currently, but most backends 
+        // return the token in the body 'data' field which we handle above.
+        
+        notifyListeners();
+        return true;
       } else {
-        final body = jsonDecode(response.body) as Map<String, dynamic>;
-        _errorMessage = body['message'] ?? 'Sign in failed';
+        _errorMessage = response.errorMessage ?? 'Sign in failed';
+        notifyListeners();
+        return false;
       }
     } catch (e) {
       _inProgress = false;
       _errorMessage = 'An unexpected error occurred: $e';
+      notifyListeners();
+      return false;
     }
-
-    notifyListeners();
-    return isSuccess;
   }
 }

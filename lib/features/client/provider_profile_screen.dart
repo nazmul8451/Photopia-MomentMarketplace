@@ -11,6 +11,7 @@ import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
+import 'package:photopia/data/models/service_list_model.dart';
 
 class ProviderProfileScreen extends StatefulWidget {
   final Map<String, dynamic> provider;
@@ -34,8 +35,16 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final providerId = widget.provider['_id'] ?? widget.provider['id'];
-      if (providerId != null) {
+      dynamic rawId = widget.provider['_id'] ?? widget.provider['id'];
+      
+      // If rawId is itself a Map (due to incorrect passing), extract the ID from it
+      if (rawId is Map) {
+        rawId = rawId['_id'] ?? rawId['id'];
+      }
+      
+      final String? providerId = rawId?.toString();
+      
+      if (providerId != null && providerId.isNotEmpty) {
         context.read<ServiceListController>().getProviderServices(providerId);
         context.read<ProviderDetailsController>().getProviderDetails(
           providerId,
@@ -188,9 +197,9 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
     final isLoading = controller.isLoading;
 
     // Fallback to widget.provider if API data is loading or missing
-    final avatar = providerDetails?.profile ?? widget.provider['avatar'];
+    final avatar = providerDetails?.profile ?? widget.provider['avatar']?.toString();
     final name =
-        providerDetails?.fullName ?? widget.provider['name'] ?? 'Provider Name';
+        providerDetails?.fullName ?? widget.provider['name']?.toString() ?? 'Provider Name';
 
     // Handle category name extraction
     String categoryDisplay = 'Wedding & Event Photography';
@@ -545,25 +554,24 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                 ),
                 itemCount: services.length,
                 itemBuilder: (context, index) {
-                  final service = services[index];
+                  final dynamic service = services[index];
                   return ServiceCard(
-                    id: service.sId ?? '',
-                    title: service.title ?? 'Service',
-                    subtitle:
-                        service.providerId?.name ??
-                        widget.provider['name'] ??
-                        'Provider',
-                    imageUrl: service.coverMedia ?? '',
-                    rating: service.rating ?? 0.0,
-                    reviews: service.reviews ?? 0,
-                    priceRange:
-                        '${service.currency ?? '\$'}${service.price ?? 0}',
-                    tags: const [], // tags not available in model
-                    isPremium: false, // isVerified not available in model
-                    providerId:
-                        service.providerId?.sId ??
-                        widget.provider['_id'] ??
-                        widget.provider['id'],
+                    id: (service is ServiceItem) ? service.sId : service['_id']?.toString(),
+                    title: (service is ServiceItem) ? (service.title ?? 'Service') : (service['title']?.toString() ?? 'Service'),
+                    subtitle: (service is ServiceItem) 
+                        ? (service.providerId?.name ?? widget.provider['name'] ?? 'Provider')
+                        : (service['providerId']?['name'] ?? widget.provider['name'] ?? 'Provider'),
+                    imageUrl: (service is ServiceItem) ? (service.coverMedia ?? '') : (service['coverMedia']?.toString() ?? ''),
+                    rating: (service is ServiceItem) ? (service.rating ?? 0.0) : (double.tryParse(service['rating']?.toString() ?? '0.0') ?? 0.0),
+                    reviews: (service is ServiceItem) ? (service.reviews ?? 0) : (int.tryParse(service['reviews']?.toString() ?? '0') ?? 0),
+                    priceRange: (service is ServiceItem) 
+                        ? '€${service.price ?? 0}'
+                        : '€${service['price'] ?? 0}',
+                    tags: const [],
+                    isPremium: false,
+                    providerId: (service is ServiceItem) 
+                        ? (service.providerId?.sId ?? widget.provider['_id'] ?? widget.provider['id'])
+                        : (service['providerId']?['_id'] ?? widget.provider['_id'] ?? widget.provider['id']),
                   );
                 },
               ),

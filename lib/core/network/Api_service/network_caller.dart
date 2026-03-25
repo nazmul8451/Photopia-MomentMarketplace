@@ -220,6 +220,7 @@ class NetworkCaller {
     Map<String, dynamic>? body,
     bool requireAuth = true,
     String? token,
+    String? cookie,
     bool addBearer = true,
   }) async {
     try {
@@ -229,6 +230,10 @@ class NetworkCaller {
         token: token,
         addBearer: addBearer,
       );
+
+      if (cookie != null && cookie.isNotEmpty) {
+        headers['Cookie'] = cookie;
+      }
 
       _logRequest('POST', url, body ?? {}, headers);
 

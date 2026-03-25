@@ -7,6 +7,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/services.dart';
 import 'package:photopia/controller/client/service_list_controller.dart';
 import 'package:provider/provider.dart';
+import 'package:photopia/data/models/service_list_model.dart';
 
 class CategoryDetailsScreen extends StatefulWidget {
   const CategoryDetailsScreen({super.key});
@@ -99,21 +100,23 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                                 return const SizedBox();
                               }
 
-                              final service = controller
+                              final dynamic service = controller
                                   .services[index % controller.services.length];
                               return ServiceCard(
-                                id: service.sId,
-                                providerId: service.providerId?.sId,
-                                title: service.title ?? '',
-                                subtitle:
-                                    service.providerId?.name ?? 'Professional',
-                                imageUrl: service.coverMedia ?? '',
-                                rating: service.rating ?? 0.0,
-                                reviews: service.reviews ?? 0,
-                                priceRange: "€${service.price ?? 0}",
-                                tags:
-                                    const [], // API model has tags, but let's keep it simple for now
-                                isPremium: false,
+                                id: (service is ServiceItem) ? service.sId : service['_id']?.toString(),
+                                title: (service is ServiceItem) ? (service.title ?? '') : (service['title']?.toString() ?? ''),
+                                subtitle: (service is ServiceItem) 
+                                    ? (service.providerId?.name ?? 'Professional')
+                                    : (service['providerId']?['name'] ?? 'Professional'),
+                                imageUrl: (service is ServiceItem) ? (service.coverMedia ?? '') : (service['coverMedia']?.toString() ?? ''),
+                                rating: (service is ServiceItem) ? (service.rating ?? 0.0) : (double.tryParse(service['rating']?.toString() ?? '0.0') ?? 0.0),
+                                reviews: (service is ServiceItem) ? (service.reviews ?? 0) : (int.tryParse(service['reviews']?.toString() ?? '0') ?? 0),
+                                priceRange: (service is ServiceItem) 
+                                    ? "€${service.price ?? 0}"
+                                    : "€${service['price'] ?? 0}",
+                                providerId: (service is ServiceItem) 
+                                    ? service.providerId?.sId
+                                    : service['providerId']?['_id']?.toString(),
                               );
                             },
                           );

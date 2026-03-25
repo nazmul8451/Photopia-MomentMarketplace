@@ -8,6 +8,7 @@ import 'package:photopia/features/provider/screen/provider_wallet_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_profile_controller.dart';
 import 'package:photopia/controller/auth_controller.dart';
+import 'package:photopia/controller/client/log_out_controller.dart';
 import 'package:photopia/features/client/widgets/auth_profile_image.dart';
 
 class ProviderMenuScreen extends StatefulWidget {
@@ -525,30 +526,60 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
   }
 
   Widget _buildSignOutButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48.h.clamp(44, 52),
-      child: OutlinedButton.icon(
-        onPressed: () async {
-          // Clears tokens, role, cookie and navigates to login
-          await AuthController.forceLogout();
-        },
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Colors.red, width: 1.5),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
+    return Consumer<LogOutController>(
+      builder: (context, logOutController, child) {
+        return SizedBox(
+          width: double.infinity,
+          height: 48.h.clamp(44, 52),
+          child: OutlinedButton.icon(
+            onPressed: logOutController.inProgress
+                ? null
+                : () async {
+                    debugPrint('🚪 Provider Logout initiated...');
+                    
+                    // 1. Attempt API logout (optional server-side cleanup)
+                    final result = await logOutController.logOut();
+                    
+                    if (context.mounted) {
+                      if (!result) {
+                        debugPrint('⚠️ Server logout failed/refused (403), but clearing local state.');
+                      }
+
+                      // 2. ALWAYS clear local state and navigate to login
+                      await AuthController.forceLogout();
+                    }
+                  },
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Colors.red, width: 1.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+            ),
+            icon: logOutController.inProgress
+                ? SizedBox(
+                    height: 18.sp,
+                    width: 18.sp,
+                    child: const CircularProgressIndicator(
+                      color: Colors.red,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : Icon(
+                    Icons.logout,
+                    size: 20.sp.clamp(18, 22),
+                    color: Colors.red,
+                  ),
+            label: Text(
+              logOutController.inProgress ? 'Signing out...' : 'Sign Out',
+              style: TextStyle(
+                fontSize: 15.sp.clamp(14, 16),
+                fontWeight: FontWeight.w600,
+                color: Colors.red,
+              ),
+            ),
           ),
-        ),
-        icon: Icon(Icons.logout, size: 20.sp.clamp(18, 22), color: Colors.red),
-        label: Text(
-          'Sign Out',
-          style: TextStyle(
-            fontSize: 15.sp.clamp(14, 16),
-            fontWeight: FontWeight.w600,
-            color: Colors.red,
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

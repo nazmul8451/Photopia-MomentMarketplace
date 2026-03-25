@@ -381,8 +381,12 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
               provider: {
                 'name': name,
                 'avatar': avatar,
-                'id': widget.service['providerId'],
-                '_id': widget.service['providerId'],
+                'id': widget.service['providerId'] is Map 
+                    ? widget.service['providerId']['_id']?.toString() 
+                    : widget.service['providerId']?.toString(),
+                '_id': widget.service['providerId'] is Map 
+                    ? widget.service['providerId']['_id']?.toString() 
+                    : widget.service['providerId']?.toString(),
               },
             ),
           ),

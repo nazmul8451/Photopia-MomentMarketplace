@@ -19,8 +19,8 @@ class ServiceCard extends StatelessWidget {
   final List<String> tags;
   final bool isPremium;
   final bool isLoading;
-  final String? id;
-  final String? providerId;
+  final dynamic id;
+  final dynamic providerId;
 
   const ServiceCard({
     super.key,

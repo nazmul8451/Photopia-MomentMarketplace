@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/controller/client/service_list_controller.dart';
+import 'package:photopia/data/models/service_list_model.dart';
 import 'package:photopia/features/client/widgets/home_header.dart';
 import 'package:photopia/features/client/widgets/category_bar.dart';
 import 'package:photopia/features/client/widgets/section_header.dart';
 import 'package:photopia/features/client/widgets/horizontal_project_card.dart';
 import 'package:photopia/features/client/category_details_screen.dart';
-
 import 'package:photopia/features/client/service_details_screen.dart';
 import 'package:flutter/services.dart';
-
-import 'dart:async';
+import 'package:provider/provider.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
@@ -21,138 +21,17 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool _isLoading = true;
   int _selectedCategoryIndex = 0;
   final ScrollController _scrollController = ScrollController();
-
-  // Mock data for different sections
-  final List<Map<String, dynamic>> _originalProjects = [
-    {
-      'id': '65e9b7f1b1c3a12345678901',
-      'providerId': '65e9b7f1b1c3a12345678961',
-      'title': 'Luxury Wedding Photography',
-      'imageUrl': 'assets/images/img1.png',
-      'providerName': 'Sarah Photography',
-      'rating': 4.8,
-      'subtitle': 'Sarah Photography',
-    },
-    {
-      'id': '65e9b7f1b1c3a12345678902',
-      'providerId': '65e9b7f1b1c3a12345678962',
-      'title': 'Portrait Session',
-      'imageUrl': 'assets/images/img2.png',
-      'providerName': 'John Studios',
-      'rating': 4.9,
-      'subtitle': 'John Studios',
-    },
-    {
-      'id': '65e9b7f1b1c3a12345678903',
-      'providerId': '65e9b7f1b1c3a12345678963',
-      'title': 'Home Decor Shoots',
-      'imageUrl': 'assets/images/img3.png',
-      'providerName': 'Creative Lens',
-      'rating': 4.7,
-      'subtitle': 'Creative Lens',
-    },
-    {
-      'id': '65e9b7f1b1c3a12345678904',
-      'providerId': '65e9b7f1b1c3a12345678964',
-      'title': 'Product Photography',
-      'imageUrl': 'assets/images/img4.png',
-      'providerName': 'Pro Shots',
-      'rating': 4.6,
-      'subtitle': 'Pro Shots',
-    },
-  ];
-
-  final List<Map<String, dynamic>> _availableNow = [
-    {
-      'id': '65e9b7f1b1c3a12345678911',
-      'providerId': '65e9b7f1b1c3a12345678971',
-      'title': 'Event Photography',
-      'imageUrl': 'assets/images/img5.png',
-      'providerName': 'Quick Capture',
-      'rating': 4.5,
-      'isAvailable': true,
-      'subtitle': 'Quick Capture',
-    },
-    {
-      'id': '65e9b7f1b1c3a12345678912',
-      'providerId': '65e9b7f1b1c3a12345678972',
-      'title': 'Fashion Photography',
-      'imageUrl': 'assets/images/img6.png',
-      'providerName': 'Style Shots',
-      'rating': 4.8,
-      'isAvailable': true,
-      'subtitle': 'Style Shots',
-    },
-    {
-      'id': '65e9b7f1b1c3a12345678913',
-      'providerId': '65e9b7f1b1c3a12345678973',
-      'title': 'Corporate Headshots',
-      'imageUrl': 'assets/images/img1.png',
-      'providerName': 'Business Pro',
-      'rating': 4.7,
-      'isAvailable': true,
-      'subtitle': 'Business Pro',
-    },
-  ];
-
-  final List<Map<String, dynamic>> _trendingProjects = [
-    {
-      'id': '65e9b7f1b1c3a12345678921',
-      'providerId': '65e9b7f1b1c3a12345678981',
-      'title': 'Outdoor Photography',
-      'imageUrl': 'assets/images/img3.png',
-      'providerName': 'Nature Lens',
-      'rating': 4.9,
-      'likeCount': 1250,
-      'subtitle': 'Nature Lens',
-    },
-    {
-      'id': '65e9b7f1b1c3a12345678922',
-      'providerId': '65e9b7f1b1c3a12345678982',
-      'title': 'Baby Photography',
-      'imageUrl': 'assets/images/img4.png',
-      'providerName': 'Little Moments',
-      'rating': 4.8,
-      'likeCount': 980,
-      'subtitle': 'Little Moments',
-    },
-    {
-      'id': '65e9b7f1b1c3a12345678923',
-      'providerId': '65e9b7f1b1c3a12345678983',
-      'title': 'Food Photography',
-      'imageUrl': 'assets/images/img2.png',
-      'providerName': 'Tasty Shots',
-      'rating': 4.7,
-      'likeCount': 2100,
-      'subtitle': 'Tasty Shots',
-    },
-    {
-      'id': '65e9b7f1b1c3a12345678924',
-      'providerId': '65e9b7f1b1c3a12345678984',
-      'title': 'Architecture Photography',
-      'imageUrl': 'assets/images/img5.png',
-      'providerName': 'Urban Views',
-      'rating': 4.6,
-      'likeCount': 750,
-      'subtitle': 'Urban Views',
-    },
-  ];
 
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+    // Load services from API
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ServiceListController>().getAllServices();
     });
 
-    // Infinite scroll listener
     _scrollController.addListener(_onScroll);
   }
 
@@ -165,8 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      // Load more content here (for future API integration)
-      // For now, we're using static mock data
+      // Load more content here
     }
   }
 
@@ -178,21 +56,22 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _navigateToServiceDetails(
     BuildContext context,
-    Map<String, dynamic> service,
+    ServiceItem service,
   ) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => ServiceDetailsScreen(service: service),
+        builder: (context) => ServiceDetailsScreen(service: service.toJson()),
       ),
     );
   }
 
   Widget _buildHorizontalSection({
     required String title,
-    required List<Map<String, dynamic>> items,
+    required List<ServiceItem> items,
     bool showAvailability = false,
-    bool showLikes = false,
   }) {
+    if (items.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -210,13 +89,12 @@ class _MyHomePageState extends State<MyHomePage> {
             itemBuilder: (context, index) {
               final item = items[index];
               return HorizontalProjectCard(
-                id: item['id'],
-                imageUrl: item['imageUrl'],
-                title: item['title'],
-                providerName: item['providerName'],
-                rating: item['rating'],
-                isAvailable: showAvailability && (item['isAvailable'] ?? false),
-                likeCount: showLikes ? item['likeCount'] : null,
+                id: item.sId,
+                imageUrl: item.coverMedia ?? 'assets/images/image.png',
+                title: item.title ?? 'No Title',
+                providerName: item.providerId?.name ?? 'Unknown Provider',
+                rating: item.rating,
+                isAvailable: showAvailability && (item.isActive ?? false),
                 onTap: () => _navigateToServiceDetails(context, item),
               );
             },
@@ -255,60 +133,76 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                 ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const HomeHeader(),
-                  CategoryBar(
-                    isLoading: _isLoading,
-                    selectedIndex: _selectedCategoryIndex,
-                    onCategorySelected: (index) {
-                      setState(() {
-                        _selectedCategoryIndex = index;
-                      });
-                    },
-                  ),
-                  SizedBox(height: 15.h),
-                ],
+              child: Consumer<ServiceListController>(
+                builder: (context, serviceListController, child) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const HomeHeader(),
+                      CategoryBar(
+                        isLoading: serviceListController.isLoading,
+                        selectedIndex: _selectedCategoryIndex,
+                        onCategorySelected: (index) {
+                          setState(() {
+                            _selectedCategoryIndex = index;
+                          });
+                        },
+                      ),
+                      SizedBox(height: 15.h),
+                    ],
+                  );
+                },
               ),
             ),
             // Scrollable Content with Horizontal Sections
             Expanded(
-              child: _isLoading
-                  ? Center(
+              child: Consumer<ServiceListController>(
+                builder: (context, serviceListController, child) {
+                  if (serviceListController.isLoading && serviceListController.services.isEmpty) {
+                    return const Center(
                       child: CircularProgressIndicator(color: Colors.black),
-                    )
-                  : SingleChildScrollView(
-                      controller: _scrollController,
-                      physics: const BouncingScrollPhysics(),
-                      child: Column(
-                        children: [
-                          SizedBox(height: 10.h),
-                          // Original Projects Section
-                          _buildHorizontalSection(
-                            title: 'Original Projects',
-                            items: _originalProjects,
-                          ),
-                          SizedBox(height: 10.h),
-                          // Available Right Now Section
-                          _buildHorizontalSection(
-                            title: 'Available Right Now',
-                            items: _availableNow,
-                            showAvailability: true,
-                          ),
-                          SizedBox(height: 10.h),
-                          // Trending Projects Section
-                          _buildHorizontalSection(
-                            title: 'Trending Projects',
-                            items: _trendingProjects,
-                            showLikes: true,
-                          ),
-                          SizedBox(
-                            height: 100.h,
-                          ), // Bottom padding for navigation bar
-                        ],
-                      ),
+                    );
+                  }
+
+                  final services = serviceListController.services;
+                  
+                  // Distribute data
+                  final originalProjects = services.take(6).toList();
+                  final availableNow = services.where((s) => s.isActive == true).toList();
+                  final trendingProjects = [...services]..sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
+
+                  return SingleChildScrollView(
+                    controller: _scrollController,
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 10.h),
+                        // Original Projects Section
+                        _buildHorizontalSection(
+                          title: 'Original Projects',
+                          items: originalProjects,
+                        ),
+                        SizedBox(height: 10.h),
+                        // Available Right Now Section
+                        _buildHorizontalSection(
+                          title: 'Available Right Now',
+                          items: availableNow,
+                          showAvailability: true,
+                        ),
+                        SizedBox(height: 10.h),
+                        // Trending Projects Section
+                        _buildHorizontalSection(
+                          title: 'Trending Projects',
+                          items: trendingProjects,
+                        ),
+                        SizedBox(
+                          height: 100.h,
+                        ), // Bottom padding for navigation bar
+                      ],
                     ),
+                  );
+                },
+              ),
             ),
           ],
         ),

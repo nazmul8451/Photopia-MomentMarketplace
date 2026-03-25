@@ -51,17 +51,31 @@ class AuthController extends ChangeNotifier {
     notifyListeners();
   }
 
+  static bool _isLoggingOut = false;
+
   /// Force logout when access token expires (called from NetworkCaller on 401)
   static Future<void> forceLogout() async {
-    await GetStorage().remove(_tokenKey);
-    await GetStorage().remove(_roleKey);
-    accessToken = null;
-    activeRole = null;
-    debugPrint('🔐 Token expired. Forcing logout...');
-    // Navigate to the sign-in screen globally
-    navigatorKey.currentState?.pushNamedAndRemoveUntil(
-      AppRoutes.log_in,
-      (route) => false,
-    );
+    if (_isLoggingOut) return;
+    _isLoggingOut = true;
+
+    try {
+      await GetStorage().remove(_tokenKey);
+      await GetStorage().remove(_roleKey);
+      accessToken = null;
+      activeRole = null;
+      debugPrint('🔐 Token expired. Forcing logout...');
+      
+      // Navigate to the sign-in screen globally using the navigatorKey
+      navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        AppRoutes.log_in,
+        (route) => false,
+      );
+    } finally {
+      // Reset after a delay to allow the navigation to complete 
+      // and avoid immediate re-triggering if some cleanup logic runs.
+      Future.delayed(const Duration(seconds: 2), () {
+        _isLoggingOut = false;
+      });
+    }
   }
 }

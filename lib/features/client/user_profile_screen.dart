@@ -439,25 +439,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 onTap: logOutController.inProgress
                     ? null
                     : () async {
-                        // Call logout API
-                        final result = await logOutController.logOut('');
+                        debugPrint('🚪 Logout initiated...');
+                        // Attempt API logout
+                        final result = await logOutController.logOut();
 
-                        if (result && context.mounted) {
-                          final navigator = Navigator.of(
-                            context,
-                            rootNavigator: true,
-                          );
-                          // 1. Clear Local Auth Data
-                          await context.read<AuthController>().logoutAndClear();
-
-                          if (!context.mounted) return;
-
-                          // 2. Navigate back to login
-                          navigator.pushNamedAndRemoveUntil(
-                            '/log_in',
-                            (route) => false,
-                          );
+                        if (!result) {
+                          debugPrint(
+                              '⚠️ Server logout failed, but clearing local state anyway.');
                         }
+
+                        // 2. ALWAYS clear local state and navigate to login
+                        await AuthController.forceLogout();
                       },
                 child: Container(
                   width: double.infinity,

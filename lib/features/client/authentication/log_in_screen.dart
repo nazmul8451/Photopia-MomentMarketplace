@@ -42,6 +42,15 @@ class _LogInScreenState extends State<LogInScreen> {
     });
   }
 
+  void _clearControllers() {
+    _emailController.clear();
+    _passwordController.clear();
+    setState(() {
+      _isEmailValid = false;
+      _isPasswordValid = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,6 +104,8 @@ class _LogInScreenState extends State<LogInScreen> {
                   alignment: Alignment.centerRight,
                   child: GestureDetector(
                     onTap: () {
+                      debugPrint('➡️ Navigating to Forgot Password, clearing controllers');
+                      _clearControllers();
                       Navigator.pushNamed(context, '/forgot_password');
                     },
                     child: Text(
@@ -117,7 +128,9 @@ class _LogInScreenState extends State<LogInScreen> {
                       text: 'Login',
                       isLoading: signInController.inProgress,
                       onTap: () async {
+                        debugPrint('🚀 Login button clicked');
                         if (!_isEmailValid || !_isPasswordValid) {
+                          debugPrint('⚠️ Validation failed: Email=$_isEmailValid, Password=$_isPasswordValid');
                           CustomSnackBar.show(
                             context: context,
                             message: 'Please enter valid email and password',
@@ -126,13 +139,16 @@ class _LogInScreenState extends State<LogInScreen> {
                           return;
                         }
 
+                        debugPrint('📡 Calling signIn with: ${_emailController.text.trim()}');
                         final result = await signInController.signIn(
                           _emailController.text.trim(),
                           _passwordController.text,
                         );
 
+                        debugPrint('🏁 Login result: $result');
                         if (result) {
                           if (mounted) {
+                            debugPrint('✅ Login successful, navigating...');
                             // Navigate based on user role
                             if (widget.userRole == 'provider') {
                               CustomSnackBar.show(
@@ -155,6 +171,7 @@ class _LogInScreenState extends State<LogInScreen> {
                           }
                         } else {
                           if (mounted) {
+                            debugPrint('❌ Login failed: ${signInController.errorMessage}');
                             CustomSnackBar.show(
                               context: context,
                               message:
@@ -223,6 +240,8 @@ class _LogInScreenState extends State<LogInScreen> {
                 Center(
                   child: GestureDetector(
                     onTap: () {
+                      debugPrint('➡️ Navigating to Sign Up, clearing controllers');
+                      _clearControllers();
                       Navigator.pushNamed(
                         context,
                         '/sign_up',

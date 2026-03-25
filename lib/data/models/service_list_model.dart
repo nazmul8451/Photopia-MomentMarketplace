@@ -8,13 +8,15 @@ class ServiceListModel {
 
   ServiceListModel({this.statusCode, this.success, this.message, this.data});
 
-  ServiceListModel.fromJson(Map<String, dynamic> json) {
-    statusCode = json['statusCode'];
-    success = json['success'];
-    message = json['message'];
-    data = json['data'] != null
-        ? ServicePagination.fromJson(json['data'])
-        : null;
+  factory ServiceListModel.fromJson(Map<String, dynamic> json) {
+    return ServiceListModel(
+      statusCode: json['statusCode'],
+      success: json['success'],
+      message: json['message'],
+      data: json['data'] != null
+          ? ServicePagination.fromJson(json['data'])
+          : null,
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -35,14 +37,17 @@ class ServicePagination {
 
   ServicePagination({this.meta, this.data});
 
-  ServicePagination.fromJson(Map<String, dynamic> json) {
-    meta = json['meta'] != null ? Meta.fromJson(json['meta']) : null;
+  factory ServicePagination.fromJson(Map<String, dynamic> json) {
+    List<ServiceItem> fetchItems = [];
     if (json['data'] != null) {
-      data = <ServiceItem>[];
       json['data'].forEach((v) {
-        data!.add(ServiceItem.fromJson(v));
+        fetchItems.add(ServiceItem.fromJson(v));
       });
     }
+    return ServicePagination(
+      meta: json['meta'] != null ? Meta.fromJson(json['meta']) : null,
+      data: fetchItems,
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -65,11 +70,13 @@ class Meta {
 
   Meta({this.page, this.limit, this.total, this.totalPages});
 
-  Meta.fromJson(Map<String, dynamic> json) {
-    page = json['page'];
-    limit = json['limit'];
-    total = json['total'];
-    totalPages = json['totalPages'];
+  factory Meta.fromJson(Map<String, dynamic> json) {
+    return Meta(
+      page: json['page'],
+      limit: json['limit'],
+      total: json['total'],
+      totalPages: json['totalPages'],
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -119,41 +126,53 @@ class ServiceItem {
     this.gallery,
   });
 
-  String? _formatUrl(String? url) {
-    if (url == null || url.isEmpty) return url;
-    if (url.startsWith('http')) return url;
-    return "${Urls.baseUrl}$url";
+  static String? _formatUrl(dynamic url) {
+    if (url == null) return null;
+    String? urlString;
+    if (url is String) {
+      urlString = url;
+    } else if (url is Map && url.containsKey('url')) {
+      urlString = url['url']?.toString();
+    } else {
+      urlString = url.toString();
+    }
+    
+    if (urlString == null || urlString.isEmpty) return null;
+    if (urlString.startsWith('http')) return urlString;
+    return "${Urls.baseUrl}$urlString";
   }
 
-  ServiceItem.fromJson(Map<String, dynamic> json) {
-    sId = json['_id'];
-    providerId = json['providerId'] != null
-        ? ProviderInfo.fromJson(json['providerId'])
-        : null;
-    title = json['title'];
-    category = json['category'] != null
-        ? CategoryInfo.fromJson(json['category'])
-        : null;
-    price = json['price'];
-    currency = json['currency'];
-    duration = json['duration'];
-    location = json['location'] != null
-        ? LocationInfo.fromJson(json['location'])
-        : null;
-    coverMedia = _formatUrl(json['coverMedia']);
-    status = json['status'];
-    isActive = json['isActive'];
-    rating = (json['rating'] ?? 0.0).toDouble();
-    reviews = json['reviews'] ?? 0;
-    description = json['description'];
-    equipment = json['equipment'] != null
-        ? List<String>.from(json['equipment'])
-        : null;
-    gallery = json['gallery'] != null
-        ? (json['gallery'] as List)
-              .map((e) => _formatUrl(e.toString()))
-              .toList()
-        : null;
+  factory ServiceItem.fromJson(Map<String, dynamic> json) {
+    return ServiceItem(
+      sId: json['_id'],
+      providerId: json['providerId'] != null
+          ? ProviderInfo.fromJson(json['providerId'])
+          : null,
+      title: json['title'],
+      category: json['category'] != null
+          ? CategoryInfo.fromJson(json['category'])
+          : null,
+      price: json['price'],
+      currency: json['currency'],
+      duration: json['duration'],
+      location: json['location'] != null
+          ? LocationInfo.fromJson(json['location'])
+          : null,
+      coverMedia: _formatUrl(json['coverMedia']),
+      status: json['status']?.toString(),
+      isActive: json['isActive'] == true || json['isActive'] == 'true',
+      rating: double.tryParse(json['rating']?.toString() ?? '0.0') ?? 0.0,
+      reviews: int.tryParse(json['reviews']?.toString() ?? '0') ?? 0,
+      description: json['description'],
+      equipment: json['equipment'] != null
+          ? List<String>.from(json['equipment'])
+          : null,
+      gallery: json['gallery'] != null
+          ? (json['gallery'] as List)
+                .map((e) => _formatUrl(e.toString()))
+                .toList()
+          : null,
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -192,17 +211,29 @@ class ProviderInfo {
 
   ProviderInfo({this.sId, this.name, this.email, this.profile});
 
-  String? _formatUrl(String? url) {
-    if (url == null || url.isEmpty) return url;
-    if (url.startsWith('http')) return url;
-    return "${Urls.baseUrl}$url";
+  static String? _formatUrl(dynamic url) {
+    if (url == null) return null;
+    String? urlString;
+    if (url is String) {
+      urlString = url;
+    } else if (url is Map && url.containsKey('url')) {
+      urlString = url['url']?.toString();
+    } else {
+      urlString = url.toString();
+    }
+    
+    if (urlString == null || urlString.isEmpty) return null;
+    if (urlString.startsWith('http')) return urlString;
+    return "${Urls.baseUrl}$urlString";
   }
 
-  ProviderInfo.fromJson(Map<String, dynamic> json) {
-    sId = json['_id'];
-    name = json['name'];
-    email = json['email'];
-    profile = _formatUrl(json['profile']);
+  factory ProviderInfo.fromJson(Map<String, dynamic> json) {
+    return ProviderInfo(
+      sId: json['_id'],
+      name: json['name'],
+      email: json['email'],
+      profile: _formatUrl(json['profile']),
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -222,10 +253,12 @@ class CategoryInfo {
 
   CategoryInfo({this.sId, this.name, this.image});
 
-  CategoryInfo.fromJson(Map<String, dynamic> json) {
-    sId = json['_id'];
-    name = json['name'];
-    image = json['image'];
+  factory CategoryInfo.fromJson(Map<String, dynamic> json) {
+    return CategoryInfo(
+      sId: json['_id'],
+      name: json['name'],
+      image: json['image'],
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -252,12 +285,14 @@ class LocationInfo {
     this.serviceRadiusKm,
   });
 
-  LocationInfo.fromJson(Map<String, dynamic> json) {
-    type = json['type'];
-    country = json['country'];
-    city = json['city'];
-    address = json['address'];
-    serviceRadiusKm = json['serviceRadiusKm'];
+  factory LocationInfo.fromJson(Map<String, dynamic> json) {
+    return LocationInfo(
+      type: json['type'],
+      country: json['country'],
+      city: json['city'],
+      address: json['address'],
+      serviceRadiusKm: json['serviceRadiusKm'],
+    );
   }
 
   Map<String, dynamic> toJson() {

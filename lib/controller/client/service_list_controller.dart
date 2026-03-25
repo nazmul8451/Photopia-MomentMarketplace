@@ -19,29 +19,31 @@ class ServiceListController extends ChangeNotifier {
   Future<bool> getAllServices() async {
     _isLoading = true;
     _errorMessage = null;
+    _services = []; // Clear current list while loading
     notifyListeners();
 
-    final response = await NetworkCaller.getRequest(
-      url: Urls.getAllservice,
-      requireAuth: false, // Public endpoint
-    );
+    try {
+      final response = await NetworkCaller.getRequest(
+        url: Urls.getAllservice,
+        requireAuth: false,
+      );
 
-    _isLoading = false;
+      _isLoading = false;
 
-    if (response.isSuccess && response.body != null) {
-      try {
+      if (response.isSuccess && response.body != null) {
         final model = ServiceListModel.fromJson(response.body!);
         _services = model.data?.data ?? [];
         notifyListeners();
         return true;
-      } catch (e) {
-        _errorMessage = "Error parsing data: $e";
-        debugPrint("ServiceListController parsing error: $e");
+      } else {
+        _errorMessage = response.errorMessage ?? "Failed to fetch services";
         notifyListeners();
         return false;
       }
-    } else {
-      _errorMessage = response.errorMessage ?? "Failed to fetch services";
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = "Parsing error: $e";
+      debugPrint("getAllServices error: $e");
       notifyListeners();
       return false;
     }
@@ -50,31 +52,32 @@ class ServiceListController extends ChangeNotifier {
   Future<bool> getProviderServices(String providerId) async {
     _isLoading = true;
     _errorMessage = null;
+    _services = [];
     notifyListeners();
 
-    // Passing the providerId to the query params to filter
-    final response = await NetworkCaller.getRequest(
-      url: '${Urls.getAllservice}?providerId=$providerId',
-      requireAuth: false,
-    );
+    try {
+      final response = await NetworkCaller.getRequest(
+        url: Urls.getServicesByProvider(providerId),
+        requireAuth: false,
+      );
 
-    _isLoading = false;
+      _isLoading = false;
 
-    if (response.isSuccess && response.body != null) {
-      try {
+      if (response.isSuccess && response.body != null) {
         final model = ServiceListModel.fromJson(response.body!);
         _services = model.data?.data ?? [];
         notifyListeners();
         return true;
-      } catch (e) {
-        _errorMessage = "Error parsing provider services: $e";
-        debugPrint("ServiceListController parsing error: $e");
+      } else {
+        _errorMessage =
+            response.errorMessage ?? "Failed to fetch provider services";
         notifyListeners();
         return false;
       }
-    } else {
-      _errorMessage =
-          response.errorMessage ?? "Failed to fetch provider services";
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = "Parsing error: $e";
+      debugPrint("getProviderServices error: $e");
       notifyListeners();
       return false;
     }

@@ -108,17 +108,19 @@ class FavoritesController extends ChangeNotifier {
     }
   }
 
-  bool isPostFavorite(String? id) {
+  bool isProviderFavorite(dynamic id) {
     if (id == null) return false;
-    return _favoritePosts.any(
-      (element) => (element['_id'] ?? element['id']) == id,
+    final String idStr = id is Map ? (id['_id']?.toString() ?? id['id']?.toString() ?? id.toString()) : id.toString();
+    return _favoriteProviders.any(
+      (element) => (element['_id']?.toString() ?? element['id']?.toString()) == idStr,
     );
   }
 
-  bool isProviderFavorite(String? id) {
+  bool isPostFavorite(dynamic id) {
     if (id == null) return false;
-    return _favoriteProviders.any(
-      (element) => (element['_id'] ?? element['id']) == id,
+    final String idStr = id is Map ? (id['_id']?.toString() ?? id['id']?.toString() ?? id.toString()) : id.toString();
+    return _favoritePosts.any(
+      (element) => (element['_id']?.toString() ?? element['id']?.toString()) == idStr,
     );
   }
 }
