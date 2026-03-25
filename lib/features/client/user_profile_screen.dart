@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
+import 'package:photopia/features/client/notification_screen.dart';
 import 'package:photopia/features/common/mode_transition_screen.dart';
 import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/controller/auth_controller.dart';
@@ -325,6 +326,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               Icons.notifications_none,
               'Notifications',
               badge: '5',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                );
+              },
             ),
             _buildMenuItem(Icons.lock_outline, 'Privacy & Security'),
             _buildMenuItem(Icons.language, 'Language', value: 'English'),
@@ -341,46 +348,51 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     String? badge,
     String? value,
     bool isLast = false,
+    VoidCallback? onTap,
   }) {
     return Column(
       children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
-          child: Row(
-            children: [
-              Icon(icon, size: 24.sp, color: Colors.black),
-              SizedBox(width: 15.w),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: AppTypography.bodyLarge,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const Spacer(),
-              if (badge != null)
-                Container(
-                  padding: EdgeInsets.all(6.w),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF1A1A1A),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    badge,
-                    style: TextStyle(color: Colors.white, fontSize: 10.sp),
-                  ),
-                ),
-              if (value != null)
+        GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
+            child: Row(
+              children: [
+                Icon(icon, size: 24.sp, color: Colors.black),
+                SizedBox(width: 15.w),
                 Text(
-                  value,
+                  title,
                   style: TextStyle(
-                    fontSize: AppTypography.bodyMedium,
-                    color: Colors.grey,
+                    fontSize: AppTypography.bodyLarge,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-              SizedBox(width: 10.w),
-              Icon(Icons.arrow_forward_ios, size: 14.sp, color: Colors.grey),
-            ],
+                const Spacer(),
+                if (badge != null)
+                  Container(
+                    padding: EdgeInsets.all(6.w),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF1A1A1A),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      badge,
+                      style: TextStyle(color: Colors.white, fontSize: 10.sp),
+                    ),
+                  ),
+                if (value != null)
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: AppTypography.bodyMedium,
+                      color: Colors.grey,
+                    ),
+                  ),
+                SizedBox(width: 10.w),
+                Icon(Icons.arrow_forward_ios, size: 14.sp, color: Colors.grey),
+              ],
+            ),
           ),
         ),
         if (!isLast) const Divider(height: 1, indent: 50),

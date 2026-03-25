@@ -49,4 +49,7 @@ class Urls {
 
   //** review api */
   static String getReviewsByProvider(String providerId) => '$baseUrl/api/v1/review/provider/$providerId';
+
+  //** wallet api */
+  static const String myWallet = '$baseUrl/api/v1/wallet/my-wallet';
 }

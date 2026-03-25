@@ -4,9 +4,24 @@ import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/provider/screen/provider_transaction_details_screen.dart';
 import 'package:photopia/features/provider/screen/provider_request_payout_screen.dart';
+import 'package:photopia/controller/provider/wallet_controller.dart';
+import 'package:provider/provider.dart';
 
-class ProviderWalletScreen extends StatelessWidget {
+class ProviderWalletScreen extends StatefulWidget {
   const ProviderWalletScreen({super.key});
+
+  @override
+  State<ProviderWalletScreen> createState() => _ProviderWalletScreenState();
+}
+
+class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<WalletController>().getMyWallet();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +29,6 @@ class ProviderWalletScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         surfaceTintColor: Colors.transparent,
-
         title: Text(
           'Wallet',
           style: TextStyle(
@@ -30,185 +44,206 @@ class ProviderWalletScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-        child: Column(
-          children: [
-            // Balance Card
-            _buildBalanceCard(context),
-            SizedBox(height: 24.h),
+      body: RefreshIndicator(
+        onRefresh: () => context.read<WalletController>().getMyWallet(),
+        color: Colors.black,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+          child: Column(
+            children: [
+              // Balance Card
+              _buildBalanceCard(context),
+              SizedBox(height: 24.h),
 
-            // Stats Row
-            Row(
-              children: [
-                Expanded(
-                  child: _buildStatsCard(
-                    title: 'This Month',
-                    amount: '€8,400',
-                    growth: '+15% vs last month',
-                    isPositive: true,
-                  ),
-                ),
-                SizedBox(width: 16.w),
-                Expanded(
-                  child: _buildStatsCard(
-                    title: 'Last Month',
-                    amount: '€8,400',
-                    growth: '+15% vs last month',
-                    isPositive: true,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 24.h),
+              // Stats Row
+              Consumer<WalletController>(
+                builder: (context, controller, child) {
+                  final thisMonth = controller.walletData?.thisMonthEarnings;
+                  final lastMonth = controller.walletData?.lastMonthEarnings;
 
-            // Tabs / Filter
-            _buildFilterTabs(),
-            SizedBox(height: 16.h),
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatsCard(
+                          title: 'This Month',
+                          amount: '€${thisMonth?.amount?.toStringAsFixed(0) ?? '0'}',
+                          growth:
+                              '${(thisMonth?.percentageChange?.toDouble() ?? 0) >= 0 ? '+' : ''}${thisMonth?.percentageChange?.toStringAsFixed(0) ?? '0'}% vs last month',
+                          isPositive:
+                              (thisMonth?.percentageChange?.toDouble() ?? 0) >=
+                              0,
+                        ),
+                      ),
+                      SizedBox(width: 16.w),
+                      Expanded(
+                        child: _buildStatsCard(
+                          title: 'Last Month',
+                          amount: '€${lastMonth?.amount?.toStringAsFixed(0) ?? '0'}',
+                          growth:
+                              '${(lastMonth?.percentageChange?.toDouble() ?? 0) >= 0 ? '+' : ''}${lastMonth?.percentageChange?.toStringAsFixed(0) ?? '0'}% vs last month',
+                          isPositive:
+                              (lastMonth?.percentageChange?.toDouble() ?? 0) >=
+                              0,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              SizedBox(height: 24.h),
 
-            // Transactions List
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 5,
-              separatorBuilder: (context, index) => SizedBox(height: 16.h),
-              itemBuilder: (context, index) {
-                // Placeholder data
-                final isCompleted = index % 2 == 0;
-                final isUpcoming = index == 3;
-                return _buildTransactionItem(
-                  context,
-                  title: index == 0
-                      ? 'Wedding Photography'
-                      : 'Portrait Session',
-                  name: 'Sarah Johnson',
-                  date: '2024-12-01',
-                  status: isUpcoming
-                      ? 'Upcoming'
-                      : (isCompleted ? 'Completed' : 'Paid Out'),
-                  statusColor: isUpcoming
-                      ? Colors.orange
-                      : (isCompleted ? Colors.blue : Colors.green),
-                );
-              },
-            ),
-            SizedBox(height: 20.h),
-          ],
+              // Tabs / Filter
+              _buildFilterTabs(),
+              SizedBox(height: 16.h),
+
+              // Transactions List
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: 5,
+                separatorBuilder: (context, index) => SizedBox(height: 16.h),
+                itemBuilder: (context, index) {
+                  // Placeholder data
+                  final isCompleted = index % 2 == 0;
+                  final isUpcoming = index == 3;
+                  return _buildTransactionItem(
+                    context,
+                    title: index == 0
+                        ? 'Wedding Photography'
+                        : 'Portrait Session',
+                    name: 'Sarah Johnson',
+                    date: '2024-12-01',
+                    status: isUpcoming
+                        ? 'Upcoming'
+                        : (isCompleted ? 'Completed' : 'Paid Out'),
+                    statusColor: isUpcoming
+                        ? Colors.orange
+                        : (isCompleted ? Colors.blue : Colors.green),
+                  );
+                },
+              ),
+              SizedBox(height: 20.h),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildBalanceCard(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E), // Dark card background
-        borderRadius: BorderRadius.circular(24.r),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Total Balance',
-            style: TextStyle(
-              fontSize: AppTypography.bodyMedium,
-              color: Colors.white.withOpacity(0.7),
-            ),
+    return Consumer<WalletController>(
+      builder: (context, controller, child) {
+        return Container(
+          width: double.infinity,
+          padding: EdgeInsets.all(20.w),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E), // Dark card background
+            borderRadius: BorderRadius.circular(24.r),
           ),
-          SizedBox(height: 8.h),
-          Text(
-            '€5830.00',
-            style: TextStyle(
-              fontSize: 32.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              fontFamily:
-                  'Outfit', // Assuming global font family, but specifying just in case or relying on AppTypography + size override
-            ),
-          ),
-          SizedBox(height: 24.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Text(
+                'Total Balance',
+                style: TextStyle(
+                  fontSize: AppTypography.bodyMedium,
+                  color: Colors.white.withOpacity(0.7),
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Text(
+                '€${controller.totalBalance.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 32.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontFamily: 'Outfit',
+                ),
+              ),
+              SizedBox(height: 24.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Available',
-                    style: TextStyle(
-                      fontSize: AppTypography.bodySmall,
-                      color: Colors.white.withOpacity(0.7),
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Available',
+                        style: TextStyle(
+                          fontSize: AppTypography.bodySmall,
+                          color: Colors.white.withOpacity(0.7),
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        '€${controller.balance.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: AppTypography.bodyLarge,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    '€4250.00',
-                    style: TextStyle(
-                      fontSize: AppTypography.bodyLarge,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pending',
+                        style: TextStyle(
+                          fontSize: AppTypography.bodySmall,
+                          color: Colors.white.withOpacity(0.7),
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        '€${controller.pendingBalance.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: AppTypography.bodyLarge,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Pending',
-                    style: TextStyle(
-                      fontSize: AppTypography.bodySmall,
-                      color: Colors.white.withOpacity(0.7),
+              SizedBox(height: 24.h),
+              SizedBox(
+                width: double.infinity,
+                height: AppSizes.fieldHeight,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ProviderRequestPayoutScreen(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppSizes.borderRadius),
                     ),
+                    elevation: 0,
                   ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    '€1580.00',
+                  child: Text(
+                    'Request Payout',
                     style: TextStyle(
                       fontSize: AppTypography.bodyLarge,
-                      color: Colors.white,
                       fontWeight: FontWeight.w600,
+                      color: Colors.black,
                     ),
                   ),
-                ],
+                ),
               ),
             ],
           ),
-          SizedBox(height: 24.h),
-          SizedBox(
-            width: double.infinity,
-            height: AppSizes.fieldHeight,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ProviderRequestPayoutScreen(),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSizes.borderRadius),
-                ),
-                elevation: 0,
-              ),
-              child: Text(
-                'Request Payout',
-                style: TextStyle(
-                  fontSize: AppTypography.bodyLarge,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -237,7 +272,11 @@ class ProviderWalletScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.trending_up, size: 16.sp, color: Colors.green),
+              Icon(
+                isPositive ? Icons.trending_up : Icons.trending_down,
+                size: 16.sp,
+                color: isPositive ? Colors.green : Colors.red,
+              ),
               SizedBox(width: 4.w),
               Text(
                 title,
