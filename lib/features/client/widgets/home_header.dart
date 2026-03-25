@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:photopia/controller/client/user_profile_controller.dart';
+import 'package:photopia/controller/location_controller.dart';
 import 'package:photopia/features/client/notification_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -22,10 +22,9 @@ class HomeHeader extends StatelessWidget {
                 height: 24.h,
                 fit: BoxFit.contain,
               ),
-              Consumer<UserProfileController>(
+              Consumer<LocationController>(
                 builder: (context, controller, _) {
-                  final String location =
-                      controller.userProfile?.location ?? 'Set Location';
+                  final String location = controller.currentAddress;
                   return Row(
                     children: [
                       Icon(
@@ -34,14 +33,26 @@ class HomeHeader extends StatelessWidget {
                         color: Colors.grey,
                       ),
                       SizedBox(width: 4.w),
-                      Text(
-                        location,
-                        style: TextStyle(
-                          fontSize: 12.sp.clamp(12, 14),
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w500,
+                      if (controller.isLoading)
+                        SizedBox(
+                          width: 10.w,
+                          height: 10.w,
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.grey,
+                          ),
+                        )
+                      else
+                        Text(
+                          location,
+                          style: TextStyle(
+                            fontSize: 12.sp.clamp(12, 14),
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
                     ],
                   );
                 },

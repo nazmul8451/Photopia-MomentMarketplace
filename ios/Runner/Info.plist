@@ -66,5 +66,12 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+    
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>This app needs access to location when open to show your current address on the home screen.</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>This app needs access to location to show your current address on the home screen.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>This app needs access to location to show your current address on the home screen.</string>
 </dict>
 </plist>

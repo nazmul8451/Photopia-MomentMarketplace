@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/controller/client/service_list_controller.dart';
+import 'package:photopia/controller/location_controller.dart';
 import 'package:photopia/data/models/service_list_model.dart';
 import 'package:photopia/features/client/widgets/home_header.dart';
 import 'package:photopia/features/client/widgets/category_bar.dart';
@@ -30,6 +31,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // Load services from API
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ServiceListController>().getAllServices();
+      context.read<LocationController>().determinePosition();
     });
 
     _scrollController.addListener(_onScroll);
