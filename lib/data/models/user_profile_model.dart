@@ -8,6 +8,8 @@ class UserProfileModel {
   final String? role;
   final String? description;
   final String? specialty;
+  final List<String>? languages;
+  final String? createdAt;
 
   UserProfileModel({
     this.id,
@@ -19,6 +21,8 @@ class UserProfileModel {
     this.role,
     this.description,
     this.specialty,
+    this.languages,
+    this.createdAt,
   });
 
   static String? _formatUrl(dynamic url) {
@@ -59,6 +63,8 @@ class UserProfileModel {
       role: (json['activeRole'] ?? json['role'])?.toString(),
       description: json['description']?.toString(),
       specialty: json['specialty']?.toString(),
+      languages: json['languages'] != null ? List<String>.from(json['languages']) : null,
+      createdAt: json['createdAt']?.toString(),
     );
   }
 
@@ -73,6 +79,8 @@ class UserProfileModel {
       'role': role,
       'description': description,
       'specialty': specialty,
+      'languages': languages,
+      'createdAt': createdAt,
     };
   }
 }

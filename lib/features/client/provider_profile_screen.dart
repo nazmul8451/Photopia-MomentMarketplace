@@ -759,6 +759,21 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
             widget.provider['description'] ??
             "Professional wedding and event photographer with over 8 years of experience capturing life's most precious moments. I specialize in candid, emotional photography that tells your unique story. My approach combines artistic vision with journalistic documentation to create timeless images you'll treasure forever.";
 
+        final createdAt = controller.providerDetails?.createdAt ?? widget.provider['createdAt'];
+        String memberSince = "";
+        if (createdAt != null) {
+          try {
+            final date = DateTime.parse(createdAt.toString());
+            memberSince = "Member since ${date.year}";
+          } catch (_) {
+            memberSince = "Member since 2026"; // Fallback
+          }
+        } else {
+          memberSince = "Member since 2026"; // Fallback
+        }
+
+        final languages = controller.providerDetails?.languages ?? [];
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -782,46 +797,52 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
             ),
             SizedBox(height: 15.h),
             Text(
-              'Member since 2021',
+              memberSince,
               style: TextStyle(
                 fontSize: AppTypography.bodySmall,
                 color: Colors.grey,
               ),
             ),
-            SizedBox(height: 30.h),
-            Text(
-              'Languages',
-              style: TextStyle(
-                fontSize: AppTypography.bodyLarge,
-                fontWeight: FontWeight.bold,
+            if (languages.isNotEmpty) ...[
+              SizedBox(height: 30.h),
+              Text(
+                'Languages',
+                style: TextStyle(
+                  fontSize: AppTypography.bodyLarge,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            SizedBox(height: 10.h),
-            Wrap(
-              spacing: 12.w,
-              children: [
-                _buildAboutChip('English'),
-                _buildAboutChip('Spanish'),
-                _buildAboutChip('Catalan'),
-              ],
-            ),
-            SizedBox(height: 30.h),
-            Text(
-              'Specializations',
-              style: TextStyle(
-                fontSize: AppTypography.bodyLarge,
-                fontWeight: FontWeight.bold,
+              SizedBox(height: 10.h),
+              Wrap(
+                spacing: 12.w,
+                runSpacing: 8.h,
+                children: languages.map((lang) => _buildAboutChip(lang)).toList(),
               ),
-            ),
-            SizedBox(height: 10.h),
-            Wrap(
-              spacing: 12.w,
-              children: [
-                _buildAboutChip('Wedding'),
-                _buildAboutChip('Event'),
-                _buildAboutChip('Portrait'),
-              ],
-            ),
+            ],
+            if (controller.providerDetails?.specialty != null || widget.provider['specialty'] != null) ...[
+              SizedBox(height: 30.h),
+              Text(
+                'Specializations',
+                style: TextStyle(
+                  fontSize: AppTypography.bodyLarge,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 10.h),
+              Builder(
+                builder: (context) {
+                  final specialtyStr = controller.providerDetails?.specialty ?? widget.provider['specialty']?.toString() ?? "";
+                  final specialties = specialtyStr.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+                  return Wrap(
+                    spacing: 12.w,
+                    runSpacing: 8.h,
+                    children: specialties.isNotEmpty 
+                        ? specialties.map((spec) => _buildAboutChip(spec)).toList()
+                        : [_buildAboutChip('Photography')], // Default
+                  );
+                }
+              ),
+            ],
           ],
         );
       },
