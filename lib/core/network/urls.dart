@@ -55,4 +55,6 @@ class Urls {
 
   //** chat api */
   static const String chat = '$baseUrl/api/v1/chat';
+  static const String statistics = '$baseUrl/api/v1/professional-profiles/statistics';
+  static const String statisticsExport = '$baseUrl/api/v1/professional-profiles/statistics/export';
 }

@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/network/urls.dart';
@@ -58,11 +58,7 @@ class _AuthProfileImageState extends State<AuthProfileImage> {
     });
 
     try {
-      String? token = AuthController.accessToken;
-      if (token == null || token.isEmpty) {
-        const storage = FlutterSecureStorage();
-        token = await storage.read(key: 'access_token');
-      }
+      final String? token = AuthController.accessToken ?? GetStorage().read('user_token');
 
       final String baseFullUrl = widget.imageUrl!.startsWith('http')
           ? widget.imageUrl!

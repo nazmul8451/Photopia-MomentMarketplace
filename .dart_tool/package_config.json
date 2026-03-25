@@ -560,6 +560,12 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "open_filex",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/open_filex-4.7.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    },
+    {
       "name": "package_info_plus",
       "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/package_info_plus-9.0.0",
       "packageUri": "lib/",

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:photopia/controller/provider/wallet_controller.dart';
+import 'package:photopia/controller/provider/statistics_controller.dart';
+import 'package:photopia/data/models/statistics_model.dart';
 import 'package:provider/provider.dart';
 
 class ProviderStatisticsScreen extends StatefulWidget {
@@ -14,9 +16,21 @@ class ProviderStatisticsScreen extends StatefulWidget {
 class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
   String selectedFilter = 'Month';
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<WalletController>().getMyWallet();
+      context.read<StatisticsController>().fetchStatistics();
+    });
+  }
+
   Future<void> _handleRefresh() async {
     // Refresh the relevant data controllers
-    await context.read<WalletController>().getMyWallet();
+    await Future.wait([
+      context.read<WalletController>().getMyWallet(),
+      context.read<StatisticsController>().fetchStatistics(),
+    ]);
   }
 
   @override
@@ -70,97 +84,131 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
         onRefresh: _handleRefresh,
         color: Colors.black,
         backgroundColor: Colors.white,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            children: [
-              // Top Summary Cards
-              Row(
+        child: Consumer<StatisticsController>(
+          builder: (context, controller, child) {
+            final stats = controller.statisticsData;
+            
+            if (controller.isLoading && stats == null) {
+              return const Center(child: CircularProgressIndicator(color: Colors.black));
+            }
+
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.all(16.w),
+              child: Column(
                 children: [
-                  Expanded(
-                    child: _buildSummaryCard(
-                      icon: Icons.visibility_outlined,
-                      label: 'Profile Views',
-                      value: '1.2K',
-                      subValue: '-8% this week',
-                      isPositive: false,
+                  // Top Summary Cards
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildSummaryCard(
+                          icon: Icons.visibility_outlined,
+                          label: 'Profile Views',
+                          value: '${stats?.profileViews?.count ?? 0}',
+                          subValue: '${stats?.profileViews?.change ?? 0}% this week',
+                          isPositive: (stats?.profileViews?.change ?? 0) >= 0,
+                        ),
+                      ),
+                      SizedBox(width: 16.w),
+                      Expanded(
+                        child: _buildSummaryCard(
+                          icon: Icons.star_outline_rounded,
+                          label: 'Rating',
+                          value: '${stats?.rating?.score ?? 0}',
+                          subValue: '${stats?.rating?.reviews ?? 0} reviews',
+                          isPositive: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 24.h),
+
+                  // Views vs Category Comparison
+                  _buildComparisonCard(
+                    title: 'Views vs Category Average',
+                    icon: Icons.trending_up,
+                    myData: stats?.profileViews?.count ?? 0,
+                    avgData: stats?.profileViews?.performanceVsCategory?.categoryAverage ?? 0,
+                    unit: '',
+                    myLabel: 'Your Views',
+                    avgLabel: 'Category Average',
+                    statusText: stats?.profileViews?.performanceVsCategory?.percentageAbove != null 
+                      ? 'You\'re performing ${stats!.profileViews!.performanceVsCategory!.percentageAbove}% ${stats.profileViews!.performanceVsCategory!.percentageAbove! >= 0 ? "above" : "below"} category average'
+                      : 'N/A',
+                  ),
+                  SizedBox(height: 24.h),
+
+                  // Rating vs Category Comparison
+                  _buildComparisonCard(
+                    title: 'Rating vs Category Average',
+                    icon: Icons.star_border_rounded,
+                    myData: stats?.rating?.score ?? 0,
+                    avgData: stats?.rating?.performanceVsCategory?.categoryAverage ?? 0,
+                    unit: '',
+                    myLabel: 'Your Rating',
+                    avgLabel: 'Category Average',
+                    statusText: stats?.rating?.performanceVsCategory?.percentageHigher != null
+                      ? 'Your rating is ${stats!.rating!.performanceVsCategory!.percentageHigher}% higher than similar providers'
+                      : 'N/A',
+                    extraText: '(${stats?.rating?.reviews ?? 0} reviews)',
+                  ),
+                  SizedBox(height: 24.h),
+
+                  // Regional Views
+                  _buildRegionCard(stats?.viewsByRegion ?? []),
+                  SizedBox(height: 24.h),
+
+                  // Revenue Analytics
+                  _buildRevenueCard(stats?.revenueAnalytics),
+                  SizedBox(height: 24.h),
+
+                  // Export Data Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: controller.isExporting 
+                        ? null 
+                        : () async {
+                            final path = await controller.exportStatistics();
+                            if (path != null && context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Report saved to: ${path.split("/").last}'),
+                                  backgroundColor: Colors.black,
+                                  behavior: SnackBarBehavior.floating,
+                                  duration: const Duration(seconds: 4),
+                                ),
+                              );
+                            }
+                          },
+                      icon: controller.isExporting 
+                        ? SizedBox(
+                            width: 16.w, 
+                            height: 16.w, 
+                            child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.black)
+                          )
+                        : Icon(Icons.download_outlined, size: 20.sp),
+                      label: Text(
+                        controller.isExporting ? 'Exporting...' : 'Export Full Report',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.black,
+                        side: BorderSide(color: Colors.grey.shade300),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                      ),
                     ),
                   ),
-                  SizedBox(width: 16.w),
-                  Expanded(
-                    child: _buildSummaryCard(
-                      icon: Icons.star_outline_rounded,
-                      label: 'Rating',
-                      value: '4.9',
-                      subValue: '127 reviews',
-                      isPositive: true,
-                    ),
-                  ),
+                  SizedBox(height: 30.h),
                 ],
               ),
-              SizedBox(height: 24.h),
-
-              // Views vs Category Comparison
-              _buildComparisonCard(
-                title: 'Views vs Category Average',
-                icon: Icons.trending_up,
-                myData: 1200,
-                avgData: 850,
-                unit: '',
-                myLabel: 'Your Views',
-                avgLabel: 'Category Average',
-                statusText: 'You\'re performing 41% above category average',
-              ),
-              SizedBox(height: 24.h),
-
-              // Rating vs Category Comparison
-              _buildComparisonCard(
-                title: 'Rating vs Category Average',
-                icon: Icons.star_border_rounded,
-                myData: 4.9,
-                avgData: 4.3,
-                unit: '',
-                myLabel: 'Your Rating',
-                avgLabel: 'Category Average',
-                statusText: 'Your rating is 14% higher than similar providers',
-                extraText: '(127 reviews)',
-              ),
-              SizedBox(height: 24.h),
-
-              // Regional Views
-              _buildRegionCard(),
-              SizedBox(height: 24.h),
-
-              // Revenue Analytics
-              _buildRevenueCard(),
-              SizedBox(height: 24.h),
-
-              // Export Data Button
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: Icon(Icons.download_outlined, size: 20.sp),
-                  label: Text(
-                    'Export Full Report',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.black,
-                    side: BorderSide(color: Colors.grey.shade300),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 30.h),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -359,16 +407,7 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
     );
   }
 
-  Widget _buildRegionCard() {
-    final regions = [
-      {'name': 'New York, NY', 'percentage': 37.5, 'count': 450},
-      {'name': 'Los Angeles, CA', 'percentage': 23.3, 'count': 280},
-      {'name': 'Chicago, IL', 'percentage': 15.4, 'count': 185},
-      {'name': 'Miami, FL', 'percentage': 12.1, 'count': 145},
-      {'name': 'Boston, MA', 'percentage': 7.5, 'count': 90},
-      {'name': 'Other', 'percentage': 4.2, 'count': 50},
-    ];
-
+  Widget _buildRegionCard(List<RegionStats> regions) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -394,46 +433,52 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
             ],
           ),
           SizedBox(height: 16.h),
-          ...regions.map((reg) {
-            return Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        reg['name'] as String,
-                        style: TextStyle(fontSize: 13.sp, color: Colors.black),
+          if (regions.isEmpty)
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 20.h),
+              child: const Center(child: Text('No regional data available')),
+            )
+          else
+            ...regions.map((reg) {
+              return Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          reg.city ?? 'Unknown',
+                          style: TextStyle(fontSize: 13.sp, color: Colors.black),
+                        ),
                       ),
-                    ),
-                    Text(
-                      '${reg['percentage']}%',
-                      style: TextStyle(fontSize: 11.sp, color: Colors.grey),
-                    ),
-                    SizedBox(width: 12.w),
-                    Text(
-                      '${reg['count']}',
-                      style: TextStyle(
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                      Text(
+                        '${reg.percentage ?? 0}%',
+                        style: TextStyle(fontSize: 11.sp, color: Colors.grey),
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 6.h),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10.r),
-                  child: LinearProgressIndicator(
-                    value: (reg['percentage'] as num) / 100,
-                    minHeight: 6.h,
-                    backgroundColor: const Color(0xFFF1F3F5),
-                    color: const Color(0xFF344054),
+                      SizedBox(width: 12.w),
+                      Text(
+                        '${reg.count ?? 0}',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                SizedBox(height: 12.h),
-              ],
-            );
-          }),
+                  SizedBox(height: 6.h),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10.r),
+                    child: LinearProgressIndicator(
+                      value: (reg.percentage ?? 0) / 100,
+                      minHeight: 6.h,
+                      backgroundColor: const Color(0xFFF1F3F5),
+                      color: const Color(0xFF344054),
+                    ),
+                  ),
+                  SizedBox(height: 12.h),
+                ],
+              );
+            }),
           const Divider(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -443,7 +488,7 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
                 style: TextStyle(color: Colors.grey, fontSize: 13.sp),
               ),
               Text(
-                '1,200',
+                '${regions.fold(0, (sum, item) => sum + (item.count ?? 0))}',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14.sp,
@@ -457,14 +502,17 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
     );
   }
 
-  Widget _buildRevenueCard() {
+  Widget _buildRevenueCard(RevenueAnalytics? revenue) {
     final filters = ['Week', 'Month', 'Quarter', 'Year'];
-    final weeks = [
-      {'name': 'Week 1', 'amount': 1800, 'max': 3000},
-      {'name': 'Week 2', 'amount': 2100, 'max': 3000},
-      {'name': 'Week 3', 'amount': 2200, 'max': 3000},
-      {'name': 'Week 4', 'amount': 2300, 'max': 3000},
-    ];
+    // JSON shown by user currently has empty weeklyBreakdown, but we model for potential use
+    final weeks = (revenue?.weeklyBreakdown ?? []).isNotEmpty 
+      ? revenue!.weeklyBreakdown! 
+      : [
+          {'name': 'Week 1', 'amount': 0, 'max': 100},
+          {'name': 'Week 2', 'amount': 0, 'max': 100},
+          {'name': 'Week 3', 'amount': 0, 'max': 100},
+          {'name': 'Week 4', 'amount': 0, 'max': 100},
+        ];
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -546,12 +594,16 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
                     ),
                     Row(
                       children: [
-                        Icon(Icons.trending_up, size: 16.sp, color: const Color(0xFF12B76A)),
+                        Icon(
+                          (revenue?.percentageChange ?? 0) >= 0 ? Icons.trending_up : Icons.trending_down, 
+                          size: 16.sp, 
+                          color: (revenue?.percentageChange ?? 0) >= 0 ? const Color(0xFF12B76A) : Colors.red
+                        ),
                         SizedBox(width: 4.w),
                         Text(
-                          '+15.1%',
+                          '${(revenue?.percentageChange ?? 0) >= 0 ? "+" : ""}${revenue?.percentageChange ?? 0}%',
                           style: TextStyle(
-                            color: const Color(0xFF12B76A),
+                            color: (revenue?.percentageChange ?? 0) >= 0 ? const Color(0xFF12B76A) : Colors.red,
                             fontWeight: FontWeight.bold,
                             fontSize: 14.sp,
                           ),
@@ -562,7 +614,7 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  '€8,400',
+                  '€${revenue?.currentMonth ?? 0}',
                   style: TextStyle(
                     fontSize: 24.sp,
                     fontWeight: FontWeight.bold,
@@ -571,7 +623,7 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  'vs previous month: €7,300',
+                  'vs previous month: €${revenue?.previousMonth ?? 0}',
                   style: TextStyle(color: Colors.grey, fontSize: 12.sp),
                 ),
               ],
@@ -580,14 +632,18 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
           SizedBox(height: 20.h),
 
           ...weeks.map((w) {
+            // Support both Map and potentially dynamic objects if model changes
+            final name = w is Map ? w['name'] : 'N/A';
+            final amount = w is Map ? w['amount'] : 0;
+            final max = w is Map ? (w['max'] ?? 100) : 100;
             return Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(w['name'] as String, style: TextStyle(color: Colors.grey, fontSize: 13.sp)),
+                    Text('$name', style: TextStyle(color: Colors.grey, fontSize: 13.sp)),
                     Text(
-                      '€${w['amount']}',
+                      '€$amount',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13.sp,
@@ -600,7 +656,7 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10.r),
                   child: LinearProgressIndicator(
-                    value: (w['amount'] as num) / (w['max'] as num),
+                    value: (amount as num) / (max as num),
                     minHeight: 10.h,
                     backgroundColor: const Color(0xFFF1F3F5),
                     color: Colors.black,
@@ -619,7 +675,7 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
                 children: [
                   Text('Average per period', style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
                   SizedBox(height: 4.h),
-                  Text('€2,100', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp)),
+                  Text('€${revenue?.averagePerPeriod ?? 0}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp)),
                 ],
               ),
               Column(
@@ -627,7 +683,7 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
                 children: [
                   Text('Best performing', style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
                   SizedBox(height: 4.h),
-                  Text('€2,300', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp)),
+                  Text('€${revenue?.bestPerforming ?? 0}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp)),
                 ],
               ),
             ],

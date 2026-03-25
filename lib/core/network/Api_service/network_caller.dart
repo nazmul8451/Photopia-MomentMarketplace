@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:photopia/controller/auth_controller.dart';
@@ -11,11 +11,13 @@ class NetworkResponse {
   final String? errorMessage;
   final int statusCode;
   final Map<String, dynamic>? body;
+  final List<int>? bodyBytes;
 
   NetworkResponse({
     required this.isSuccess,
     required this.statusCode,
     this.body,
+    this.bodyBytes,
     this.errorMessage,
   });
 }
@@ -41,14 +43,11 @@ class NetworkCaller {
     };
 
     String? tokenToUse = token;
-
+    
+    // Always prioritize AuthController.accessToken, then GetStorage()
     if (tokenToUse == null || tokenToUse.isEmpty) {
       if (requireAuth) {
-        tokenToUse = AuthController.accessToken;
-        if (tokenToUse == null || tokenToUse.isEmpty) {
-          const storage = FlutterSecureStorage();
-          tokenToUse = await storage.read(key: 'access_token');
-        }
+        tokenToUse = AuthController.accessToken ?? GetStorage().read('user_token');
       }
     }
 
@@ -67,8 +66,9 @@ class NetworkCaller {
           headers['Authorization'] = tokenToUse;
         }
       }
-      debugPrint("Auth token added to headers.");
+      debugPrint("🔐 Auth token added to headers: ${tokenToUse.substring(0, 5)}...");
     }
+    
     return headers;
   }
 
@@ -76,19 +76,23 @@ class NetworkCaller {
   static NetworkResponse _handleResponse(
     Response response,
     String url,
-    String method,
-  ) {
+    String method, {
+    bool isRaw = false,
+  }) {
     _logResponse(method, url, response);
 
     final int statusCode = response.statusCode;
     Map<String, dynamic>? decodedBody;
 
-    try {
-      if (response.body.isNotEmpty) {
-        decodedBody = jsonDecode(response.body);
+    // For errors, always try to decode the body to get the message, even if isRaw is true
+    if (!isRaw || statusCode >= 400) {
+      try {
+        if (response.body.isNotEmpty) {
+          decodedBody = jsonDecode(response.body);
+        }
+      } catch (e) {
+        debugPrint("Error decoding response body: $e");
       }
-    } catch (e) {
-      debugPrint("Error decoding response body: $e");
     }
 
     if (statusCode >= 200 && statusCode < 300) {
@@ -96,6 +100,7 @@ class NetworkCaller {
         isSuccess: true,
         statusCode: statusCode,
         body: decodedBody,
+        bodyBytes: isRaw ? response.bodyBytes : null,
       );
     } else if (statusCode == 401) {
       return NetworkResponse(
@@ -202,10 +207,93 @@ class NetworkCaller {
             errorMessage: _unAuthorizedErrorMessage,
           );
         }
+      } else if (response.statusCode == 403 && requireAuth) {
+        final reApplied = await _reApplyProfessionalRole();
+        if (reApplied) {
+          final retryHeaders = await _getHeaders(requireAuth: requireAuth);
+          final retryResponse = await get(uri, headers: retryHeaders)
+              .timeout(const Duration(seconds: 15));
+          return _handleResponse(retryResponse, url, 'GET');
+        }
       }
       return _handleResponse(response, url, 'GET');
     } catch (e) {
       debugPrint('GET request error: $e');
+      return NetworkResponse(
+        isSuccess: false,
+        statusCode: -1,
+        errorMessage: e.toString(),
+      );
+    }
+  }
+
+  // GET Raw Request (for binary files)
+  static Future<NetworkResponse> getRequestRaw({
+    required String url,
+    String? token,
+    bool requireAuth = true,
+  }) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      
+      // For binary files, we don't want Content-Type: application/json
+      final Map<String, String> headers = {};
+      
+      String? tokenToUse = token ?? AuthController.accessToken;
+      if (tokenToUse == null || tokenToUse.isEmpty) {
+        tokenToUse = GetStorage().read('user_token');
+      }
+
+      if (tokenToUse != null && tokenToUse.isNotEmpty) {
+        headers['Authorization'] = tokenToUse.startsWith('Bearer ')
+            ? tokenToUse
+            : 'Bearer $tokenToUse';
+      }
+
+      final Response response = await get(
+        uri,
+        headers: headers,
+      ).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 401 && requireAuth) {
+        final refreshed = await _refreshAccessToken();
+        if (refreshed) {
+          final retryToken = AuthController.accessToken;
+          final Map<String, String> retryHeaders = {};
+          if (retryToken != null) {
+            retryHeaders['Authorization'] = retryToken.startsWith('Bearer ')
+                ? retryToken
+                : 'Bearer $retryToken';
+          }
+          final retryResponse = await get(uri, headers: retryHeaders)
+              .timeout(const Duration(seconds: 30));
+          return _handleResponse(retryResponse, url, 'GET', isRaw: true);
+        } else {
+          await AuthController.forceLogout();
+          return NetworkResponse(
+            isSuccess: false,
+            statusCode: 401,
+            errorMessage: _unAuthorizedErrorMessage,
+          );
+        }
+      } else if (response.statusCode == 403 && requireAuth) {
+        final reApplied = await _reApplyProfessionalRole();
+        if (reApplied) {
+          final retryToken = AuthController.accessToken;
+          final Map<String, String> retryHeaders = {};
+          if (retryToken != null) {
+            retryHeaders['Authorization'] = retryToken.startsWith('Bearer ')
+                ? retryToken
+                : 'Bearer $retryToken';
+          }
+          final retryResponse = await get(uri, headers: retryHeaders)
+              .timeout(const Duration(seconds: 30));
+          return _handleResponse(retryResponse, url, 'GET', isRaw: true);
+        }
+      }
+      return _handleResponse(response, url, 'GET', isRaw: true);
+    } catch (e) {
+      debugPrint('GET RAW request error: $e');
       return NetworkResponse(
         isSuccess: false,
         statusCode: -1,
@@ -258,6 +346,14 @@ class NetworkCaller {
             errorMessage: _unAuthorizedErrorMessage,
           );
         }
+      } else if (response.statusCode == 403 && requireAuth) {
+        final reApplied = await _reApplyProfessionalRole();
+        if (reApplied) {
+          final retryHeaders = await _getHeaders(requireAuth: requireAuth);
+          final retryResponse = await post(uri,
+              headers: retryHeaders, body: body != null ? jsonEncode(body) : null);
+          return _handleResponse(retryResponse, url, 'POST');
+        }
       }
       return _handleResponse(response, url, 'POST');
     } catch (e) {
@@ -309,6 +405,14 @@ class NetworkCaller {
             errorMessage: _unAuthorizedErrorMessage,
           );
         }
+      } else if (response.statusCode == 403 && requireAuth) {
+        final reApplied = await _reApplyProfessionalRole();
+        if (reApplied) {
+          final retryHeaders = await _getHeaders(requireAuth: requireAuth);
+          final retryResponse = await patch(uri,
+              headers: retryHeaders, body: body != null ? jsonEncode(body) : null);
+          return _handleResponse(retryResponse, url, 'PATCH');
+        }
       }
       return _handleResponse(response, url, 'PATCH');
     } catch (e) {
@@ -354,6 +458,13 @@ class NetworkCaller {
             errorMessage: _unAuthorizedErrorMessage,
           );
         }
+      } else if (response.statusCode == 403 && requireAuth) {
+        final reApplied = await _reApplyProfessionalRole();
+        if (reApplied) {
+          final retryHeaders = await _getHeaders(requireAuth: requireAuth);
+          final retryResponse = await delete(uri, headers: retryHeaders);
+          return _handleResponse(retryResponse, url, 'DELETE');
+        }
       }
       return _handleResponse(response, url, 'DELETE');
     } catch (e) {
@@ -383,13 +494,9 @@ class NetworkCaller {
       // Add ONLY auth headers — NOT Content-Type.
       // The http package sets Content-Type: multipart/form-data with boundary automatically.
       // If we set Content-Type: application/json here, it will break the multipart boundary.
-      String? tokenToUse = token;
+      String? tokenToUse = token ?? AuthController.accessToken;
       if (tokenToUse == null || tokenToUse.isEmpty) {
-        tokenToUse = AuthController.accessToken;
-        if (tokenToUse == null || tokenToUse.isEmpty) {
-          const storage = FlutterSecureStorage();
-          tokenToUse = await storage.read(key: 'access_token');
-        }
+        tokenToUse = GetStorage().read('user_token');
       }
       if (tokenToUse != null && tokenToUse.isNotEmpty) {
         request.headers['Authorization'] = tokenToUse.startsWith('Bearer ')
@@ -427,6 +534,22 @@ class NetworkCaller {
       // Convert StreamedResponse to Response to use the existing _handleResponse method
       final Response response = await Response.fromStream(streamedResponse);
 
+      if (response.statusCode == 401 && requireAuth) {
+        final refreshed = await _refreshAccessToken();
+        if (refreshed) {
+          // Retry logic for multipart would be complex, but let's at least log it
+          // OR we could call the method again if we had the original arguments
+          debugPrint('🔄 Token refreshed during multipart. Please retry upload.');
+        } else {
+          await AuthController.forceLogout();
+        }
+      } else if (response.statusCode == 403 && requireAuth) {
+        final reApplied = await _reApplyProfessionalRole();
+        if (reApplied) {
+          debugPrint('🔄 Role re-applied during multipart. Please retry upload.');
+        }
+      }
+
       return _handleResponse(response, url, method);
     } catch (e) {
       debugPrint("Multipart request error: $e");
@@ -458,5 +581,37 @@ class NetworkCaller {
     debugPrint('📊 Status Code: ${response.statusCode}');
     debugPrint('📦 Response Body: ${response.body}');
     debugPrint('====================================');
+  }
+  /// Specifically for handling 403 Forbidden by re-syncing the professional role
+  static Future<bool> _reApplyProfessionalRole() async {
+    final storedRole = AuthController.activeRole ?? GetStorage().read('active_role');
+    if (storedRole == 'professional') {
+      debugPrint('🔄 403 Detected. Re-applying professional role...');
+      try {
+        final roleUri = Uri.parse(Urls.role);
+        final roleHeaders = await _getHeaders(requireAuth: true);
+        final response = await patch(
+          roleUri,
+          headers: roleHeaders,
+          body: jsonEncode({'role': 'professional'}),
+        ).timeout(const Duration(seconds: 10));
+
+        if (response.statusCode >= 200 && response.statusCode < 300) {
+          final body = jsonDecode(response.body) as Map<String, dynamic>;
+          final newToken = body['data']?['accessToken'];
+          if (newToken != null) {
+            await AuthController.saveUserToken(newToken);
+            debugPrint('✅ New token captured and saved after role re-apply');
+          }
+          debugPrint('✅ Professional role re-applied successfully after 403');
+          return true;
+        } else {
+          debugPrint('⚠️ Role re-apply failed with status: ${response.statusCode}');
+        }
+      } catch (e) {
+        debugPrint('⚠️ Role re-apply error: $e');
+      }
+    }
+    return false;
   }
 }

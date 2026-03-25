@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:photopia/core/network/urls.dart';
 import 'package:photopia/data/models/provider_service_model.dart';
 import 'package:photopia/controller/auth_controller.dart';
@@ -12,7 +11,6 @@ import 'package:photopia/core/network/Api_service/network_caller.dart';
 class ServiceController extends ChangeNotifier {
   bool _inProgress = false;
   String? _errorMessage;
-  final _storage = const FlutterSecureStorage();
 
   // getters
   bool get inProgress => _inProgress;
@@ -29,9 +27,7 @@ class ServiceController extends ChangeNotifier {
 
     try {
       String? token = AuthController.accessToken;
-      if (token == null || token.isEmpty) {
-        token = await _storage.read(key: 'access_token');
-      }
+      // token is already fetched from AuthController above
 
       final Uri uri = Uri.parse(Urls.service);
       final request = http.MultipartRequest('POST', uri);
@@ -130,9 +126,7 @@ class ServiceController extends ChangeNotifier {
 
     try {
       String? token = AuthController.accessToken;
-      if (token == null || token.isEmpty) {
-        token = await _storage.read(key: 'access_token');
-      }
+      // token is already fetched from AuthController above
 
       final Uri uri = Uri.parse(Urls.updateService(id));
       final request = http.MultipartRequest('PATCH', uri);
