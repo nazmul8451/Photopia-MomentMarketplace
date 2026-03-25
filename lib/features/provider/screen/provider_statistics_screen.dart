@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'package:photopia/controller/provider/wallet_controller.dart';
+import 'package:provider/provider.dart';
+
 class ProviderStatisticsScreen extends StatefulWidget {
   const ProviderStatisticsScreen({super.key});
 
@@ -10,6 +13,11 @@ class ProviderStatisticsScreen extends StatefulWidget {
 
 class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
   String selectedFilter = 'Month';
+
+  Future<void> _handleRefresh() async {
+    // Refresh the relevant data controllers
+    await context.read<WalletController>().getMyWallet();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,96 +66,101 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
           ],
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          children: [
-            // Top Summary Cards
-            Row(
-              children: [
-                Expanded(
-                  child: _buildSummaryCard(
-                    icon: Icons.visibility_outlined,
-                    label: 'Profile Views',
-                    value: '1.2K',
-                    subValue: '-8% this week',
-                    isPositive: false,
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        color: Colors.black,
+        backgroundColor: Colors.white,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            children: [
+              // Top Summary Cards
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSummaryCard(
+                      icon: Icons.visibility_outlined,
+                      label: 'Profile Views',
+                      value: '1.2K',
+                      subValue: '-8% this week',
+                      isPositive: false,
+                    ),
                   ),
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: _buildSummaryCard(
-                    icon: Icons.star_outline,
-                    label: 'Rating',
-                    value: '4.9',
-                    subValue: '127 reviews',
-                    isPositive: true,
+                  SizedBox(width: 16.w),
+                  Expanded(
+                    child: _buildSummaryCard(
+                      icon: Icons.star_outline_rounded,
+                      label: 'Rating',
+                      value: '4.9',
+                      subValue: '127 reviews',
+                      isPositive: true,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20.h),
+                ],
+              ),
+              SizedBox(height: 24.h),
 
-            // Views vs Category
-            _buildComparisonCard(
-              title: 'Views vs Category Average',
-              icon: Icons.trending_up,
-              myData: 1200,
-              avgData: 850,
-              unit: '',
-              myLabel: 'Your Views',
-              avgLabel: 'Category Average',
-              statusText: "You're performing 41% above category average",
-            ),
-            SizedBox(height: 16.h),
+              // Views vs Category Comparison
+              _buildComparisonCard(
+                title: 'Views vs Category Average',
+                icon: Icons.trending_up,
+                myData: 1200,
+                avgData: 850,
+                unit: '',
+                myLabel: 'Your Views',
+                avgLabel: 'Category Average',
+                statusText: 'You\'re performing 41% above category average',
+              ),
+              SizedBox(height: 24.h),
 
-            // Rating vs Category
-            _buildComparisonCard(
-              title: 'Rating vs Category Average',
-              icon: Icons.star_border,
-              myData: 4.9,
-              avgData: 4.3,
-              unit: '',
-              myLabel: 'Your Rating',
-              avgLabel: 'Category Average',
-              extraText: '(127 reviews)',
-              statusText: "You're rated 14.0% higher than category average",
-            ),
-            SizedBox(height: 16.h),
+              // Rating vs Category Comparison
+              _buildComparisonCard(
+                title: 'Rating vs Category Average',
+                icon: Icons.star_border_rounded,
+                myData: 4.9,
+                avgData: 4.3,
+                unit: '',
+                myLabel: 'Your Rating',
+                avgLabel: 'Category Average',
+                statusText: 'Your rating is 14% higher than similar providers',
+                extraText: '(127 reviews)',
+              ),
+              SizedBox(height: 24.h),
 
-            // Profile Views by Region
-            _buildRegionCard(),
-            SizedBox(height: 16.h),
+              // Regional Views
+              _buildRegionCard(),
+              SizedBox(height: 24.h),
 
-            // Revenue Analytics
-            _buildRevenueCard(),
-            SizedBox(height: 16.h),
+              // Revenue Analytics
+              _buildRevenueCard(),
+              SizedBox(height: 24.h),
 
-            // Export Button
-            SizedBox(
-              width: double.infinity,
-              height: 54.h,
-              child: OutlinedButton.icon(
-                onPressed: () {},
-                icon: Icon(Icons.calendar_today_outlined, size: 18.sp),
-                label: Text(
-                  'Export Statistics Report',
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w600,
+              // Export Data Button
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {},
+                  icon: Icon(Icons.download_outlined, size: 20.sp),
+                  label: Text(
+                    'Export Full Report',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.black,
-                  side: BorderSide(color: Colors.grey.shade300),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.black,
+                    side: BorderSide(color: Colors.grey.shade300),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: 30.h),
-          ],
+              SizedBox(height: 30.h),
+            ],
+          ),
         ),
       ),
     );

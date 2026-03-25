@@ -23,6 +23,7 @@ import 'package:photopia/controller/client/provider_details_controller.dart';
 import 'package:photopia/controller/common/bottom_nav_controller.dart';
 import 'package:photopia/controller/client/review_controller.dart';
 import 'package:photopia/controller/provider/wallet_controller.dart';
+import 'package:photopia/controller/client/chat_controller.dart';
 import 'package:photopia/controller/location_controller.dart';
 import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/features/onboarding/get_started.dart';
@@ -63,6 +64,7 @@ class Photopia extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => LocationController()),
             ChangeNotifierProvider(create: (_) => ReviewController()),
             ChangeNotifierProvider(create: (_) => WalletController()),
+            ChangeNotifierProvider(create: (_) => ChatController()),
           ],
           child: MaterialApp(
             navigatorKey: navigatorKey,

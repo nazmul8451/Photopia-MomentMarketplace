@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/controller/client/chat_controller.dart';
+import 'package:photopia/controller/client/user_profile_controller.dart';
+import 'package:photopia/data/models/chat_response_model.dart';
 import 'package:photopia/data/models/conversation_model.dart';
 import 'package:photopia/features/client/widgets/message_list_item.dart';
 import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:photopia/features/client/chat_screen.dart';
-import 'dart:async';
+import 'package:provider/provider.dart';
 
 class MessagesScreen extends StatefulWidget {
   const MessagesScreen({super.key});
@@ -14,61 +17,13 @@ class MessagesScreen extends StatefulWidget {
 }
 
 class _MessagesScreenState extends State<MessagesScreen> {
-  bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
-
-  final List<Conversation> _mockConversations = [
-    Conversation(
-      id: '1',
-      name: 'Emma Wilson',
-      lastMessage: 'Thank you! I can do the shoot on Saturday.',
-      avatarUrl: 'assets/images/img1.png',
-      lastMessageTime: DateTime.now().subtract(const Duration(minutes: 2)),
-      unreadCount: 3,
-      isOnline: true,
-      status: MessageStatus.read,
-    ),
-    Conversation(
-      id: '2',
-      name: 'Tech Media Studio',
-      lastMessage: "I've sent you the quote for the corporate video.",
-      avatarUrl: 'assets/images/img2.png',
-      lastMessageTime: DateTime.now().subtract(const Duration(hours: 1)),
-      unreadCount: 0,
-      isOnline: true,
-      status: MessageStatus.read,
-    ),
-    Conversation(
-      id: '3',
-      name: 'Marco Silva',
-      lastMessage: 'Perfect! Looking forward to working with you.',
-      avatarUrl: 'assets/images/img3.png',
-      lastMessageTime: DateTime.now().subtract(const Duration(hours: 3)),
-      unreadCount: 0,
-      isOnline: false,
-      status: MessageStatus.read,
-    ),
-    Conversation(
-      id: '4',
-      name: 'Lucia Rossi',
-      lastMessage: 'The portfolio is ready for review.',
-      avatarUrl: 'assets/images/img7.jpg',
-      lastMessageTime: DateTime.now().subtract(const Duration(days: 1)),
-      unreadCount: 0,
-      isOnline: true,
-      status: MessageStatus.delivered,
-    ),
-  ];
 
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatController>().getChats();
     });
   }
 
@@ -88,9 +43,72 @@ class _MessagesScreenState extends State<MessagesScreen> {
             _buildHeader(),
             _buildSearchBar(),
             Expanded(
-              child: _isLoading
-                  ? _buildShimmerList()
-                  : _buildConversationList(),
+              child: Consumer<ChatController>(
+                builder: (context, chatController, child) {
+                  if (chatController.isLoading) {
+                    return _buildShimmerList();
+                  }
+
+                  if (chatController.chats.isEmpty) {
+                    return _buildEmptyState();
+                  }
+
+                  return RefreshIndicator(
+                    onRefresh: () => chatController.getChats(),
+                    color: Colors.black,
+                    child: _buildConversationList(chatController.chats),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Container(
+        height: 0.6.sh,
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(24.r),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8F9FA),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.chat_bubble_outline_rounded,
+                size: 64.sp,
+                color: Colors.grey.shade400,
+              ),
+            ),
+            SizedBox(height: 24.h),
+            Text(
+              'No Messages Yet',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 40.w),
+              child: Text(
+                "When you start a conversation, it will appear here. Start exploring to connect!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.grey,
+                  height: 1.5,
+                ),
+              ),
             ),
           ],
         ),
@@ -103,10 +121,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
       padding: EdgeInsets.fromLTRB(20.w, 15.h, 20.w, 10.h),
       child: Row(
         children: [
-          Image.asset(
-            'assets/images/message_icon.png',
-            width: 28.sp.clamp(24, 32),
-            height: 28.sp.clamp(24, 32),
+          Icon(
+            Icons.chat_bubble_outline_rounded,
+            size: 28.sp.clamp(24, 32),
             color: Colors.black,
           ),
           SizedBox(width: 12.w),
@@ -151,18 +168,43 @@ class _MessagesScreenState extends State<MessagesScreen> {
     );
   }
 
-  Widget _buildConversationList() {
+  Widget _buildConversationList(List<ChatRoom> chats) {
+    final currentUser = context.read<UserProfileController>().userProfile;
+    
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
-      itemCount: _mockConversations.length,
+      itemCount: chats.length,
       itemBuilder: (context, index) {
+        final chat = chats[index];
+        
+        // Find the other participant
+        final otherParticipant = chat.participants?.firstWhere(
+          (p) => p.email != currentUser?.email,
+          orElse: () => chat.participants?.isNotEmpty == true 
+              ? chat.participants!.first 
+              : ChatParticipant(name: 'User', profile: ''),
+        );
+
+        final conversation = Conversation(
+          id: chat.sId ?? '',
+          name: otherParticipant?.name ?? 'Unknown',
+          lastMessage: chat.latestMessage?.content ?? 'No messages yet',
+          avatarUrl: otherParticipant?.profile ?? '',
+          lastMessageTime: chat.updatedAt != null 
+              ? DateTime.parse(chat.updatedAt!).toLocal() 
+              : DateTime.now(),
+          unreadCount: chat.unreadCount ?? 0,
+          isOnline: false,
+          status: MessageStatus.read,
+        );
+
         return MessageListItem(
-          conversation: _mockConversations[index],
+          conversation: conversation,
           onTap: () {
             Navigator.of(context, rootNavigator: true).push(
               MaterialPageRoute(
                 builder: (context) =>
-                    ChatScreen(conversation: _mockConversations[index]),
+                    ChatScreen(conversation: conversation),
               ),
             );
           },

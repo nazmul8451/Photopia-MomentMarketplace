@@ -47,6 +47,7 @@ class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
       body: RefreshIndicator(
         onRefresh: () => context.read<WalletController>().getMyWallet(),
         color: Colors.black,
+        backgroundColor: Colors.white,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),

@@ -111,6 +111,8 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
               HapticFeedback.lightImpact();
               await controller.getMyListings();
             },
+            color: Colors.black,
+            backgroundColor: Colors.white,
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: 20.w),
               physics: const AlwaysScrollableScrollPhysics(),

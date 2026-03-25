@@ -52,4 +52,7 @@ class Urls {
 
   //** wallet api */
   static const String myWallet = '$baseUrl/api/v1/wallet/my-wallet';
+
+  //** chat api */
+  static const String chat = '$baseUrl/api/v1/chat';
 }
