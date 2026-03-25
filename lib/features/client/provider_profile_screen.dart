@@ -5,6 +5,7 @@ import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/client/widgets/service_card.dart';
 import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:provider/provider.dart';
+import 'package:photopia/controller/client/review_controller.dart';
 import 'package:photopia/controller/client/service_list_controller.dart';
 import 'package:photopia/controller/client/provider_details_controller.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
@@ -49,6 +50,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
         context.read<ProviderDetailsController>().getProviderDetails(
           providerId,
         );
+        context.read<ReviewController>().getProviderReviews(providerId);
       }
     });
   }
@@ -453,18 +455,15 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
           Tab(
             child: FittedBox(fit: BoxFit.scaleDown, child: Text('Portfolio')),
           ),
-          Consumer<ProviderDetailsController>(
-            builder: (context, controller, child) {
-              final dynamic providerData =
-                  controller.providerDetails?.toJson() ?? widget.provider;
-              final reviews = providerData['reviews']?.toString() ?? '127';
-              return Tab(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text('Reviews ($reviews)'),
-                ),
-              );
-            },
+          Tab(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Consumer<ReviewController>(
+                builder: (context, controller, child) {
+                  return Text('Reviews (${controller.reviews.length})');
+                },
+              ),
+            ),
           ),
           Tab(
             child: FittedBox(fit: BoxFit.scaleDown, child: Text('About')),
@@ -628,99 +627,127 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
   }
 
   Widget _buildReviewsContent() {
-    return Column(
-      children: List.generate(3, (index) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: 30.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+    return Consumer<ReviewController>(
+      builder: (context, controller, child) {
+        if (controller.isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(color: Colors.black),
+          );
+        }
+
+        final reviews = controller.reviews;
+
+        if (reviews.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 40.h),
+              child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 20.r,
-                    backgroundImage: const AssetImage('assets/images/img7.jpg'),
-                  ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Sarah & Michael',
-                          style: TextStyle(
-                            fontSize: AppTypography.bodyLarge,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Row(
-                          children: [
-                            Row(
-                              children: List.generate(
-                                5,
-                                (i) => Icon(
-                                  Icons.star,
-                                  color: Colors.orange,
-                                  size: 14.sp,
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 8.w),
-                            Text(
-                              '10/15/2024',
-                              style: TextStyle(
-                                fontSize: AppTypography.bodySmall,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                  Icon(Icons.rate_review_outlined, size: 64.sp, color: Colors.grey[300]),
+                  SizedBox(height: 16.h),
+                  Text(
+                    'No reviews yet',
+                    style: TextStyle(
+                      fontSize: AppTypography.bodyLarge,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 8.h),
-              Text(
-                'Wedding Photography - Premium Package',
-                style: TextStyle(
-                  fontSize: AppTypography.bodySmall,
-                  color: Colors.grey[700],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              SizedBox(height: 12.h),
-              Text(
-                'Emma was absolutely amazing! She captured our wedding day perfectly. The photos are stunning and she made us feel so comfortable throughout the day. Highly recommend!',
-                style: TextStyle(
-                  fontSize: AppTypography.bodyMedium,
-                  color: Colors.black87,
-                  height: 1.4,
-                ),
-              ),
-              SizedBox(height: 15.h),
-              Row(
+            ),
+          );
+        }
+
+        return Column(
+          children: reviews.map((review) {
+            // Format date if possible
+            String formattedDate = 'Recent';
+            if (review.createdAt != null) {
+              try {
+                final date = DateTime.parse(review.createdAt!);
+                formattedDate = "${date.day}/${date.month}/${date.year}";
+              } catch (_) {}
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(bottom: 30.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildReviewImage('assets/images/img1.png'),
-                  SizedBox(width: 10.w),
-                  _buildReviewImage('assets/images/img2.png'),
+                  Row(
+                    children: [
+                      CircleAvatar(
+                        radius: 20.r,
+                        backgroundImage: (review.user?.profile != null && review.user!.profile!.startsWith('http'))
+                            ? NetworkImage(review.user!.profile!) as ImageProvider
+                            : const AssetImage('assets/images/img7.jpg'),
+                      ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              review.user?.name ?? 'Anonymous',
+                              style: TextStyle(
+                                fontSize: AppTypography.bodyLarge,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                Row(
+                                  children: List.generate(
+                                    5,
+                                    (i) => Icon(
+                                      Icons.star,
+                                      color: i < (review.rating ?? 0) ? Colors.orange : Colors.grey[300],
+                                      size: 14.sp,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(width: 8.w),
+                                Text(
+                                  formattedDate,
+                                  style: TextStyle(
+                                    fontSize: AppTypography.bodySmall,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (review.service?.title != null) ...[
+                    SizedBox(height: 8.h),
+                    Text(
+                      review.service!.title!,
+                      style: TextStyle(
+                        fontSize: AppTypography.bodySmall,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                  SizedBox(height: 12.h),
+                  Text(
+                    review.comment ?? '',
+                    style: TextStyle(
+                      fontSize: AppTypography.bodyMedium,
+                      color: Colors.black87,
+                      height: 1.4,
+                    ),
+                  ),
                 ],
               ),
-            ],
-          ),
+            );
+          }).toList(),
         );
-      }),
-    );
-  }
-
-  Widget _buildReviewImage(String url) {
-    return Container(
-      width: 80.w,
-      height: 80.w,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12).r,
-        image: DecorationImage(image: AssetImage(url), fit: BoxFit.cover),
-      ),
+      },
     );
   }
 
