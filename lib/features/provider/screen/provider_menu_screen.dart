@@ -10,6 +10,7 @@ import 'package:photopia/controller/provider/provider_profile_controller.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/controller/client/log_out_controller.dart';
 import 'package:photopia/features/client/widgets/auth_profile_image.dart';
+import 'package:photopia/features/provider/screen/provider_statistics_screen.dart';
 import 'package:photopia/features/provider/screen/provider_notification_screen.dart';
 
 class ProviderMenuScreen extends StatefulWidget {
@@ -71,7 +72,14 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                       icon: Icons.bar_chart,
                       title: 'Detailed Statistics',
                       isPremium: true,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ProviderStatisticsScreen(),
+                          ),
+                        );
+                      },
                     ),
                     SizedBox(height: 12.h.clamp(8, 16)),
 

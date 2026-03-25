@@ -27,7 +27,7 @@ class WalletData {
   EarningsInfo? thisMonthEarnings;
   EarningsInfo? lastMonthEarnings;
 
-  WalletData({
+  WalletData({ 
     this.sId,
     this.userId,
     this.balance,
