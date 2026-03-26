@@ -21,6 +21,7 @@ class Urls {
 
   //** serivce api */
   static const String service = '$baseUrl/api/v1/services';
+  static const String professionalProfile = '$baseUrl/api/v1/professional-profiles';
   static String updateService(String id) => '$baseUrl/api/v1/services/$id';
   static String deleteService(String id) => '$baseUrl/api/v1/services/$id';
   static String toggleServiceStatus(String id) => '$baseUrl/api/v1/services/$id/status';

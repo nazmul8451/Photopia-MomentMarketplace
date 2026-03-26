@@ -233,7 +233,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
           time: order['startTime'] ?? 'N/A',
           location: location['address'] ?? 'Location N/A',
           price: price,
-          imageUrl: client['profile'] ?? '',
+          imageUrl: client['profile'] ?? client['profileImage'] ?? client['image'] ?? client['avatar'] ?? '',
           status: order['status'] ?? 'pending',
           booking: order,
         );
@@ -374,7 +374,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
           time: order['startTime'] ?? 'N/A',
           location: location['address'] ?? 'Location N/A',
           price: price,
-          imageUrl: client['profile'] ?? '',
+          imageUrl: client['profile'] ?? client['profileImage'] ?? client['image'] ?? client['avatar'] ?? '',
           booking: order,
         );
       },
@@ -909,7 +909,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                   children: [
                     Expanded(
                       child: Text(
-                        isAccept ? 'Are you want to Accept this' : 'Are you want to Decline This',
+                        isAccept ? 'Do you want to accept this?' : 'Do you want to decline this?',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 16.sp,
@@ -932,73 +932,78 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Yes Button
-                    GestureDetector(
-                      onTap: () async {
-                        final status = isAccept ? 'confirmed' : 'cancelled';
-                        final controller = Provider.of<ProviderOrdersController>(context, listen: false);
-                        
-                        // Close dialog
-                        Navigator.pop(context);
-                        
-                        final success = await controller.updateOrderStatus(bookingId, status);
-                        
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(success 
-                                ? 'Order ${isAccept ? 'accepted' : 'declined'} successfully!' 
-                                : 'Failed to update order status'),
-                              backgroundColor: success ? Colors.green : Colors.red,
-                            ),
-                          );
-                        }
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 10.h),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE8F5E9),
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.check, color: Color(0xFF2E7D32), size: 18),
-                            SizedBox(width: 8.w),
-                            Text(
-                              'Yes',
-                              style: TextStyle(
-                                color: const Color(0xFF2E7D32),
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () async {
+                          final status = isAccept ? 'confirmed' : 'cancelled';
+                          final controller = Provider.of<ProviderOrdersController>(context, listen: false);
+                          
+                          // Close dialog
+                          Navigator.pop(context);
+                          
+                          final success = await controller.updateOrderStatus(bookingId, status);
+                          
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(success 
+                                  ? 'Order ${isAccept ? 'accepted' : 'declined'} successfully!' 
+                                  : 'Failed to update order status'),
+                                backgroundColor: success ? Colors.green : Colors.red,
                               ),
-                            ),
-                          ],
+                            );
+                          }
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 10.h),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E9),
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.check, color: Color(0xFF2E7D32), size: 18),
+                              SizedBox(width: 8.w),
+                              Text(
+                                'Yes',
+                                style: TextStyle(
+                                  color: const Color(0xFF2E7D32),
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                     SizedBox(width: 15.w),
                     // No Button
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFEBEE),
-                          borderRadius: BorderRadius.circular(10.r),
-                          border: Border.all(color: Colors.red.withOpacity(0.2)),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.close, size: 18.sp, color: Colors.red),
-                            SizedBox(width: 8.w),
-                            Text(
-                              'No',
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.red,
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 10.h),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFEBEE),
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.close, size: 18.sp, color: Colors.red),
+                              SizedBox(width: 8.w),
+                              Text(
+                                'No',
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.red,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),

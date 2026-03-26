@@ -2,24 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:photopia/core/network/Api_service/network_caller.dart';
 import 'package:photopia/core/network/urls.dart';
 import 'package:photopia/data/models/user_profile_model.dart';
+import 'package:photopia/data/models/professional_profile_model.dart';
 
 class ProviderProfileController extends ChangeNotifier {
   bool _inProgress = false;
   String? _errorMessage;
   UserProfileModel? _userProfile;
-
+  ProfessionalProfileModel? _professionalProfile;
+  
   bool get inProgress => _inProgress;
   String? get errorMessage => _errorMessage;
   UserProfileModel? get userProfile => _userProfile;
+  ProfessionalProfileModel? get professionalProfile => _professionalProfile;
 
-  // Convenience getters for easier UI binding
-  String get name => _userProfile?.fullName ?? 'Michael Photographer';
+  String get name =>
+      _professionalProfile?.user?.name ?? _userProfile?.fullName ?? 'Michael Photographer';
   String get aboutMe =>
+      _professionalProfile?.user?.description ??
       _userProfile?.description ??
-      'Professional wedding and event photographer with 10+ years of experience. Specialized in capturing authentic moments and emotions.';
+      'Professional wedding and event photographer with 10+ years of experience.';
   String get specialty =>
-      _userProfile?.specialty ?? 'Professional Photographer';
-  String? get profileImage => _userProfile?.profile;
+      _userProfile?.specialty ??
+      _professionalProfile?.user?.description ??
+      'Professional Photographer';
+  String? get profileImage =>
+      _professionalProfile?.user?.profile ?? _userProfile?.profile;
+
+  // Stats getters
+  int get bookingsCount => _professionalProfile?.statistics?.bookings?.count ?? 0;
+  int get bookingsThisWeek => _professionalProfile?.statistics?.bookings?.thisWeek ?? 0;
+  double get revenueAmount => (_professionalProfile?.statistics?.revenue?.amount ?? 0).toDouble();
+  int get revenueChange => _professionalProfile?.statistics?.revenue?.percentageChange ?? 0;
+  int get profileViews => _professionalProfile?.profileViews ?? 0;
+  double get rating => _professionalProfile?.rating ?? 0.0;
+  int get reviewCount => _professionalProfile?.reviewCount ?? 0;
+  int get projectsCount => _professionalProfile?.projects ?? 0;
+  int get responseRate => _professionalProfile?.responseRate ?? 0;
 
   List<String> _specializations = ['Wedding', 'Event', 'Portrait'];
   List<String> _languages = ['English', 'Spanish', 'Catalan'];
@@ -41,21 +59,32 @@ class ProviderProfileController extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    final response = await NetworkCaller.getRequest(url: Urls.userProfile);
+    // Fetch both user profile and professional profile statistics
+    final userProfileResponse = await NetworkCaller.getRequest(url: Urls.userProfile);
+    final professionalProfileResponse = await NetworkCaller.getRequest(url: Urls.professionalProfile);
+
+    debugPrint("🔍 User Profile Response: ${userProfileResponse.isSuccess} - ${userProfileResponse.body}");
+    debugPrint("🔍 Prof Profile Response: ${professionalProfileResponse.isSuccess} - ${professionalProfileResponse.body}");
 
     _inProgress = false;
-    if (response.isSuccess) {
-      final data = response.body?['data'];
+    
+    if (userProfileResponse.isSuccess) {
+      final data = userProfileResponse.body?['data'];
       if (data != null) {
         _userProfile = UserProfileModel.fromJson(data);
       }
-      notifyListeners();
-      return true;
-    } else {
-      _errorMessage = response.errorMessage;
-      notifyListeners();
-      return false;
     }
+
+    if (professionalProfileResponse.isSuccess) {
+      final data = professionalProfileResponse.body?['data'];
+      if (data != null) {
+        _professionalProfile = ProfessionalProfileModel.fromJson(data);
+        debugPrint("✅ Parsed Prof Profile: Bookings=${_professionalProfile?.statistics?.bookings?.count}, ThisWeek=${_professionalProfile?.statistics?.bookings?.thisWeek}");
+      }
+    }
+
+    notifyListeners();
+    return userProfileResponse.isSuccess || professionalProfileResponse.isSuccess;
   }
 
   Future<bool> updateProviderProfile({

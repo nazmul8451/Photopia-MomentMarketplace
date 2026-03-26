@@ -28,16 +28,42 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
   Widget build(BuildContext context) {
     return Consumer<ProviderProfileController>(
       builder: (context, profileController, child) {
+        if (profileController.inProgress && profileController.userProfile == null) {
+          return const Scaffold(
+            backgroundColor: Colors.white,
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
         return Scaffold(
-          backgroundColor: Colors.white,
-          body: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            child: Column(
-              children: [
-                _buildHeader(profileController),
-                SizedBox(height: 100.h),
-                _buildBody(profileController),
-              ],
+          backgroundColor: const Color(0xFFF8F9FA),
+          body: RefreshIndicator(
+            onRefresh: () => profileController.getProviderProfile(),
+            color: Colors.black,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              child: Column(
+                children: [
+                  _buildHeader(profileController),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 100.h), // Spacing for the overlapping profile card
+                        _buildViewPublicProfileButton(),
+                        SizedBox(height: 20.h),
+                        _buildStatsGrid(profileController),
+                        SizedBox(height: 20.h),
+                        _buildPremiumCard(profileController),
+                        SizedBox(height: 30.h),
+                        _buildBody(profileController),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -49,7 +75,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // Header Image
+        // Header Image (Background)
         CustomNetworkImage(
           width: double.infinity,
           height: 220.h,
@@ -58,7 +84,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         ),
         // Gradient Overlay
         Container(
-          height: 200.h,
+          height: 220.h,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
@@ -71,24 +97,12 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
           ),
         ),
 
-
         // Floating Glassmorphism Profile Card
         Positioned(
-          bottom: -5.h,
-          left: 6.w,
-          right: 6.w,
-          child: _buildProfileCard(controller),
-        ),
-
-        // Overlapping Stats Row
-        Positioned(
           bottom: -80.h,
-          left: 0,
-          right: 0,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10.w),
-            child: _buildStatsRow(),
-          ),
+          left: 20.w,
+          right: 20.w,
+          child: _buildProfileCard(controller),
         ),
       ],
     );
@@ -226,65 +240,216 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
     );
   }
 
-  Widget _buildStatsRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  Widget _buildViewPublicProfileButton() {
+    return Container(
+      width: double.infinity,
+      height: 54.h,
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: Center(
+        child: Text(
+          'View Public Profile',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16.sp,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsGrid(ProviderProfileController controller) {
+    return Column(
       children: [
-        _buildStatItem(Icons.star_border, '4.9', 'Rating'),
-        _buildStatItem(Icons.verified_outlined, '127', 'Reviews'),
-        _buildStatItem(Icons.military_tech_outlined, '95%', 'Response Rate'),
-        _buildStatItem(Icons.camera_alt_outlined, '342', 'Projects'),
+        Row(
+          children: [
+            Expanded(
+              child: _buildDashboardCard(
+                icon: Icons.calendar_today_outlined,
+                title: 'Bookings',
+                value: controller.bookingsCount.toString(),
+                subtitle: '+${controller.bookingsThisWeek} this week',
+                subtitleColor: Colors.blueAccent,
+              ),
+            ),
+            SizedBox(width: 15.w),
+            Expanded(
+              child: _buildDashboardCard(
+                icon: Icons.euro, // Updated to Euro to match screenshot
+                title: 'Revenue',
+                value: '€${_formatLargeNumber(controller.revenueAmount)}',
+                subtitle: '+${controller.revenueChange}% vs last month',
+                subtitleColor: Colors.green,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 15.h),
+        Row(
+          children: [
+            Expanded(
+              child: _buildDashboardCard(
+                icon: Icons.trending_up,
+                title: 'Profile Views',
+                value: _formatLargeNumber(controller.profileViews.toDouble()),
+                subtitle: 'this week', // API doesn't have weekly views % yet
+                subtitleColor: Colors.grey,
+              ),
+            ),
+            SizedBox(width: 15.w),
+            Expanded(
+              child: _buildDashboardCard(
+                icon: Icons.star_border,
+                title: 'Rating',
+                value: controller.rating.toStringAsFixed(1),
+                subtitle: '${controller.reviewCount} reviews',
+                subtitleColor: Colors.grey,
+              ),
+            ),
+          ],
+        ),
       ],
     );
   }
 
-  Widget _buildStatItem(IconData icon, String value, String label) {
+  Widget _buildDashboardCard({
+    required IconData icon,
+    required String title,
+    required String value,
+    required String subtitle,
+    required Color subtitleColor,
+  }) {
     return Container(
-      width: 78.w,
-      height: 90.h,
-      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(10).r,
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 22.sp, color: Colors.black87),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: AppTypography.h1,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
+          Row(
+            children: [
+              Icon(icon, size: 20.sp, color: Colors.grey[600]),
+              SizedBox(width: 8.w),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
               ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 24.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
           ),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 11.sp,
-                color: Colors.grey[600],
-                height: 1,
-                fontWeight: FontWeight.w500,
+          SizedBox(height: 4.h),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: subtitleColor,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumCard(ProviderProfileController controller) {
+    return Container(
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        borderRadius: BorderRadius.circular(16.r),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.stars, color: Colors.amber, size: 24.sp),
+                  SizedBox(width: 10.w),
+                  Text(
+                    'Premium Member',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                '€10/month',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 15.h),
+          Text(
+            'Priority search placement • Extended analytics • Premium badge',
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontSize: 13.sp,
+              height: 1.4,
+            ),
+          ),
+          SizedBox(height: 20.h),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(vertical: 14.h),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[800]!),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Center(
+              child: Text(
+                'Manage Subscription',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  String _formatLargeNumber(double number) {
+    if (number >= 1000) {
+      return '${(number / 1000).toStringAsFixed(1)}K';
+    }
+    return number.toInt().toString();
   }
 
   Widget _buildBody(ProviderProfileController controller) {

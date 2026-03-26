@@ -43,18 +43,28 @@ class ServiceController extends ChangeNotifier {
       // Prepare data map for backend
       final Map<String, dynamic> dataMap = serviceData.toJson();
 
+      // Ensure required fields from Zod schema are present
+      dataMap['status'] = dataMap['status'] ?? "ACTIVE";
+      dataMap['isActive'] = dataMap['isActive'] ?? true;
+      dataMap['currency'] = dataMap['currency'] ?? "EUR";
+      dataMap['pricingType'] = dataMap['pricingType'] ?? "HOURLY";
+      if (dataMap['serviceType'] == null || dataMap['serviceType'] == "fixed") {
+          dataMap['serviceType'] = "photography"; // Default based on Zod error options
+      }
+      dataMap['duration'] = dataMap['duration'] ?? "1";
+
       if (serviceData.category != null) {
-        dataMap['category'] =
-            serviceData.category?.sId ?? serviceData.category?.id ?? "";
+        // If the backend expects the name, use name. If it expects ID, use ID.
+        // The guide shows "Photography" (String). 
+        // We'll use the ID if sId is available, otherwise name. 
+        // Standard practice for this backend seems to be IDs.
+        dataMap['category'] = serviceData.category?.sId ?? serviceData.category?.name ?? "";
       }
 
-      // 2. location.address must be a string
       if (dataMap['location'] != null) {
+        dataMap['location']['type'] = dataMap['location']['type'] ?? "physical";
         dataMap['location']['address'] = dataMap['location']['address'] ?? "";
       }
-
-      // 3. status must be one of 'DRAFT', 'ACTIVE', etc.
-      dataMap['status'] = dataMap['status'] ?? "ACTIVE";
 
       // Remove fields that should not be sent for creation
       dataMap.remove('_id');
@@ -63,7 +73,8 @@ class ServiceController extends ChangeNotifier {
       dataMap.remove('updatedAt');
       dataMap.remove('__v');
       dataMap.remove('providerId');
-      dataMap.remove('gallery');
+      dataMap.remove('gallery'); // Images handled via multipart files
+      dataMap.remove('coverMedia'); // Handled via multipart file
 
       // Add fields
       request.fields['data'] = jsonEncode(dataMap);
@@ -74,8 +85,11 @@ class ServiceController extends ChangeNotifier {
         final stream = http.ByteStream(file.openRead());
         final length = await file.length();
 
+        // Use 'images' for all images as an array if the backend expects it
+        final String fieldName = 'images';
+
         final multipartFile = http.MultipartFile(
-          'images',
+          fieldName,
           stream,
           length,
           filename: file.path.split(Platform.pathSeparator).last,
@@ -126,12 +140,9 @@ class ServiceController extends ChangeNotifier {
 
     try {
       String? token = AuthController.accessToken;
-      // token is already fetched from AuthController above
-
       final Uri uri = Uri.parse(Urls.updateService(id));
       final request = http.MultipartRequest('PATCH', uri);
 
-      // Add Headers
       if (token != null && token.isNotEmpty) {
         request.headers['Authorization'] = token.startsWith('Bearer ')
             ? token
@@ -139,41 +150,46 @@ class ServiceController extends ChangeNotifier {
       }
       request.headers['Accept'] = 'application/json';
 
-      // Prepare data map for backend
       final Map<String, dynamic> dataMap = serviceData.toJson();
 
-      if (serviceData.category != null) {
-        dataMap['category'] =
-            serviceData.category?.sId ?? serviceData.category?.id ?? "";
-      }
-
-      if (dataMap['location'] != null) {
-        dataMap['location']['address'] = dataMap['location']['address'] ?? "";
-      }
-
-      // Ensure required update fields are present even if they were omitted
+      // Ensure required update fields are present according to Zod
       dataMap['status'] = serviceData.status ?? "ACTIVE";
       dataMap['isActive'] = serviceData.isActive ?? true;
       dataMap['isVerified'] = serviceData.isVerified ?? false;
-      if (serviceData.coverMedia != null &&
-          serviceData.coverMedia!.isNotEmpty) {
-        // Prepend base URL but avoid duplication
-        dataMap['coverMedia'] = serviceData.coverMedia!.startsWith('http')
-            ? serviceData.coverMedia
-            : "${Urls.baseUrl}${serviceData.coverMedia}";
-      } else if (newImages == null || newImages.isEmpty) {
-        // Zod requires a valid url string. If no new images and no existing, use placeholder.
-        dataMap['coverMedia'] = "${Urls.baseUrl}/images/placeholder.jpg";
-      } else {
-        // If we HAVE new images, we can send a temporary valid URL to satisfy Zod
-        // the backend will replace it with the uploaded file
-        dataMap['coverMedia'] = "${Urls.baseUrl}/images/temp_upload.jpg";
+      dataMap['currency'] = dataMap['currency'] ?? "EUR";
+      dataMap['pricingType'] = dataMap['pricingType'] ?? "HOURLY";
+      if (dataMap['serviceType'] == null || dataMap['serviceType'] == "fixed") {
+          dataMap['serviceType'] = "photography";
       }
 
-      // Format gallery paths into full URLs if not already to satisfy Zod
-      if (serviceData.gallery != null && serviceData.gallery!.isNotEmpty) {
+      if (serviceData.category != null) {
+        dataMap['category'] = serviceData.category?.sId ?? serviceData.category?.name ?? "";
+      }
+
+      if (dataMap['location'] != null) {
+        dataMap['location']['type'] = dataMap['location']['type'] ?? "ONSITE";
+        dataMap['location']['address'] = dataMap['location']['address'] ?? "";
+      }
+
+      // Format coverMedia as full URL if needed (Zod requires full URL)
+      if (dataMap['coverMedia'] != null && dataMap['coverMedia'] is String) {
+        String cover = dataMap['coverMedia'];
+        if (cover.isNotEmpty && !cover.startsWith('http')) {
+          final String base = Urls.baseUrl.endsWith('/') ? Urls.baseUrl.substring(0, Urls.baseUrl.length - 1) : Urls.baseUrl;
+          final String path = cover.startsWith('/') ? cover : '/$cover';
+          dataMap['coverMedia'] = "$base$path";
+        }
+      }
+
+      // Format gallery as full URLs if needed (Zod requires full URLs)
+      if (serviceData.gallery != null) {
         dataMap['gallery'] = serviceData.gallery!.map((img) {
-          return img.startsWith('http') ? img : "${Urls.baseUrl}$img";
+          if (img is String && !img.startsWith('http')) {
+            final String base = Urls.baseUrl.endsWith('/') ? Urls.baseUrl.substring(0, Urls.baseUrl.length - 1) : Urls.baseUrl;
+            final String path = img.startsWith('/') ? img : '/$img';
+            return "$base$path";
+          }
+          return img;
         }).toList();
       }
 
@@ -184,22 +200,23 @@ class ServiceController extends ChangeNotifier {
       dataMap.remove('updatedAt');
       dataMap.remove('__v');
       dataMap.remove('providerId');
-      // DO NOT remove 'gallery' here!
 
       request.fields['data'] = jsonEncode(dataMap);
 
       // Add new images if provided
       if (newImages != null && newImages.isNotEmpty) {
-        for (int i = 0; i < newImages.length; i++) {
-          final file = newImages[i];
+        for (var file in newImages) {
           final stream = http.ByteStream(file.openRead());
           final length = await file.length();
 
+          // Reverted to 'images' based on Multer 500 Unexpected field error
+          final String fieldName = 'images';
+
           final multipartFile = http.MultipartFile(
-            'images',
+            fieldName,
             stream,
             length,
-            filename: file.path.split(Platform.pathSeparator).last,
+            filename: file.path.split('/').last,
             contentType: MediaType('image', 'jpeg'),
           );
           request.files.add(multipartFile);
@@ -245,11 +262,19 @@ class ServiceController extends ChangeNotifier {
       );
 
       if (response.isSuccess && response.body != null) {
-        final List<dynamic> data = response.body?['data'] ?? [];
-        if (data.isNotEmpty) {
-          debugPrint('✅ Fetched ${data.length} categories from API');
-          return data.map((item) => Category.fromJson(item)).toList();
+        final dynamic rawData = response.body?['data'];
+        List<dynamic> listData = [];
+
+        if (rawData is Map && rawData.containsKey('data')) {
+          listData = rawData['data'] as List<dynamic>;
+        } else if (rawData is List) {
+          listData = rawData;
         }
+
+        if (listData.isNotEmpty) {
+          debugPrint('✅ Fetched ${listData.length} categories from API');
+        }
+        return listData.map((json) => Category.fromJson(json)).toList();
       }
 
       debugPrint(

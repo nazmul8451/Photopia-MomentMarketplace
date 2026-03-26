@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_orders_controller.dart';
+import 'package:photopia/core/widgets/custom_network_image.dart';
 
 class BookingDetailsScreen extends StatelessWidget {
   static const String name = "/booking-details";
@@ -101,15 +102,13 @@ class BookingDetailsScreen extends StatelessWidget {
           SizedBox(height: 15.h),
           Row(
             children: [
-              CircleAvatar(
-                radius: 35.r,
-                backgroundColor: Colors.grey[200],
-                backgroundImage: client['profile'] != null && client['profile'].toString().isNotEmpty
-                  ? NetworkImage(client['profile'])
-                  : null,
-                child: client['profile'] == null || client['profile'].toString().isEmpty
-                  ? Icon(Icons.person, size: 35.r, color: Colors.grey)
-                  : null,
+              CustomNetworkImage(
+                imageUrl: client['profile'] ?? client['profileImage'] ?? client['image'] ?? client['avatar'] ?? '',
+                width: 70.r,
+                height: 70.r,
+                shape: BoxShape.circle,
+                fit: BoxFit.cover,
+                placeholder: Icon(Icons.person, size: 35.r, color: Colors.grey),
               ),
               SizedBox(width: 15.w),
               Expanded(
@@ -333,7 +332,7 @@ class BookingDetailsScreen extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        isAccept ? 'Are you want to Accept this' : 'Are you want to Decline This',
+                        isAccept ? 'Do you want to accept this?' : 'Do you want to decline this?',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 16.sp,
@@ -356,77 +355,81 @@ class BookingDetailsScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Yes Button
-                    GestureDetector(
-                      onTap: () async {
-                        final status = isAccept ? 'confirmed' : 'cancelled';
-                        final controller = Provider.of<ProviderOrdersController>(context, listen: false);
-                        
-                        // Close dialog
-                        Navigator.pop(dialogContext);
-                        
-                        final success = await controller.updateOrderStatus(bookingId, status);
-                        
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(success 
-                                ? 'Order ${isAccept ? 'accepted' : 'declined'} successfully!' 
-                                : 'Failed to update order status'),
-                              backgroundColor: success ? Colors.green : Colors.red,
-                            ),
-                          );
-                          if (success) {
-                            // Delay slightly to allow user to see the snackbar if needed, 
-                            // or just pop back to the list screen
-                            Navigator.of(context).pop();
-                          }
-                        }
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 10.h),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFE8F5E9),
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.check, color: const Color(0xFF2E7D32), size: 18.sp),
-                            SizedBox(width: 8.w),
-                            Text(
-                              'Yes',
-                              style: TextStyle(
-                                color: const Color(0xFF2E7D32),
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () async {
+                          final status = isAccept ? 'confirmed' : 'cancelled';
+                          final controller = Provider.of<ProviderOrdersController>(context, listen: false);
+                          
+                          // Close dialog
+                          Navigator.pop(dialogContext);
+                          
+                          final success = await controller.updateOrderStatus(bookingId, status);
+                          
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(success 
+                                  ? 'Order ${isAccept ? 'accepted' : 'declined'} successfully!' 
+                                  : 'Failed to update order status'),
+                                backgroundColor: success ? Colors.green : Colors.red,
                               ),
-                            ),
-                          ],
+                            );
+                            if (success) {
+                              Navigator.of(context).pop();
+                            }
+                          }
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 10.h),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E9),
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.check, color: const Color(0xFF2E7D32), size: 18.sp),
+                              SizedBox(width: 8.w),
+                              Text(
+                                'Yes',
+                                style: TextStyle(
+                                  color: const Color(0xFF2E7D32),
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                     SizedBox(width: 15.w),
                     // No Button
-                    GestureDetector(
-                      onTap: () => Navigator.pop(dialogContext),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 42.w, vertical: 10.h),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFFEBEE),
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.close, color: const Color(0xFFC62828), size: 18.sp),
-                            SizedBox(width: 8.w),
-                            Text(
-                              'No',
-                              style: TextStyle(
-                                color: const Color(0xFFC62828),
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.pop(dialogContext),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 10.h),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFEBEE),
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.close, color: const Color(0xFFC62828), size: 18.sp),
+                              SizedBox(width: 8.w),
+                              Text(
+                                'No',
+                                style: TextStyle(
+                                  color: const Color(0xFFC62828),
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),

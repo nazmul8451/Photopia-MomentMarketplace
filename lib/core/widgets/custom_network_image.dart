@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photopia/core/network/urls.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -10,6 +11,7 @@ class CustomNetworkImage extends StatelessWidget {
   final BorderRadius? borderRadius;
   final BoxShape shape;
   final Color? backgroundColor;
+  final Widget? placeholder;
 
   const CustomNetworkImage({
     super.key,
@@ -20,6 +22,7 @@ class CustomNetworkImage extends StatelessWidget {
     this.borderRadius,
     this.shape = BoxShape.rectangle,
     this.backgroundColor,
+    this.placeholder,
   });
 
   @override
@@ -35,7 +38,21 @@ class CustomNetworkImage extends StatelessWidget {
       url = imageUrl.toString();
     }
 
+    // Handle relative URLs logically
+    if (url.isNotEmpty && !url.startsWith('http') && !url.startsWith('assets/')) {
+      final String base = Urls.baseUrl.endsWith('/') 
+          ? Urls.baseUrl.substring(0, Urls.baseUrl.length - 1) 
+          : Urls.baseUrl;
+      final String path = url.startsWith('/') ? url : '/$url';
+      url = "$base$path";
+    }
+
     final bool isAsset = url.startsWith('assets/');
+    final bool isEmpty = url.isEmpty;
+    
+    if (isEmpty) {
+      return _buildErrorPlaceholder(width, height);
+    }
     
     return ClipRRect(
       borderRadius: shape == BoxShape.circle 
@@ -99,7 +116,7 @@ class CustomNetworkImage extends StatelessWidget {
         shape: shape,
         borderRadius: shape == BoxShape.circle ? null : (borderRadius ?? BorderRadius.zero),
       ),
-      child: Center(
+      child: placeholder != null ? Center(child: placeholder) : Center(
         child: Icon(
           Icons.image_not_supported_outlined,
           color: Colors.grey[400],

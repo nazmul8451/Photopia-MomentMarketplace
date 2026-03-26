@@ -56,7 +56,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
               final List<String> equipment = serviceDetail?.equipment ?? [];
               final List<dynamic> gallery = serviceDetail?.gallery ?? [];
               final String coverMedia =
-                  serviceDetail?.coverMedia ?? widget.service['imageUrl'] ?? '';
+                  serviceDetail?.coverMedia ?? widget.service['coverMedia'] ?? widget.service['imageUrl'] ?? '';
               final String providerName =
                   serviceDetail?.providerId?.name ??
                   widget.service['subtitle'] ??
@@ -209,9 +209,9 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
       }
     }
 
-    // Fallback if empty
+    // Combined fallbacks removed to allow raw server images or placeholders
     if (images.isEmpty) {
-      images.add('assets/images/img1.png');
+      // images.add('assets/images/img1.png');
     }
 
     // Ensure _currentPage is within bounds

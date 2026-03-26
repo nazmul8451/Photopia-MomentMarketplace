@@ -46,7 +46,7 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                     SizedBox(height: 16.h.clamp(12, 20)),
 
                     // Stats Grid
-                    _buildStatsGrid(),
+                    _buildStatsGrid(controller),
                     SizedBox(height: 16.h.clamp(12, 20)),
 
                     // Premium Member Card
@@ -246,7 +246,7 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
     );
   }
 
-  Widget _buildStatsGrid() {
+  Widget _buildStatsGrid(ProviderProfileController controller) {
     return Column(
       children: [
         Row(
@@ -255,8 +255,8 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
               child: _buildStatCard(
                 icon: Icons.calendar_today,
                 label: 'Bookings',
-                value: '12',
-                subtitle: '+3 this week',
+                value: controller.bookingsCount.toString(),
+                subtitle: '+${controller.bookingsThisWeek} this week',
               ),
             ),
             SizedBox(width: 12.w),
@@ -264,8 +264,8 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
               child: _buildStatCard(
                 icon: Icons.euro,
                 label: 'Revenue',
-                value: '€8.4K',
-                subtitle: '+15% vs last month',
+                value: '€${_formatLargeNumber(controller.revenueAmount)}',
+                subtitle: '+${controller.revenueChange}% vs last month',
               ),
             ),
           ],
@@ -277,8 +277,8 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
               child: _buildStatCard(
                 icon: Icons.trending_up,
                 label: 'Profile Views',
-                value: '1.2K',
-                subtitle: '+8% this week',
+                value: _formatLargeNumber(controller.profileViews.toDouble()),
+                subtitle: 'this week', // API doesn't have weekly views % yet
               ),
             ),
             SizedBox(width: 12.w),
@@ -286,14 +286,21 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
               child: _buildStatCard(
                 icon: Icons.star,
                 label: 'Rating',
-                value: '4.9',
-                subtitle: '127 reviews',
+                value: controller.rating.toStringAsFixed(1),
+                subtitle: '${controller.reviewCount} reviews',
               ),
             ),
           ],
         ),
       ],
     );
+  }
+
+  String _formatLargeNumber(double number) {
+    if (number >= 1000) {
+      return '${(number / 1000).toStringAsFixed(1)}K';
+    }
+    return number.toInt().toString();
   }
 
   Widget _buildStatCard({

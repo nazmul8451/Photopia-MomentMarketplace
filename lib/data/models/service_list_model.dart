@@ -139,7 +139,14 @@ class ServiceItem {
     
     if (urlString == null || urlString.isEmpty) return null;
     if (urlString.startsWith('http')) return urlString;
-    return "${Urls.baseUrl}$urlString";
+    
+    // Ensure exactly one slash between baseUrl and urlString
+    final String base = Urls.baseUrl.endsWith('/') 
+        ? Urls.baseUrl.substring(0, Urls.baseUrl.length - 1) 
+        : Urls.baseUrl;
+    final String path = urlString.startsWith('/') ? urlString : '/$urlString';
+    
+    return "$base$path";
   }
 
   factory ServiceItem.fromJson(Map<String, dynamic> json) {
@@ -158,7 +165,7 @@ class ServiceItem {
       location: json['location'] != null
           ? LocationInfo.fromJson(json['location'])
           : null,
-      coverMedia: _formatUrl(json['coverMedia']),
+      coverMedia: _formatUrl(json['coverMedia'] ?? json['cover_media'] ?? json['image']),
       status: json['status']?.toString(),
       isActive: json['isActive'] == true || json['isActive'] == 'true',
       rating: double.tryParse(json['rating']?.toString() ?? '0.0') ?? 0.0,
@@ -224,7 +231,14 @@ class ProviderInfo {
     
     if (urlString == null || urlString.isEmpty) return null;
     if (urlString.startsWith('http')) return urlString;
-    return "${Urls.baseUrl}$urlString";
+    
+    // Ensure exactly one slash between baseUrl and urlString
+    final String base = Urls.baseUrl.endsWith('/') 
+        ? Urls.baseUrl.substring(0, Urls.baseUrl.length - 1) 
+        : Urls.baseUrl;
+    final String path = urlString.startsWith('/') ? urlString : '/$urlString';
+    
+    return "$base$path";
   }
 
   factory ProviderInfo.fromJson(Map<String, dynamic> json) {

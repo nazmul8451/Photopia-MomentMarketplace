@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
+import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'dart:ui';
 
 class HorizontalProjectCard extends StatelessWidget {
@@ -56,60 +57,12 @@ class HorizontalProjectCard extends StatelessWidget {
                   borderRadius: BorderRadius.vertical(
                     top: Radius.circular(12.r),
                   ),
-                  child: imageUrl.startsWith('http') || imageUrl.startsWith('assets') == false
-                      ? Image.network(
-                          imageUrl,
-                          width: 140.w,
-                          height: 125.h,
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Container(
-                              width: 140.w,
-                              height: 125.h,
-                              color: Colors.grey[100],
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  value: loadingProgress.expectedTotalBytes != null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                                ),
-                              ),
-                            );
-                          },
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 140.w,
-                              height: 125.h,
-                              color: Colors.grey[200],
-                              child: Icon(
-                                Icons.image_outlined,
-                                size: 40.sp,
-                                color: Colors.grey[400],
-                              ),
-                            );
-                          },
-                        )
-                      : Image.asset(
-                          imageUrl,
-                          width: 140.w,
-                          height: 125.h,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 140.w,
-                              height: 125.h,
-                              color: Colors.grey[200],
-                              child: Icon(
-                                Icons.image_outlined,
-                                size: 40.sp,
-                                color: Colors.grey[400],
-                              ),
-                            );
-                          },
-                        ),
+                  child: CustomNetworkImage(
+                    imageUrl: imageUrl,
+                    width: 140.w,
+                    height: 125.h,
+                    fit: BoxFit.cover,
+                  ),
                 ),
                 // Availability Badge
                 if (isAvailable)
@@ -263,5 +216,4 @@ class HorizontalProjectCard extends StatelessWidget {
       ),
     );
   }
-
 }

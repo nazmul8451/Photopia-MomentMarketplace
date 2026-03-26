@@ -104,6 +104,8 @@ class Data {
     this.title,
     this.description,
     this.category,
+    this.subCategory,
+    this.serviceType,
     this.tags,
     this.equipment,
     this.price,
@@ -355,15 +357,19 @@ class ProviderId {
 class Category {
   String? sId;
   String? name;
+  String? description;
   String? image;
+  String? serviceType;
   String? id;
 
-  Category({this.sId, this.name, this.image, this.id});
+  Category({this.sId, this.name, this.description, this.image, this.serviceType, this.id});
 
   Category.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     name = json['name'];
+    description = json['description'];
     image = json['image'];
+    serviceType = json['serviceType'];
     id = json['id'];
   }
 
@@ -371,7 +377,9 @@ class Category {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['_id'] = this.sId;
     data['name'] = this.name;
+    data['description'] = this.description;
     data['image'] = this.image;
+    data['serviceType'] = this.serviceType;
     data['id'] = this.id;
     return data;
   }
@@ -404,7 +412,7 @@ class CancellationPolicy {
 }
 
 class Location {
-  String? type;
+  String? type; // 'physical' or 'virtual'
   String? country;
   String? city;
   String? address;
@@ -413,11 +421,12 @@ class Location {
   String? sId;
 
   Location({
-    this.type,
+    this.type = 'physical',
     this.country,
     this.city,
     this.address,
-    this.serviceRadiusKm,
+    this.coordinates,
+    this.serviceRadiusKm = 0,
     this.sId,
   });
 

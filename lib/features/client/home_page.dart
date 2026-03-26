@@ -92,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
               final item = items[index];
               return HorizontalProjectCard(
                 id: item.sId,
-                imageUrl: item.coverMedia ?? 'assets/images/image.png',
+                imageUrl: item.coverMedia ?? '',
                 title: item.title ?? 'No Title',
                 providerName: item.providerId?.name ?? 'Unknown Provider',
                 rating: item.rating,

@@ -10,7 +10,8 @@ import 'package:provider/provider.dart';
 
 class BookingConfirmationScreen extends StatefulWidget {
   final Map<String, dynamic>? service;
-  const BookingConfirmationScreen({super.key, this.service});
+  final Map<String, dynamic>? package;
+  const BookingConfirmationScreen({super.key, this.service, this.package});
 
   @override
   State<BookingConfirmationScreen> createState() =>
@@ -789,10 +790,14 @@ class _BookingConfirmationScreenState
             ),
             child: Column(
               children: [
-                _buildPriceRow('Package Total', '€400'),
-                _buildPriceRow('Service Fee (3%)', '€12'),
+                _buildPriceRow('Package Total', 
+                    '${widget.package?['currency'] ?? '€'}${widget.package?['price'] ?? '0'}'),
+                _buildPriceRow('Service Fee (3%)', 
+                    '${widget.package?['currency'] ?? '€'}${((double.tryParse((widget.package?['price']?.toString() ?? '0').replaceAll(',', '')) ?? 0) * 0.03).toStringAsFixed(2)}'),
                 const Divider(),
-                _buildPriceRow('Total', '€412', isBold: true),
+                _buildPriceRow('Total', 
+                    '${widget.package?['currency'] ?? '€'}${((double.tryParse((widget.package?['price']?.toString() ?? '0').replaceAll(',', '')) ?? 0) * 1.03).toStringAsFixed(2)}', 
+                    isBold: true),
               ],
             ),
           ),
@@ -919,12 +924,25 @@ class _BookingConfirmationScreenState
     final String formattedDate =
         "${DateFormat('yyyy-MM-dd').format(_selectedDateTime!)}T00:00:00.000Z";
 
+    // Calculate endTime based on package duration
+    String endTime = "18:00";
+    if (_selectedTime.isNotEmpty && widget.package != null) {
+      try {
+        final durationStr = widget.package!['duration']?.toString() ?? "1";
+        final int durationHours = int.tryParse(durationStr.split(' ')[0]) ?? 1;
+        final int startHour = int.tryParse(_selectedTime.split(':')[0]) ?? 9;
+        endTime = "${(startHour + durationHours).toString().padLeft(2, '0')}:00";
+      } catch (e) {
+        debugPrint("Error calculating endTime: $e");
+      }
+    }
+
     final success = await context.read<BookingController>().createBooking(
           providerId: providerId,
           serviceId: serviceId.toString(),
           bookingDate: formattedDate,
           startTime: _selectedTime,
-          endTime: "18:00",
+          endTime: endTime,
           address: _location,
           city: _city ?? "Dhaka",
           country: _country ?? "Bangladesh",

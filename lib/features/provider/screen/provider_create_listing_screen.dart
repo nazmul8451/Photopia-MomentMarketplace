@@ -27,6 +27,7 @@ class _ProviderCreateListingScreenState
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _countryController = TextEditingController();
+  final TextEditingController _subCategoryController = TextEditingController();
   final TextEditingController _durationController = TextEditingController();
   final TextEditingController _equipmentController = TextEditingController();
 
@@ -57,6 +58,7 @@ class _ProviderCreateListingScreenState
   final List<String> _equipment = [];
   final List<File> _selectedImages = [];
   final List<String> _existingNetworkImages = []; // Track original images URL
+  List<String> _dynamicServiceTypes = [];
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -74,6 +76,7 @@ class _ProviderCreateListingScreenState
       _locationController.text = listing.location?.city ?? '';
       _addressController.text = listing.location?.address ?? '';
       _countryController.text = listing.location?.country ?? '';
+      _subCategoryController.text = listing.subCategory ?? '';
       _durationController.text = listing.duration ?? '';
 
       if (listing.tags != null && listing.tags!.isNotEmpty) {
@@ -144,14 +147,31 @@ class _ProviderCreateListingScreenState
       setState(() {
         if (categories.isNotEmpty) {
           _categories = categories;
+
+          // Extract unique service types from API categories
+          final types = _categories
+              .map((c) => c.serviceType)
+              .where((st) => st != null && st.isNotEmpty)
+              .cast<String>()
+              .toSet()
+              .toList();
+
+          if (types.isNotEmpty) {
+            _dynamicServiceTypes = types;
+            // Set default if not editing
+            if (widget.existingListing == null) {
+              _selectedServiceType = _dynamicServiceTypes.first;
+            }
+          }
         } else {
-          // Local fallback if everything else fails
+          // Local fallback
           _categories = [
-            Category(sId: "6967f8313c7a3a49e02c1fde", name: "Photography"),
-            Category(sId: "65e8a5b4f1a2b3c4d5e6f702", name: "Videography"),
-            Category(sId: "65e8a5b4f1a2b3c4d5e6f703", name: "Video Editing"),
+            Category(sId: "6967f8313c7a3a49e02c1fde", name: "Photography", serviceType: "photography"),
+            Category(sId: "65e8a5b4f1a2b3c4d5e6f702", name: "Videography", serviceType: "videography"),
           ];
+          _dynamicServiceTypes = ["photography", "videography"];
         }
+        
         if (widget.existingListing != null &&
             widget.existingListing!.category != null) {
           final existingCatId =
@@ -161,7 +181,11 @@ class _ProviderCreateListingScreenState
             (c) => c.sId == existingCatId,
             orElse: () => _categories.first,
           );
-        } else {
+          // Set service type from existing if found
+          if (widget.existingListing!.serviceType != null) {
+            _selectedServiceType = widget.existingListing!.serviceType!;
+          }
+        } else if (_categories.isNotEmpty) {
           _selectedCategory = _categories.first;
         }
         _isLoadingCategories = false;
@@ -176,6 +200,7 @@ class _ProviderCreateListingScreenState
     _locationController.dispose();
     _addressController.dispose();
     _countryController.dispose();
+    _subCategoryController.dispose();
     _durationController.dispose();
     _equipmentController.dispose();
     _hourlyRateController.dispose();
@@ -199,11 +224,11 @@ class _ProviderCreateListingScreenState
       if (_selectedImages.length +
               _existingNetworkImages.length +
               images.length >
-          5) {
+          10) {
         if (mounted) {
           CustomSnackBar.show(
             context: context,
-            message: 'You can only upload up to 5 images',
+            message: 'You can only upload up to 10 images',
             isError: true,
           );
         }
@@ -287,6 +312,7 @@ class _ProviderCreateListingScreenState
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
       category: _selectedCategory,
+      subCategory: _subCategoryController.text.trim(),
       tags: [_selectedServiceType],
       equipment: _equipment,
       price:
@@ -298,12 +324,13 @@ class _ProviderCreateListingScreenState
                 : _basicPackagePriceController.text,
           ) ??
           0,
-      currency: "USD",
+      currency: "EUR",
       pricingType: _selectedPricingModel == 'By Hour'
           ? "HOURLY"
           : _selectedPricingModel == 'By Day'
           ? "DAILY"
           : "PACKAGE",
+      serviceType: _selectedServiceType.toLowerCase(), // e.g. 'photography'
       location: Location(
         type: "ONSITE",
         country: _countryController.text.trim(),
@@ -314,13 +341,14 @@ class _ProviderCreateListingScreenState
       allowOutsideRadius: _acceptOutsideRadius,
       duration: _durationController.text.trim(),
       pricingRules: [], // Optional
-      // Preserve existing images, just use the raw paths
-      coverMedia: _existingNetworkImages.isNotEmpty
-          ? _existingNetworkImages.first
+      // Ensure all current images are in the list we pass to the controller
+      coverMedia: _existingNetworkImages.isNotEmpty 
+          ? _existingNetworkImages.first 
           : null,
-      gallery: _existingNetworkImages.length > 1
-          ? _existingNetworkImages.sublist(1)
-          : [],
+      gallery: _existingNetworkImages.toList(), // Send FULL list as gallery to be safe
+      status: "ACTIVE", 
+      isActive: true,
+      isVerified: widget.existingListing?.isVerified ?? false,
     );
 
     // Setup packages if SERVICE pricing
@@ -427,10 +455,18 @@ class _ProviderCreateListingScreenState
                   _buildDropdown(),
                   SizedBox(height: 20.h),
 
+                  _buildLabel('Sub-Category (Optional)'),
+                  _buildTextField(
+                    hintText: 'Wedding, Portrait, etc.',
+                    controller: _subCategoryController,
+                  ),
+                  SizedBox(height: 20.h),
+
                   _buildLabel('Service Type'),
-                  _buildRadioOption('Photography'),
-                  _buildRadioOption('Videography'),
-                  _buildRadioOption('Video Editing'),
+                  if (_dynamicServiceTypes.isEmpty)
+                    const Text('No service types found')
+                  else
+                    ..._dynamicServiceTypes.map((type) => _buildRadioOption(type)).toList(),
                   SizedBox(height: 20.h),
 
                   _buildLabel('Pricing Model'),
@@ -438,21 +474,21 @@ class _ProviderCreateListingScreenState
                   SizedBox(height: 20.h),
 
                   if (_selectedPricingModel == 'By Service') ...[
-                    _buildLabel('Basic Package (\$)'),
+                    _buildLabel('Basic Package (€)'),
                     _buildTextField(
                       hintText: '500',
                       controller: _basicPackagePriceController,
                     ),
                     SizedBox(height: 20.h),
 
-                    _buildLabel('Standard Package (\$)'),
+                    _buildLabel('Standard Package (€)'),
                     _buildTextField(
                       hintText: '1200',
                       controller: _standardPackagePriceController,
                     ),
                     SizedBox(height: 20.h),
 
-                    _buildLabel('Premium Package (\$)'),
+                    _buildLabel('Premium Package (€)'),
                     _buildTextField(
                       hintText: '2500',
                       controller: _premiumPackagePriceController,
@@ -460,7 +496,7 @@ class _ProviderCreateListingScreenState
                     SizedBox(height: 20.h),
                   ] else ...[
                     _buildLabel(
-                      '${_selectedPricingModel == 'By Day' ? 'Daily' : 'Weekday Hourly'} Rate (\$)',
+                      '${_selectedPricingModel == 'By Day' ? 'Daily' : 'Weekday Hourly'} Rate (€)',
                     ),
                     _buildTextField(
                       hintText: _selectedPricingModel == 'By Day'
@@ -473,7 +509,7 @@ class _ProviderCreateListingScreenState
                     SizedBox(height: 20.h),
 
                     _buildLabel(
-                      '${_selectedPricingModel == 'By Day' ? 'Weekend Daily' : 'Weekend Hourly'} Rate (\$)',
+                      '${_selectedPricingModel == 'By Day' ? 'Weekend Daily' : 'Weekend Hourly'} Rate (€)',
                     ),
                     _buildTextField(
                       hintText: _selectedPricingModel == 'By Day'
@@ -494,9 +530,9 @@ class _ProviderCreateListingScreenState
                   ),
                   SizedBox(height: 20.h),
 
-                  _buildLabel('Duration (Optional)'),
+                  _buildLabel('Duration'),
                   _buildTextField(
-                    hintText: '2-4 hours',
+                    hintText: '2 hours',
                     controller: _durationController,
                   ),
                   SizedBox(height: 20.h),
@@ -538,8 +574,8 @@ class _ProviderCreateListingScreenState
 
                   _buildLabel(
                     widget.existingListing != null
-                        ? 'Photos (Max 5, existing kept if not removed)'
-                        : 'Photos (Max 5)',
+                        ? 'Photos (Max 10, existing kept if not removed)'
+                        : 'Photos (Max 10)',
                   ),
                   _buildPhotoUploadArea(),
                   if (_existingNetworkImages.isNotEmpty ||
@@ -677,6 +713,9 @@ class _ProviderCreateListingScreenState
           onChanged: (newValue) {
             setState(() {
               _selectedCategory = newValue;
+              if (newValue?.serviceType != null && newValue!.serviceType!.isNotEmpty) {
+                _selectedServiceType = newValue.serviceType!;
+              }
             });
           },
         ),

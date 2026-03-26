@@ -209,6 +209,7 @@ class _SelectPackageScreenState extends State<SelectPackageScreen> {
                 MaterialPageRoute(
                   builder: (context) => BookingConfirmationScreen(
                     service: widget.service,
+                    package: _packages[_selectedPackageIndex],
                   ),
                 ),
               );
