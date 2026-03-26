@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
-import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/features/provider/screen/provider_notification_screen.dart';
 import 'package:photopia/features/provider/screen/booking_details_screen.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
@@ -172,8 +171,16 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
   }
 
   Widget _buildTodayTab(ProviderOrdersController controller) {
-    final todayOrders = controller.orders; // Replace with proper date filtering later
-    return ListView.builder(
+    final todayStr = DateTime.now().toIso8601String().substring(0, 10);
+    final todayOrders = controller.orders.where((o) => 
+      o['bookingDate']?.toString().startsWith(todayStr) == true
+    ).toList();
+    
+    return RefreshIndicator(
+      color: Colors.black,
+      backgroundColor: Colors.white,
+      onRefresh: () => controller.getMyOrders(),
+      child: ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       itemCount: todayOrders.isEmpty ? 1 : todayOrders.length + 1,
       itemBuilder: (context, index) {
@@ -212,22 +219,41 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
         }
         
         final order = todayOrders[index - 1];
+        final client = order['clientId'] is Map ? order['clientId'] : {};
+        final service = order['serviceId'] is Map ? order['serviceId'] : {};
+        final location = order['eventLocation'] is Map ? order['eventLocation'] : {};
+
+        final price = order['pricingDetails']?['subtotal']?.toString() ?? 
+                      order['pricingDetails']?['clientTotal']?.toString() ?? 
+                      order['totalAmount']?.toString() ?? '0';
+
         return _buildTodayBookingCard(
-          name: order['client']?['name'] ?? 'Unknown Client',
-          service: order['service']?['title'] ?? 'Unknown Service',
-          time: order['time'] ?? 'N/A',
-          location: order['location'] ?? 'Location N/A',
-          price: order['price']?.toString() ?? '0',
-          imageUrl: order['client']?['profile'] ?? 'assets/images/img1.png',
-          status: order['status'] ?? 'Confirmed',
+          name: client['name'] ?? 'Unknown Client',
+          service: service['title'] ?? 'Unknown Service',
+          time: order['startTime'] ?? 'N/A',
+          location: location['address'] ?? 'Location N/A',
+          price: price,
+          imageUrl: client['profile'] ?? '',
+          status: order['status'] ?? 'pending',
+          booking: order,
         );
       },
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildUpcomingTab(ProviderOrdersController controller) {
-    final upcomingOrders = controller.orders.where((o) => o['status'] == 'Confirmed').toList();
-    return ListView.builder(
+    final todayStr = DateTime.now().toIso8601String().substring(0, 10);
+    final upcomingOrders = controller.orders.where((o) => 
+      o['bookingDate']?.toString().compareTo(todayStr) == 1 && 
+      o['status']?.toString().toLowerCase() == 'confirmed'
+    ).toList();
+    
+    return RefreshIndicator(
+      color: Colors.black,
+      backgroundColor: Colors.white,
+      onRefresh: () => controller.getMyOrders(),
+      child: ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       itemCount: upcomingOrders.isEmpty ? 1 : upcomingOrders.length + 1,
       itemBuilder: (context, index) {
@@ -266,21 +292,34 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
         }
         
         final order = upcomingOrders[index - 1];
+        final client = order['clientId'] is Map ? order['clientId'] : {};
+        final service = order['serviceId'] is Map ? order['serviceId'] : {};
+
+        final price = order['pricingDetails']?['subtotal']?.toString() ?? 
+                      order['pricingDetails']?['clientTotal']?.toString() ?? 
+                      order['totalAmount']?.toString() ?? '0';
+
         return _buildUpcomingBookingCard(
-          name: order['client']?['name'] ?? 'Unknown Client',
-          service: order['service']?['title'] ?? 'Unknown Service',
-          date: order['date'] ?? 'N/A',
-          time: order['time'] ?? 'N/A',
-          price: order['price']?.toString() ?? '0',
-          status: order['status'] ?? 'Confirmed',
+          name: client['name'] ?? 'Unknown Client',
+          service: service['title'] ?? 'Unknown Service',
+          date: order['bookingDate']?.toString().split('T')[0] ?? 'N/A',
+          time: order['startTime'] ?? 'N/A',
+          price: price,
+          status: order['status'] ?? 'confirmed',
+          booking: order,
         );
       },
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildPendingTab(ProviderOrdersController controller) {
-    final pendingOrders = controller.orders.where((o) => o['status'] == 'Pending').toList();
-    return ListView.builder(
+    final pendingOrders = controller.orders.where((o) => o['status']?.toString().toLowerCase() == 'pending').toList();
+    return RefreshIndicator(
+      color: Colors.black,
+      backgroundColor: Colors.white,
+      onRefresh: () => controller.getMyOrders(),
+      child: ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       itemCount: pendingOrders.isEmpty ? 1 : pendingOrders.length + 1,
       itemBuilder: (context, index) {
@@ -319,19 +358,29 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
         }
         
         final order = pendingOrders[index - 1];
+        final client = order['clientId'] is Map ? order['clientId'] : {};
+        final service = order['serviceId'] is Map ? order['serviceId'] : {};
+        final location = order['eventLocation'] is Map ? order['eventLocation'] : {};
+
+        final price = order['pricingDetails']?['subtotal']?.toString() ?? 
+                      order['pricingDetails']?['clientTotal']?.toString() ?? 
+                      order['totalAmount']?.toString() ?? '0';
+
         return _buildPendingBookingCard(
-          name: order['client']?['name'] ?? 'Unknown Client',
-          service: order['service']?['title'] ?? 'Unknown Service',
+          name: client['name'] ?? 'Unknown Client',
+          service: service['title'] ?? 'Unknown Service',
           requestedAgo: 'Requested recently',
-          date: order['date'] ?? 'N/A',
-          time: order['time'] ?? 'N/A',
-          location: order['location'] ?? 'Location N/A',
-          price: order['price']?.toString() ?? '0',
-          imageUrl: order['client']?['profile'] ?? 'assets/images/img3.png',
+          date: order['bookingDate']?.toString().split('T')[0] ?? 'N/A',
+          time: order['startTime'] ?? 'N/A',
+          location: location['address'] ?? 'Location N/A',
+          price: price,
+          imageUrl: client['profile'] ?? '',
+          booking: order,
         );
       },
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildTodayBookingCard({
     required String name,
@@ -341,6 +390,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
     required String price,
     required String imageUrl,
     required String status,
+    required Map<String, dynamic> booking,
   }) {
     return Container(
       margin: EdgeInsets.only(bottom: 15.h),
@@ -384,14 +434,18 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFE8F5E9),
+                            color: status.toString().toLowerCase() == 'confirmed' 
+                              ? const Color(0xFFE8F5E9) 
+                              : const Color(0xFFFFF3E0),
                             borderRadius: BorderRadius.circular(6.r),
                           ),
                           child: Text(
                             status,
                             style: TextStyle(
                               fontSize: AppTypography.bodySmall,
-                              color: const Color(0xFF2E7D32),
+                              color: status.toString().toLowerCase() == 'confirmed' 
+                                ? const Color(0xFF2E7D32) 
+                                : const Color(0xFFE65100),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -448,7 +502,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '\$$price',
+                '€$price',
                 style: TextStyle(
                   fontSize: AppTypography.h2,
                   fontWeight: FontWeight.bold,
@@ -458,27 +512,23 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Flexible(
-                      child: _buildButton(
-                        text: 'Contact',
-                        onTap: () {},
-                        isPrimary: false,
-                      ),
+                    _buildButton(
+                      text: 'Contact',
+                      onTap: () {},
+                      isPrimary: false,
                     ),
                     SizedBox(width: 10.w),
-                    Flexible(
-                      child: _buildButton(
-                        text: 'Details',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => BookingDetailsScreen(),
-                            ),
-                          );
-                        },
-                        isPrimary: true,
-                      ),
+                    _buildButton(
+                      text: 'Details',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BookingDetailsScreen(booking: booking),
+                          ),
+                        );
+                      },
+                      isPrimary: true,
                     ),
                   ],
                 ),
@@ -497,6 +547,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
     required String time,
     required String price,
     required String status,
+    required Map<String, dynamic> booking,
   }) {
     return Container(
       margin: EdgeInsets.only(bottom: 15.h),
@@ -539,14 +590,14 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: status == 'Confirmed' ? const Color(0xFFE8F5E9) : const Color(0xFFFFF3E0),
+                  color: status.toString().toLowerCase() == 'confirmed' ? const Color(0xFFE8F5E9) : const Color(0xFFFFF3E0),
                   borderRadius: BorderRadius.circular(6.r),
                 ),
                 child: Text(
                   status,
                   style: TextStyle(
                     fontSize: AppTypography.bodySmall,
-                    color: status == 'Confirmed' ? const Color(0xFF2E7D32) : const Color(0xFFE65100),
+                    color: status.toString().toLowerCase() == 'confirmed' ? const Color(0xFF2E7D32) : const Color(0xFFE65100),
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -585,7 +636,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
             children: [
               Flexible(
                 child: Text(
-                  '\$$price',
+                  '€$price',
                   style: TextStyle(
                     fontSize: AppTypography.h2,
                     fontWeight: FontWeight.bold,
@@ -601,10 +652,10 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => BookingDetailsScreen(),
-                      ),
-                    );
-                  },
+                          builder: (context) => BookingDetailsScreen(booking: booking),
+                        ),
+                      );
+                    },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -641,6 +692,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
     required String location,
     required String price,
     required String imageUrl,
+    required Map<String, dynamic> booking,
   }) {
     return Container(
       margin: EdgeInsets.only(bottom: 15.h),
@@ -766,7 +818,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '\$$price',
+                '€$price',
                 style: TextStyle(
                   fontSize: AppTypography.h2,
                   fontWeight: FontWeight.bold,
@@ -774,28 +826,26 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
               ),
               Row(
                 children: [
-                  Flexible(
-                    child: _buildTextButton(
-                      text: 'Decline',
-                      onTap: () => _showConfirmationDialog(
-                        context: context,
-                        isAccept: false,
-                      ),
-                      icon: Icons.close,
-                      color: Colors.red,
+                  _buildTextButton(
+                    text: 'Decline',
+                    onTap: () => _showConfirmationDialog(
+                      context: context,
+                      isAccept: false,
+                      bookingId: booking['_id'] ?? '',
                     ),
+                    icon: Icons.close,
+                    color: Colors.red,
                   ),
                   SizedBox(width: 15.w),
-                  Flexible(
-                    child: _buildTextButton(
-                      text: 'Accept',
-                      onTap: () => _showConfirmationDialog(
-                        context: context,
-                        isAccept: true,
-                      ),
-                      icon: Icons.check,
-                      color: Colors.black,
+                  _buildTextButton(
+                    text: 'Accept',
+                    onTap: () => _showConfirmationDialog(
+                      context: context,
+                      isAccept: true,
+                      bookingId: booking['_id'] ?? '',
                     ),
+                    icon: Icons.check,
+                    color: Colors.black,
                   ),
                 ],
               ),
@@ -808,7 +858,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => BookingDetailsScreen(),
+                    builder: (context) => BookingDetailsScreen(booking: booking),
                   ),
                 );
               },
@@ -838,6 +888,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
   void _showConfirmationDialog({
     required BuildContext context,
     required bool isAccept,
+    required String bookingId,
   }) {
     showDialog(
       context: context,
@@ -856,12 +907,15 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      isAccept ? 'Are you want to Accept this' : 'Are you want to Decline This',
-                      style: TextStyle(
-                        fontSize: AppTypography.h1,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black87,
+                    Expanded(
+                      child: Text(
+                        isAccept ? 'Are you want to Accept this' : 'Are you want to Decline This',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
                       ),
                     ),
                     GestureDetector(
@@ -879,27 +933,42 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                   children: [
                     // Yes Button
                     GestureDetector(
-                      onTap: () {
-                        // Handle action
+                      onTap: () async {
+                        final status = isAccept ? 'confirmed' : 'cancelled';
+                        final controller = Provider.of<ProviderOrdersController>(context, listen: false);
+                        
+                        // Close dialog
                         Navigator.pop(context);
+                        
+                        final success = await controller.updateOrderStatus(bookingId, status);
+                        
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(success 
+                                ? 'Order ${isAccept ? 'accepted' : 'declined'} successfully!' 
+                                : 'Failed to update order status'),
+                              backgroundColor: success ? Colors.green : Colors.red,
+                            ),
+                          );
+                        }
                       },
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+                        padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 10.h),
                         decoration: BoxDecoration(
                           color: const Color(0xFFE8F5E9),
-                          borderRadius: BorderRadius.circular(10.r),
-                          border: Border.all(color: const Color(0xFF2E7D32).withOpacity(0.3)),
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.check, size: 18.sp, color: const Color(0xFF2E7D32)),
+                            const Icon(Icons.check, color: Color(0xFF2E7D32), size: 18),
                             SizedBox(width: 8.w),
                             Text(
                               'Yes',
                               style: TextStyle(
+                                color: const Color(0xFF2E7D32),
                                 fontSize: 16.sp,
                                 fontWeight: FontWeight.bold,
-                                color: const Color(0xFF2E7D32),
                               ),
                             ),
                           ],

@@ -57,4 +57,6 @@ class Urls {
   static const String chat = '$baseUrl/api/v1/chat';
   static const String statistics = '$baseUrl/api/v1/professional-profiles/statistics';
   static const String statisticsExport = '$baseUrl/api/v1/professional-profiles/statistics/export';
+  static const String createBooking = '$baseUrl/api/v1/booking';
+  static String updateBookingStatus(String id) => '$baseUrl/api/v1/booking/$id/status';
 }

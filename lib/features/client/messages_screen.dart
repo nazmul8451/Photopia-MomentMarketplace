@@ -56,6 +56,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   return RefreshIndicator(
                     onRefresh: () => chatController.getChats(),
                     color: Colors.black,
+                    backgroundColor: Colors.white,
                     child: _buildConversationList(chatController.chats),
                   );
                 },

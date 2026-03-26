@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:photopia/controller/provider/calender_availibility_controller.dart';
+import 'package:photopia/controller/location_controller.dart';
+import 'package:photopia/controller/client/booking_controller.dart';
+import 'package:photopia/controller/client/user_profile_controller.dart';
 import 'package:photopia/data/models/calender_availibility_model.dart';
 import 'package:provider/provider.dart';
 
@@ -25,8 +28,22 @@ class _BookingConfirmationScreenState
   DateTime? _selectedDateTime;
   String _selectedTime = '';
   String _location = '';
+  double? _lat;
+  double? _lng;
+  String? _city;
+  String? _country;
   String _specialRequests = '';
   String _paymentMethod = 'Credit/Debit Card';
+
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _specialRequestsController = TextEditingController();
+
+  @override
+  void dispose() {
+    _locationController.dispose();
+    _specialRequestsController.dispose();
+    super.dispose();
+  }
 
   // Availability
   Data? _availabilityData;
@@ -43,18 +60,26 @@ class _BookingConfirmationScreenState
 
   Future<void> _fetchAvailability() async {
     setState(() => _isLoadingAvailability = true);
-    final providerId = widget.service?['providerId'] ??
-        widget.service?['provider']?['_id'] ??
-        widget.service?['provider']?['id'];
+    
+    String? providerId;
+    if (widget.service?['providerId'] is Map) {
+      providerId = widget.service!['providerId']['_id']?.toString() ?? 
+                   widget.service!['providerId']['id']?.toString();
+    } else {
+      providerId = widget.service?['providerId']?.toString() ??
+          widget.service?['provider']?['_id']?.toString() ??
+          widget.service?['provider']?['id']?.toString();
+    }
+    
     debugPrint('📅 BookingScreen: Fetching availability for: $providerId');
 
     if (providerId != null) {
       final controller = context.read<CalenderAvailibilityController>();
       final model = await controller.getAvailabilitySettings(
-          providerId: providerId.toString());
-      if (mounted && model?.data != null) {
+          providerId: providerId);
+      if (mounted) {
         setState(() {
-          _availabilityData = model!.data;
+          _availabilityData = model?.data;
           _buildAvailableDates();
         });
       }
@@ -70,14 +95,13 @@ class _BookingConfirmationScreenState
     final now = DateTime.now();
     for (int i = 0; i < 30; i++) {
       final date = DateTime(now.year, now.month, now.day + i);
-      if (_isDayWorking(date)) dates.add(date);
-      if (dates.length >= 14) break;
+      dates.add(date);
     }
     setState(() => _availableDates = dates);
   }
 
   bool _isDayWorking(DateTime date) {
-    if (_availabilityData == null) return true;
+    if (_availabilityData == null) return false;
 
     if (_availabilityData!.customDates != null) {
       for (var cd in _availabilityData!.customDates!) {
@@ -117,7 +141,7 @@ class _BookingConfirmationScreenState
         daySchedule = _availabilityData!.defaultSchedule?.sunday;
         break;
     }
-    return daySchedule?.isActive ?? true;
+    return daySchedule?.isActive ?? false;
   }
 
   void _onDateSelected(DateTime date) {
@@ -381,6 +405,31 @@ class _BookingConfirmationScreenState
               style: TextStyle(
                   fontSize: 13.sp.clamp(13, 14), color: Colors.grey)),
           SizedBox(height: 25.h),
+          if (!_isLoadingAvailability && _availabilityData == null)
+            Padding(
+              padding: EdgeInsets.only(bottom: 15.h),
+              child: Container(
+                padding: EdgeInsets.all(12.w),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(color: Colors.red.shade100),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.red, size: 20.sp),
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child: Text(
+                        "This provider hasn't set their availability schedule yet.",
+                        style: TextStyle(
+                            color: Colors.red.shade800, fontSize: 13.sp),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           content,
           SizedBox(height: 30.h),
           _buildBottomButton(),
@@ -463,41 +512,45 @@ class _BookingConfirmationScreenState
       itemCount: _availableDates.length,
       itemBuilder: (context, index) {
         final date = _availableDates[index];
+        final isWorking = _isDayWorking(date);
         final isSelected = _selectedDateTime != null &&
             _selectedDateTime!.year == date.year &&
             _selectedDateTime!.month == date.month &&
             _selectedDateTime!.day == date.day;
 
         return GestureDetector(
-          onTap: () => _onDateSelected(date),
+          onTap: isWorking ? () => _onDateSelected(date) : null,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isWorking ? Colors.white : Colors.grey.shade50,
               borderRadius: BorderRadius.circular(10).r,
               border: Border.all(
-                color: isSelected ? Colors.black : Colors.grey.shade200,
+                color: isSelected ? Colors.black : (isWorking ? Colors.grey.shade200 : Colors.grey.shade100),
                 width: isSelected ? 1.5 : 1,
               ),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  DateFormat('EEE').format(date), // Mon, Tue...
-                  style: TextStyle(
-                    fontSize: 10.sp,
-                    color: Colors.grey,
+            child: Opacity(
+              opacity: isWorking ? 1.0 : 0.4,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    DateFormat('EEE').format(date), // Mon, Tue...
+                    style: TextStyle(
+                      fontSize: 10.sp,
+                      color: Colors.grey,
+                    ),
                   ),
-                ),
-                Text(
-                  DateFormat('MMM dd').format(date), // Jun 17
-                  style: TextStyle(
-                    fontSize: 12.sp.clamp(12, 13),
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                  Text(
+                    DateFormat('MMM dd').format(date), // Jun 17
+                    style: TextStyle(
+                      fontSize: 12.sp.clamp(12, 13),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -578,27 +631,75 @@ class _BookingConfirmationScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Location Details',
-              style: TextStyle(
-                  fontSize: 16.sp.clamp(16, 18),
-                  fontWeight: FontWeight.bold)),
-          SizedBox(height: 8.h),
-          Text('Where should the session take place?',
-              style: TextStyle(
-                  fontSize: 13.sp.clamp(13, 14), color: Colors.grey)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Location Details',
+                      style: TextStyle(
+                          fontSize: 16.sp.clamp(16, 18),
+                          fontWeight: FontWeight.bold)),
+                  SizedBox(height: 8.h),
+                  Text('Where should the session take place?',
+                      style: TextStyle(
+                          fontSize: 13.sp.clamp(13, 14), color: Colors.grey)),
+                ],
+              ),
+              Consumer<LocationController>(
+                builder: (context, locationCtrl, child) {
+                  return IconButton(
+                    onPressed: () async {
+                      await locationCtrl.determinePosition();
+                      if (locationCtrl.currentAddress != "Error getting location" &&
+                          !locationCtrl.currentAddress.contains("denied")) {
+                        setState(() {
+                          _location = locationCtrl.currentAddress;
+                          _locationController.text = _location;
+                          _lat = locationCtrl.latitude;
+                          _lng = locationCtrl.longitude;
+                          _city = locationCtrl.city;
+                          _country = locationCtrl.country;
+                        });
+                      }
+                    },
+                    icon: locationCtrl.isLoading
+                        ? SizedBox(
+                            width: 20.sp,
+                            height: 20.sp,
+                            child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                          )
+                        : Icon(Icons.my_location, color: Colors.black, size: 24.sp),
+                  );
+                },
+              ),
+            ],
+          ),
           SizedBox(height: 25.h),
           _buildInputLabel('Location Address'),
           _buildTextField(
+            controller: _locationController,
             hint: 'Enter location address',
             icon: Icons.location_on_outlined,
-            onChanged: (val) => _location = val,
+            onChanged: (val) {
+              setState(() {
+                _location = val;
+                // Clear auto-detected coords if user types manually to prevent mismatch
+                _lat = null;
+                _lng = null;
+                _city = null;
+                _country = null;
+              });
+            },
           ),
           SizedBox(height: 25.h),
           _buildInputLabel('Special Requests (Optional)'),
           _buildTextField(
+            controller: _specialRequestsController,
             hint: 'Any specific requirements or notes for the photographer',
             maxLines: 5,
-            onChanged: (val) => _specialRequests = val,
+            onChanged: (val) => setState(() => _specialRequests = val),
           ),
           SizedBox(height: 40.h),
           _buildBottomButton(),
@@ -773,37 +874,136 @@ class _BookingConfirmationScreenState
     );
   }
 
+  Future<void> _handleBooking() async {
+    // Sync location with controller in case onChanged didn't fire for some edge case
+    _location = _locationController.text;
+    _specialRequests = _specialRequestsController.text;
+
+    final userProfile = context.read<UserProfileController>().userProfile;
+    if (userProfile == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please log in to continue')),
+      );
+      return;
+    }
+
+    final providerId = widget.service?['providerId'] is Map
+        ? widget.service!['providerId']['_id']?.toString()
+        : widget.service?['providerId']?.toString();
+
+    final serviceId = widget.service?['_id'] ?? widget.service?['id'];
+
+    if (providerId == null ||
+        serviceId == null ||
+        _selectedDateTime == null ||
+        _selectedTime.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Missing booking details')),
+      );
+      return;
+    }
+
+    if (_location.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please provide a location address')),
+      );
+      _pageController.animateToPage(
+        3, // Move back to Step 2 (Location Details)
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+      return;
+    }
+
+    // Format date for API (YYYY-MM-DDT00:00:00.000Z)
+    final String formattedDate =
+        "${DateFormat('yyyy-MM-dd').format(_selectedDateTime!)}T00:00:00.000Z";
+
+    final success = await context.read<BookingController>().createBooking(
+          providerId: providerId,
+          serviceId: serviceId.toString(),
+          bookingDate: formattedDate,
+          startTime: _selectedTime,
+          endTime: "18:00",
+          address: _location,
+          city: _city ?? "Dhaka",
+          country: _country ?? "Bangladesh",
+          // Use auto-detected lat/lng if available, otherwise use static fallback
+          lat: _lat ?? 23.8103,
+          lng: _lng ?? 90.4125,
+          clientName: userProfile.fullName,
+          clientEmail: userProfile.email,
+          clientPhone: userProfile.phone,
+          eventType: "Photography Session",
+          specialRequests: _specialRequests,
+          notes: _specialRequests,
+        );
+
+    if (success && mounted) {
+      _pageController.animateToPage(
+        6,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(context.read<BookingController>().errorMessage ??
+                'Booking failed')),
+      );
+    }
+  }
+
   Widget _buildBottomButton() {
-    return GestureDetector(
-      onTap: () {
-        if (_pageIndex < 6) {
-          int nextPageIndex = _pageIndex + 1;
-          if (_pageIndex < 3) nextPageIndex = 3;
-          _pageController.animateToPage(
-            nextPageIndex,
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeInOut,
-          );
-        }
-      },
-      child: Container(
-        width: double.infinity,
-        height: 55.h,
-        decoration: BoxDecoration(
-          color: const Color(0xFF1F1F1F),
-          borderRadius: BorderRadius.circular(12).r,
-        ),
-        child: Center(
-          child: Text(
-            'Continue',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16.sp.clamp(16, 18),
-              fontWeight: FontWeight.bold,
+    return Consumer<BookingController>(
+      builder: (context, bookingCtrl, child) {
+        return GestureDetector(
+          onTap: () {
+            if (bookingCtrl.isLoading) return;
+
+            if (_pageIndex < 5) {
+              // Validate location before moving from Step 2 to Review
+              if (_pageIndex == 3 && _location.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please provide a location address')),
+                );
+                return;
+              }
+
+              int nextPageIndex = _pageIndex + 1;
+              if (_pageIndex < 3) nextPageIndex = 3;
+              _pageController.animateToPage(
+                nextPageIndex,
+                duration: const Duration(milliseconds: 400),
+                curve: Curves.easeInOut,
+              );
+            } else if (_pageIndex == 5) {
+              // Final review step -> call API
+              _handleBooking();
+            }
+          },
+          child: Container(
+            width: double.infinity,
+            height: 55.h,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1F1F1F),
+              borderRadius: BorderRadius.circular(12).r,
+            ),
+            child: Center(
+              child: bookingCtrl.isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : Text(
+                      _pageIndex == 5 ? 'Finish Booking' : 'Continue',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.sp.clamp(16, 18),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -826,8 +1026,10 @@ class _BookingConfirmationScreenState
       {required String hint,
       IconData? icon,
       int maxLines = 1,
+      TextEditingController? controller,
       Function(String)? onChanged}) {
     return TextField(
+      controller: controller,
       maxLines: maxLines,
       onChanged: onChanged,
       decoration: InputDecoration(

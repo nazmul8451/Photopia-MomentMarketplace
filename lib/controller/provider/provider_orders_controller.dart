@@ -23,6 +23,10 @@ class ProviderOrdersController extends ChangeNotifier {
     if (response.isSuccess) {
       if (response.body != null && response.body!['data'] != null) {
         _orders = response.body!['data'];
+        debugPrint("Fetched ${_orders.length} orders");
+        if (_orders.isNotEmpty) {
+          debugPrint("First order status: ${_orders[0]['status']}, date: ${_orders[0]['bookingDate']}");
+        }
       }
       notifyListeners();
       return true;
@@ -31,5 +35,27 @@ class ProviderOrdersController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  bool _isUpdating = false;
+  bool get isUpdating => _isUpdating;
+
+  Future<bool> updateOrderStatus(String bookingId, String status) async {
+    _isUpdating = true;
+    notifyListeners();
+
+    final response = await NetworkCaller.patchRequest(
+      url: Urls.updateBookingStatus(bookingId),
+      body: {'status': status},
+    );
+
+    _isUpdating = false;
+    notifyListeners();
+
+    if (response.isSuccess) {
+      await getMyOrders(); // Refresh the list
+      return true;
+    }
+    return false;
   }
 }

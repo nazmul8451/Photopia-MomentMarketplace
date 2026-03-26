@@ -8,6 +8,7 @@ import 'package:photopia/controller/auth_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/log_out_controller.dart';
 import 'package:photopia/controller/client/user_profile_controller.dart';
+import 'package:photopia/controller/location_controller.dart';
 import 'package:photopia/features/client/widgets/auth_profile_image.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -126,33 +127,47 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
           ),
           SizedBox(height: 8.h),
-          if (user?.location?.isNotEmpty ?? false)
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: Colors.blue.withAlpha(25),
-                borderRadius: BorderRadius.circular(15).r,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.location_on_outlined,
-                    color: Colors.blue,
-                    size: 14.sp,
-                  ),
-                  SizedBox(width: 4.w),
-                  Text(
-                    user!.location!,
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
+          Consumer<LocationController>(
+            builder: (context, locationController, _) {
+              final displayLocation = locationController.currentAddress != "Detecting location..." 
+                  ? locationController.currentAddress 
+                  : (user?.location?.isNotEmpty ?? false ? user!.location! : "Custom Location");
+              
+              return Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withAlpha(25),
+                  borderRadius: BorderRadius.circular(15).r,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (locationController.isLoading)
+                      SizedBox(
+                        width: 12.w,
+                        height: 12.w,
+                        child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.blue),
+                      )
+                    else 
+                      Icon(
+                        Icons.location_on_outlined,
+                        color: Colors.blue,
+                        size: 14.sp,
+                      ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      displayLocation,
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
+                  ],
+                ),
+              );
+            },
+          ),
           SizedBox(height: 20.h),
           GestureDetector(
             onTap: () {

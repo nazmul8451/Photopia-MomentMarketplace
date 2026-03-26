@@ -6,6 +6,16 @@ class LocationController extends ChangeNotifier {
   String _currentAddress = "Detecting location...";
   String get currentAddress => _currentAddress;
 
+  double? _latitude;
+  double? _longitude;
+  String? _city;
+  String? _country;
+
+  double? get latitude => _latitude;
+  double? get longitude => _longitude;
+  String? get city => _city;
+  String? get country => _country;
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -61,16 +71,23 @@ class LocationController extends ChangeNotifier {
 
   Future<void> _getAddressFromLatLng(Position position) async {
     try {
+      _latitude = position.latitude;
+      _longitude = position.longitude;
+
       List<Placemark> placemarks =
           await placemarkFromCoordinates(position.latitude, position.longitude);
 
-      Placemark place = placemarks[0];
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks[0];
+        _city = place.locality ?? place.subLocality;
+        _country = place.country;
 
-      // Formatted address: City, Country OR SubLocality, City
-      if (place.locality != null && place.locality!.isNotEmpty) {
-        _currentAddress = "${place.locality}, ${place.country}";
-      } else {
-        _currentAddress = "${place.subLocality}, ${place.locality}";
+        // Formatted address: City, Country OR SubLocality, City
+        if (place.locality != null && place.locality!.isNotEmpty) {
+          _currentAddress = "${place.locality}, ${place.country}";
+        } else {
+          _currentAddress = "${place.subLocality}, ${place.locality}";
+        }
       }
     } catch (e) {
       _currentAddress = "Unknown Location";
