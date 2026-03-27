@@ -96,4 +96,11 @@ class MyListingController extends ChangeNotifier {
       return false;
     }
   }
+
+  void removeListingLocal(String id) {
+    if (_myListingModel?.data?.data != null) {
+      _myListingModel!.data!.data!.removeWhere((listing) => listing.sId == id);
+      notifyListeners();
+    }
+  }
 }

@@ -1,3 +1,5 @@
+import 'package:photopia/core/network/Api_service/network_caller.dart';
+import 'package:photopia/core/network/urls.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -57,12 +59,33 @@ class HorizontalProjectCard extends StatelessWidget {
                   borderRadius: BorderRadius.vertical(
                     top: Radius.circular(12.r),
                   ),
-                  child: CustomNetworkImage(
-                    imageUrl: imageUrl,
-                    width: 140.w,
-                    height: 125.h,
-                    fit: BoxFit.cover,
-                  ),
+                  child: (imageUrl != null && imageUrl.isNotEmpty)
+                     ? CustomNetworkImage(
+                         imageUrl: imageUrl,
+                         width: 140.w,
+                         height: 125.h,
+                         fit: BoxFit.cover,
+                       )
+                     : FutureBuilder<NetworkResponse>(
+                         future: NetworkCaller.getRequest(url: Urls.getSingleList(id), requireAuth: false),
+                         builder: (context, snapshot) {
+                           if (snapshot.connectionState == ConnectionState.waiting) {
+                             return Container(width: 140.w, height: 125.h, color: Color(0xFFEEEEEE), alignment: Alignment.center, child: Text('...'));
+                           }
+                           String? fetchedUrl;
+                           if (snapshot.hasData && snapshot.data!.isSuccess && snapshot.data!.body != null) {
+                             final data = snapshot.data!.body!['data'];
+                             if (data != null) {
+                               fetchedUrl = data['coverMedia'] ?? (data['gallery'] != null && (data['gallery'] as List).isNotEmpty ? (data['gallery'] as List).first : null);
+                             }
+                           }
+                           if (fetchedUrl != null && fetchedUrl.isNotEmpty) {
+                             return CustomNetworkImage(imageUrl: fetchedUrl, width: 140.w, height: 125.h, fit: BoxFit.cover);
+                           } else {
+                             return CustomNetworkImage(imageUrl: '', width: 140.w, height: 125.h, fit: BoxFit.cover); // Default grey placeholder without const
+                           }
+                         },
+                       ),
                 ),
                 // Availability Badge
                 if (isAvailable)

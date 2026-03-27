@@ -116,7 +116,10 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
 
                           SizedBox(height: 20.h),
                           // Stats Row
-                          _buildStatsRow(),
+                          _buildStatsRow(
+                            responseTime: serviceDetail?.responseTime ?? widget.service['responseTime']?.toString(),
+                            completedProjects: serviceDetail?.completedProjects ?? widget.service['completedProjects'],
+                          ),
 
                           SizedBox(height: 25.h),
                           // About Section
@@ -408,7 +411,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                 Row(
                   children: [
                     Text(
-                      widget.service['subtitle'] ?? 'Emma Wilson',
+                      name,
                       style: TextStyle(
                         fontSize: 15.sp.clamp(15, 16),
                         fontWeight: FontWeight.bold,
@@ -464,12 +467,25 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
     );
   }
 
-  Widget _buildStatsRow() {
+  Widget _buildStatsRow({
+    String? responseTime,
+    dynamic completedProjects,
+  }) {
     return Row(
       children: [
-        Expanded(child: _buildStatBox('Response Time', '~1 hour')),
+        Expanded(
+          child: _buildStatBox(
+            'Response Time',
+            responseTime != null && responseTime.isNotEmpty ? responseTime : 'N/A',
+          ),
+        ),
         SizedBox(width: 12.w),
-        Expanded(child: _buildStatBox('Completed Projects', '245')),
+        Expanded(
+          child: _buildStatBox(
+            'Completed Projects',
+            completedProjects != null ? completedProjects.toString() : 'N/A',
+          ),
+        ),
       ],
     );
   }

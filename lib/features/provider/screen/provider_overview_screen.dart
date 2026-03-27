@@ -481,7 +481,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Cnfermation pop up',
+                    'Delete Confirmation',
                     style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
                   ),
                   GestureDetector(
@@ -492,7 +492,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
               ),
               SizedBox(height: 15.h),
               Text(
-                'Are you want to Decline This',
+                'Are you sure you want to delete this?',
                 style: TextStyle(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.w500,
@@ -523,7 +523,7 @@ class _ProviderOverviewScreenState extends State<ProviderOverviewScreen> {
                           );
                           context
                               .read<MyListingController>()
-                              .getMyListings(); // Refresh list
+                              .removeListingLocal(listingId); // Remove locally
                         } else if (mounted) {
                           CustomSnackBar.show(
                             context: context,

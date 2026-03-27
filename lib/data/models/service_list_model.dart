@@ -106,6 +106,8 @@ class ServiceItem {
   String? description;
   List<String>? equipment;
   List<dynamic>? gallery;
+  String? responseTime;
+  int? completedProjects;
 
   ServiceItem({
     this.sId,
@@ -124,10 +126,14 @@ class ServiceItem {
     this.description,
     this.equipment,
     this.gallery,
+    this.responseTime,
+    this.completedProjects,
   });
 
   static String? _formatUrl(dynamic url) {
     if (url == null) return null;
+    if (url == null) return null;
+    
     String? urlString;
     if (url is String) {
       urlString = url;
@@ -165,7 +171,7 @@ class ServiceItem {
       location: json['location'] != null
           ? LocationInfo.fromJson(json['location'])
           : null,
-      coverMedia: _formatUrl(json['coverMedia'] ?? json['cover_media'] ?? json['image']),
+      coverMedia: _formatUrl(json['coverMedia'] ?? json['cover_media'] ?? json['image'] ?? (json['gallery'] != null && (json['gallery'] as List).isNotEmpty ? (json['gallery'] as List).first : null)),
       status: json['status']?.toString(),
       isActive: json['isActive'] == true || json['isActive'] == 'true',
       rating: double.tryParse(json['rating']?.toString() ?? '0.0') ?? 0.0,
@@ -176,9 +182,12 @@ class ServiceItem {
           : null,
       gallery: json['gallery'] != null
           ? (json['gallery'] as List)
-                .map((e) => _formatUrl(e.toString()))
+                .map((e) => _formatUrl(e))
+                .where((e) => e != null && e.isNotEmpty)
                 .toList()
           : null,
+      responseTime: json['responseTime']?.toString(),
+      completedProjects: int.tryParse(json['completedProjects']?.toString() ?? ''),
     );
   }
 
@@ -206,6 +215,8 @@ class ServiceItem {
     data['description'] = description;
     data['equipment'] = equipment;
     data['gallery'] = gallery;
+    data['responseTime'] = responseTime;
+    data['completedProjects'] = completedProjects;
     return data;
   }
 }

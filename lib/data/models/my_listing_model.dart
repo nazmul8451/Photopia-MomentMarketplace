@@ -122,7 +122,11 @@ class Listing {
     location = json['location'] != null
         ? new Location.fromJson(json['location'])
         : null;
-    coverMedia = json['coverMedia'];
+    coverMedia = json['coverMedia'] ?? 
+                 json['cover_media'] ?? 
+                 json['image'] ?? 
+                 (json['gallery'] != null && (json['gallery'] as List).isNotEmpty ? (json['gallery'] as List).first : null);
+    
     status = json['status'];
     isActive = json['isActive'];
   }

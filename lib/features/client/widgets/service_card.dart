@@ -8,7 +8,8 @@ import 'package:photopia/controller/client/favorites_controller.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
-
+import 'package:photopia/core/network/Api_service/network_caller.dart';
+import 'package:photopia/core/network/urls.dart';
 class ServiceCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -90,10 +91,51 @@ class ServiceCard extends StatelessWidget {
                     borderRadius: BorderRadius.vertical(
                       top: Radius.circular(16).r,
                     ),
-                    child: CustomNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                    ),
+                    child: (imageUrl.isNotEmpty)
+                        ? CustomNetworkImage(
+                            imageUrl: imageUrl,
+                            fit: BoxFit.cover,
+                          )
+                        : FutureBuilder<NetworkResponse>(
+                            future: NetworkCaller.getRequest(url: Urls.getSingleList(id), requireAuth: false),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return Container(color: Colors.grey[200], alignment: Alignment.center, child: Text('...', style: TextStyle(fontSize: 10.sp)));
+                              }
+                              String? fetchedUrl;
+                              String errorMsg = '';
+                              if (snapshot.hasError) {
+                                errorMsg = 'E:${snapshot.error}';
+                              } else if (snapshot.hasData && !snapshot.data!.isSuccess) {
+                                errorMsg = 'Code:${snapshot.data!.statusCode}';
+                              } else if (snapshot.hasData && snapshot.data!.isSuccess && snapshot.data!.body != null) {
+                                final data = snapshot.data!.body!['data'];
+                                if (data != null) {
+                                  if (data['coverMedia'] != null) {
+                                    fetchedUrl = data['coverMedia'];
+                                  } else if (data['gallery'] != null && (data['gallery'] as List).isNotEmpty) {
+                                    fetchedUrl = (data['gallery'] as List).first;
+                                  } else {
+                                    errorMsg = 'No Img';
+                                  }
+                                } else {
+                                  errorMsg = 'Null Data';
+                                }
+                              }
+                              
+                              if (fetchedUrl != null && fetchedUrl.isNotEmpty) {
+                                return CustomNetworkImage(
+                                  imageUrl: fetchedUrl,
+                                  fit: BoxFit.cover,
+                                );
+                              } else {
+                                return const CustomNetworkImage(
+                                  imageUrl: '',
+                                  fit: BoxFit.cover,
+                                );
+                              }
+                            },
+                          ),
                   ),
                 ),
                 if (isPremium)

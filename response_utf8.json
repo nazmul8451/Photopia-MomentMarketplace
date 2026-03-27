@@ -1,0 +1,271 @@
+﻿{
+    "statusCode":  200,
+    "success":  true,
+    "message":  "Services retrieved successfully",
+    "data":  {
+                 "meta":  {
+                              "page":  1,
+                              "limit":  10,
+                              "total":  9,
+                              "totalPages":  1
+                          },
+                 "data":  [
+                              {
+                                  "_id":  "69c59e21a05ac7da98dc4f65",
+                                  "providerId":  {
+                                                     "_id":  "69a874fb3dddb8394cbc4293",
+                                                     "name":  "Tiki TIki TIki",
+                                                     "email":  "cijosi7843@him6.com",
+                                                     "profile":  "/images/1772659199120-3ww3kx.png"
+                                                 },
+                                  "title":  "Testing Service",
+                                  "category":  {
+                                                   "_id":  "6967f8313c7a3a49e02c1fde",
+                                                   "name":  "Home \u0026 Kitchen",
+                                                   "image":  "/images/1768421424987-akbri9.png"
+                                               },
+                                  "serviceType":  "photography",
+                                  "subCategory":  "SD",
+                                  "price":  12,
+                                  "currency":  "EUR",
+                                  "duration":  "1",
+                                  "location":  {
+                                                   "type":  "ONSITE",
+                                                   "country":  "BANGLADESH",
+                                                   "city":  "DHAKA",
+                                                   "address":  "MOHAKHALI",
+                                                   "serviceRadiusKm":  25,
+                                                   "_id":  null
+                                               },
+                                  "status":  "ACTIVE",
+                                  "isActive":  true
+                              },
+                              {
+                                  "_id":  "69c57cb1878d718b667e8aa8",
+                                  "providerId":  {
+                                                     "_id":  "69c57cb1878d718b667e8aa0",
+                                                     "name":  "Test Provider",
+                                                     "email":  "provider_1774550193668@test.com",
+                                                     "profile":  "/images/1767048629458-l94gk7.jpg"
+                                                 },
+                                  "title":  "Test Photography Service",
+                                  "category":  null,
+                                  "serviceType":  "photography",
+                                  "price":  100,
+                                  "currency":  "EUR",
+                                  "duration":  "1 hour",
+                                  "location":  {
+                                                   "type":  "ONSITE",
+                                                   "country":  "France",
+                                                   "city":  "Paris",
+                                                   "address":  "10 Rue de Rivoli",
+                                                   "coordinates":  {
+                                                                       "lat":  48.8566,
+                                                                       "lng":  2.3522
+                                                                   },
+                                                   "serviceRadiusKm":  50,
+                                                   "_id":  "69c57cb1878d718b667e8aa9"
+                                               },
+                                  "status":  "ACTIVE",
+                                  "isActive":  true
+                              },
+                              {
+                                  "_id":  "69c57c92ab995da5759e8b45",
+                                  "providerId":  {
+                                                     "_id":  "69c57c92ab995da5759e8b35",
+                                                     "name":  "Test Provider",
+                                                     "email":  "provider_1774550162249@test.com",
+                                                     "profile":  "/images/1767048629458-l94gk7.jpg"
+                                                 },
+                                  "title":  "Test Photography Service",
+                                  "category":  null,
+                                  "serviceType":  "photography",
+                                  "price":  100,
+                                  "currency":  "EUR",
+                                  "duration":  "1 hour",
+                                  "location":  {
+                                                   "type":  "ONSITE",
+                                                   "country":  "France",
+                                                   "city":  "Paris",
+                                                   "address":  "10 Rue de Rivoli",
+                                                   "coordinates":  {
+                                                                       "lat":  48.8566,
+                                                                       "lng":  2.3522
+                                                                   },
+                                                   "serviceRadiusKm":  50,
+                                                   "_id":  "69c57c92ab995da5759e8b46"
+                                               },
+                                  "status":  "ACTIVE",
+                                  "isActive":  true
+                              },
+                              {
+                                  "_id":  "69b30bdee68d69d2f3c35811",
+                                  "providerId":  {
+                                                     "_id":  "69a874fb3dddb8394cbc4293",
+                                                     "name":  "Tiki TIki TIki",
+                                                     "email":  "cijosi7843@him6.com",
+                                                     "profile":  "/images/1772659199120-3ww3kx.png"
+                                                 },
+                                  "title":  "VideoGrapher",
+                                  "category":  {
+                                                   "_id":  "6967f8313c7a3a49e02c1fde",
+                                                   "name":  "Home \u0026 Kitchen",
+                                                   "image":  "/images/1768421424987-akbri9.png"
+                                               },
+                                  "price":  150,
+                                  "currency":  "USD",
+                                  "duration":  "2",
+                                  "location":  {
+                                                   "type":  "ONSITE",
+                                                   "country":  "Bangladesh",
+                                                   "city":  "Mohakhali",
+                                                   "address":  "Mohakhali",
+                                                   "serviceRadiusKm":  42,
+                                                   "_id":  null
+                                               },
+                                  "status":  "ACTIVE",
+                                  "isActive":  null
+                              },
+                              {
+                                  "_id":  "69ab207e3dddb8394cbc4328",
+                                  "providerId":  {
+                                                     "_id":  "69769b2ea376b7caa03962b7",
+                                                     "name":  "temp",
+                                                     "email":  "mohosinali075@gmail.com",
+                                                     "profile":  "/images/1767048629458-l94gk7.jpg"
+                                                 },
+                                  "title":  "Videographer212",
+                                  "category":  {
+                                                   "_id":  "6967f8313c7a3a49e02c1fde",
+                                                   "name":  "Home \u0026 Kitchen",
+                                                   "image":  "/images/1768421424987-akbri9.png"
+                                               },
+                                  "price":  120,
+                                  "currency":  "EUR",
+                                  "duration":  "2 hours",
+                                  "location":  {
+                                                   "type":  "ONSITE",
+                                                   "country":  "Germany",
+                                                   "city":  "Berlin",
+                                                   "address":  "Alexanderplatz 1",
+                                                   "serviceRadiusKm":  15,
+                                                   "_id":  "69ab207e3dddb8394cbc4329"
+                                               },
+                                  "status":  "ACTIVE",
+                                  "isActive":  true
+                              },
+                              {
+                                  "_id":  "69a87c503dddb8394cbc42b4",
+                                  "providerId":  {
+                                                     "_id":  "69769b2ea376b7caa03962b7",
+                                                     "name":  "temp",
+                                                     "email":  "mohosinali075@gmail.com",
+                                                     "profile":  "/images/1767048629458-l94gk7.jpg"
+                                                 },
+                                  "title":  "Home Cleaning Service 212",
+                                  "category":  {
+                                                   "_id":  "6967f8313c7a3a49e02c1fde",
+                                                   "name":  "Home \u0026 Kitchen",
+                                                   "image":  "/images/1768421424987-akbri9.png"
+                                               },
+                                  "price":  120,
+                                  "currency":  "EUR",
+                                  "duration":  "2 hours",
+                                  "location":  {
+                                                   "type":  "ONSITE",
+                                                   "country":  "Germany",
+                                                   "city":  "Berlin",
+                                                   "address":  "Alexanderplatz 1",
+                                                   "serviceRadiusKm":  15,
+                                                   "_id":  "69a87c503dddb8394cbc42b5"
+                                               },
+                                  "status":  "ACTIVE",
+                                  "isActive":  true
+                              },
+                              {
+                                  "_id":  "6996438ff19b1a3345a394dd",
+                                  "providerId":  {
+                                                     "_id":  "69769b2ea376b7caa03962b7",
+                                                     "name":  "temp",
+                                                     "email":  "mohosinali075@gmail.com",
+                                                     "profile":  "/images/1767048629458-l94gk7.jpg"
+                                                 },
+                                  "title":  "Professional Home Cleaning Service 212",
+                                  "category":  {
+                                                   "_id":  "6967f8313c7a3a49e02c1fde",
+                                                   "name":  "Home \u0026 Kitchen",
+                                                   "image":  "/images/1768421424987-akbri9.png"
+                                               },
+                                  "price":  120,
+                                  "currency":  "EUR",
+                                  "duration":  "2 hours",
+                                  "location":  {
+                                                   "type":  "ONSITE",
+                                                   "country":  "Germany",
+                                                   "city":  "Berlin",
+                                                   "address":  "Alexanderplatz 1",
+                                                   "serviceRadiusKm":  15,
+                                                   "_id":  "6996438ff19b1a3345a394de"
+                                               },
+                                  "status":  "ACTIVE",
+                                  "isActive":  true
+                              },
+                              {
+                                  "_id":  "696fd2c934e2febc5385a191",
+                                  "providerId":  {
+                                                     "_id":  "696534d5a1724d40f85fc5b4",
+                                                     "name":  "temp",
+                                                     "email":  "user3@gmail.com",
+                                                     "profile":  "/images/1767048629458-l94gk7.jpg"
+                                                 },
+                                  "title":  "Professional Home Cleaning Service",
+                                  "category":  {
+                                                   "_id":  "6967f8313c7a3a49e02c1fde",
+                                                   "name":  "Home \u0026 Kitchen",
+                                                   "image":  "/images/1768421424987-akbri9.png"
+                                               },
+                                  "price":  120,
+                                  "currency":  "EUR",
+                                  "duration":  "2 hours",
+                                  "location":  {
+                                                   "type":  "ONSITE",
+                                                   "country":  "Germany",
+                                                   "city":  "Berlin",
+                                                   "address":  "Alexanderplatz 1",
+                                                   "serviceRadiusKm":  15,
+                                                   "_id":  "696fd2c934e2febc5385a192"
+                                               },
+                                  "status":  "ACTIVE",
+                                  "isActive":  true
+                              },
+                              {
+                                  "_id":  "69694ceadd586d8a09d961c8",
+                                  "providerId":  {
+                                                     "_id":  "696534d5a1724d40f85fc5b4",
+                                                     "name":  "temp",
+                                                     "email":  "user3@gmail.com",
+                                                     "profile":  "/images/1767048629458-l94gk7.jpg"
+                                                 },
+                                  "title":  "Wedding Photography \u0026 Cinematic Videography 456",
+                                  "category":  {
+                                                   "_id":  "6967f8313c7a3a49e02c1fde",
+                                                   "name":  "Home \u0026 Kitchen",
+                                                   "image":  "/images/1768421424987-akbri9.png"
+                                               },
+                                  "price":  900,
+                                  "currency":  "EUR",
+                                  "duration":  "Full day (8 hours)",
+                                  "location":  {
+                                                   "type":  "ONSITE",
+                                                   "country":  "France",
+                                                   "city":  "Paris",
+                                                   "serviceRadiusKm":  50,
+                                                   "_id":  "69694ceadd586d8a09d961c9"
+                                               },
+                                  "status":  "ACTIVE",
+                                  "serviceType":  "photography",
+                                  "isActive":  true
+                              }
+                          ]
+             }
+}

@@ -33,6 +33,10 @@ class ServiceListController extends ChangeNotifier {
       if (response.isSuccess && response.body != null) {
         final model = ServiceListModel.fromJson(response.body!);
         _services = model.data?.data ?? [];
+        // DEBUG: print coverMedia URLs to trace image loading issues
+        for (var s in _services.take(3)) {
+          debugPrint('🖼️ [ServiceCard] coverMedia=${s.coverMedia} | title=${s.title}');
+        }
         notifyListeners();
         return true;
       } else {

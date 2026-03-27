@@ -174,8 +174,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   final trendingProjects = [...services]..sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
 
                   return SingleChildScrollView(
-                    controller: _scrollController,
-                    physics: const BouncingScrollPhysics(),
+                    controller: _scrollController, 
+                    physics: const BouncingScrollPhysics(), 
                     child: Column(
                       children: [
                         SizedBox(height: 10.h),
