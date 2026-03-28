@@ -45,7 +45,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
 
   void _loadProfileData() {
     context.read<ProviderProfileController>().getProviderProfile().then((success) {
-      if (success) {
+      if (success && mounted) {
         final ctrl = context.read<ProviderProfileController>();
         _aboutController.text = ctrl.aboutMe;
         _bioController.text = ctrl.shortBio;
@@ -54,6 +54,12 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         _tempLanguages = List<String>.from(ctrl.languages);
         _tempPortfolio = List<dynamic>.from(ctrl.recentWork);
         setState(() {});
+
+        // Fetch reviews using the provider's ID
+        final providerId = ctrl.professionalProfile?.user?.id ?? ctrl.userProfile?.id;
+        if (providerId != null) {
+          ctrl.getProviderReviews(providerId);
+        }
       }
     });
   }
@@ -108,14 +114,19 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
       return; 
     }
 
-    // 2. Perform main update (only new files and text changes)
+    // 2. Calculate New Additions (to avoid duplication since backend appends)
+    final List<String> newSpecializations = _tempSpecializations.where((s) => !controller.specializations.contains(s)).toList();
+    final List<String> newLanguages = _tempLanguages.where((l) => !controller.languages.contains(l)).toList();
+    final List<File> newPortfolioFiles = _tempPortfolio.whereType<File>().toList();
+
+    // 3. Perform main update (only new additions and text changes)
     final success = await controller.updateProviderProfile(
       name: _nameController.text != controller.name ? _nameController.text : null,
       bio: _bioController.text != controller.shortBio ? _bioController.text : null,
       description: _aboutController.text != controller.aboutMe ? _aboutController.text : null,
-      recentWork: _tempPortfolio, // updateProviderProfile will now only upload the File items
-      specializations: _tempSpecializations, 
-      languages: _tempLanguages,
+      newSpecializations: newSpecializations,
+      newLanguages: newLanguages,
+      newPortfolioFiles: newPortfolioFiles,
     );
 
     setState(() => _isSaving = false);
@@ -759,6 +770,12 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
   }
 
   Widget _buildReviewsSection(ProviderProfileController controller) {
+    if (controller.inProgress && controller.reviews.isEmpty) {
+      return const Center(child: CircularProgressIndicator(color: Colors.black));
+    }
+    
+    final reviews = controller.reviews;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -782,61 +799,119 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
           ],
         ),
         SizedBox(height: 20.h),
-        _buildReviewItem('Sarah Johnson', 'Nov 28, 2024', 'Emma was absolutely amazing! She captured every special moment of our wedding perfectly.'),
-        SizedBox(height: 20.h),
-        _buildReviewItem('Michael Chen', 'Nov 15, 2024', 'Professional, creative, and easy to work with. Highly recommend!'),
-        SizedBox(height: 25.h),
-        Center(
-          child: Container(
+        if (reviews.isEmpty)
+          Container(
+            padding: EdgeInsets.symmetric(vertical: 30.h),
             width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 12.h),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F7),
-              borderRadius: BorderRadius.circular(10.r),
+              color: const Color(0xFFF5F5F7).withOpacity(0.5),
+              borderRadius: BorderRadius.circular(15.r),
+              border: Border.all(color: Colors.grey[200]!, width: 1),
             ),
-            child: Text(
-              'View All Reviews',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
+            child: Column(
+              children: [
+                Icon(Icons.rate_review_outlined, color: Colors.grey[400], size: 40.sp),
+                SizedBox(height: 12.h),
+                Text(
+                  'No reviews yet',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: Colors.grey[500],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  'Completed bookings will appear here',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: Colors.grey[400],
+                  ),
+                ),
+              ],
             ),
+          )
+        else
+          ListView.separated(
+            padding: EdgeInsets.zero,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: reviews.length > 3 ? 3 : reviews.length, // Limit preview
+            separatorBuilder: (context, index) => SizedBox(height: 20.h),
+            itemBuilder: (context, index) {
+              final review = reviews[index];
+              return _buildReviewItem(
+                review.user?.name ?? 'Anonymous',
+                review.createdAt ?? '',
+                review.comment ?? '',
+                review.rating?.toDouble() ?? 5.0,
+              );
+            },
           ),
-        ),
       ],
     );
   }
 
-  Widget _buildReviewItem(String name, String date, String comment) {
-    return Row(
+  Widget _buildReviewItem(String name, String date, String comment, double rating) {
+    // Format date string (e.g., 2024-11-28T... -> Nov 28, 2024)
+    String formattedDate = date;
+    try {
+      if (date.isNotEmpty) {
+        final dt = DateTime.parse(date);
+        final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        formattedDate = "${months[dt.month - 1]} ${dt.day}, ${dt.year}";
+      }
+    } catch (_) {}
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CircleAvatar(
-          radius: 18.r,
-          backgroundImage: const AssetImage('assets/images/img7.jpg'),
-        ),
-        SizedBox(width: 12.w),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(name, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                  Text(date, style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
-                ],
-              ),
-              Row(
-                children: List.generate(
-                  5,
-                  (_) => Icon(Icons.star, color: Colors.amber, size: 12.sp),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 18.r,
+                  backgroundColor: Colors.grey[200],
+                  child: Icon(Icons.person, color: Colors.grey[400], size: 20.sp),
                 ),
-              ),
-              SizedBox(height: 6.h),
-              Text(
-                comment,
-                style: TextStyle(fontSize: 13.sp, color: Colors.grey[700], height: 1.4),
-              ),
-            ],
+                SizedBox(width: 12.w),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 2.h),
+                    Row(
+                      children: List.generate(5, (index) => Icon(
+                        Icons.star, 
+                        color: index < rating ? Colors.amber : Colors.grey[300], 
+                        size: 12.sp
+                      )),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Text(
+              formattedDate,
+              style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
+            ),
+          ],
+        ),
+        SizedBox(height: 10.h),
+        Padding(
+          padding: EdgeInsets.only(left: 48.w),
+          child: Text(
+            comment,
+            style: TextStyle(
+              fontSize: 13.sp,
+              color: Colors.grey[700],
+              height: 1.4,
+            ),
           ),
         ),
       ],

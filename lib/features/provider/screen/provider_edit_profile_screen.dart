@@ -52,7 +52,6 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
     final success = await controller.updateProviderProfile(
       name: _nameController.text,
       bio: _aboutController.text,
-      specialty: _specialtyController.text,
     );
 
     if (success) {

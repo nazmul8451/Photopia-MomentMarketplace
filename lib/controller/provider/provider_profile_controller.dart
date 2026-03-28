@@ -4,21 +4,23 @@ import 'package:photopia/core/network/urls.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
-import 'dart:convert';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/data/models/user_profile_model.dart';
 import 'package:photopia/data/models/professional_profile_model.dart';
+import 'package:photopia/data/models/review_model.dart';
 
 class ProviderProfileController extends ChangeNotifier {
   bool _inProgress = false;
   String? _errorMessage;
   UserProfileModel? _userProfile;
   ProfessionalProfileModel? _professionalProfile;
+  List<ReviewItem> _reviews = [];
   
   bool get inProgress => _inProgress;
   String? get errorMessage => _errorMessage;
   UserProfileModel? get userProfile => _userProfile;
   ProfessionalProfileModel? get professionalProfile => _professionalProfile;
+  List<ReviewItem> get reviews => _reviews;
 
   String get name =>
       _professionalProfile?.user?.name ?? _userProfile?.fullName ?? 'Michael Photographer';
@@ -82,32 +84,51 @@ class ProviderProfileController extends ChangeNotifier {
     return userProfileResponse.isSuccess || professionalProfileResponse.isSuccess;
   }
 
+  Future<bool> getProviderReviews(String providerId) async {
+    _inProgress = true;
+    notifyListeners();
+    try {
+      final response = await NetworkCaller.getRequest(url: Urls.getReviewsByProvider(providerId));
+      _inProgress = false;
+      if (response.isSuccess) {
+        final data = response.body?['data'];
+        if (data != null && data['data'] != null) {
+          final list = data['data'] as List?;
+          _reviews = list?.map((e) => ReviewItem.fromJson(e)).toList() ?? [];
+          notifyListeners();
+          return true;
+        }
+      }
+    } catch (e) {
+      debugPrint('❌ Error fetching reviews: $e');
+    }
+    _inProgress = false;
+    notifyListeners();
+    return false;
+  }
+
   Future<bool> updateProviderProfile({
     String? name,
     String? bio,
     String? description,
-    String? specialty,
-    List<String>? specializations,
-    List<String>? languages,
-    List<dynamic>? recentWork,
+    List<String>? newSpecializations,
+    List<String>? newLanguages,
+    List<File>? newPortfolioFiles,
   }) async {
     _inProgress = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // 1. Update Professional Profile Data (Add/Update only)
+      // 1. Update Professional Profile Data (New Additions Only)
       bool profProfileSuccess = true;
-      if (bio != null || specializations != null || languages != null || recentWork != null) {
-        
-        final List<File> newFiles = [];
-        if (recentWork != null) {
-          for (var item in recentWork) {
-            if (item is File) newFiles.add(item);
-          }
-        }
+      bool hasProfChanges = bio != null || 
+                            (newSpecializations != null && newSpecializations.isNotEmpty) || 
+                            (newLanguages != null && newLanguages.isNotEmpty) || 
+                            (newPortfolioFiles != null && newPortfolioFiles.isNotEmpty);
 
-        debugPrint('👔 Updating Prof Profile (includes ${newFiles.length} new files)');
+      if (hasProfChanges) {
+        debugPrint('👔 Updating Prof Profile with new additions...');
         String? token = AuthController.accessToken;
         final Uri uri = Uri.parse(Urls.professionalProfile);
         final request = http.MultipartRequest('PATCH', uri);
@@ -117,24 +138,24 @@ class ProviderProfileController extends ChangeNotifier {
         }
         request.headers['Accept'] = 'application/json';
 
-        // Add root-level fields (Cleanest for your backend)
         if (bio != null) request.fields['bio'] = bio;
         
-        // Add array fields as repeated keys (Multer style)
-        if (specializations != null) {
-           for (var s in specializations) {
+        // Add only NEW specialties as repeated keys
+        if (newSpecializations != null) {
+           for (var s in newSpecializations) {
              request.fields['specialties[]'] = s;
            }
         }
-        if (languages != null) {
-           for (var l in languages) {
+        // Add only NEW languages as repeated keys
+        if (newLanguages != null) {
+           for (var l in newLanguages) {
              request.fields['language[]'] = l;
            }
         }
 
-        // Add ONLY new files to portfolio (to avoid duplication)
-        if (newFiles.isNotEmpty) {
-          for (var file in newFiles) {
+        // Add ONLY new files to portfolio
+        if (newPortfolioFiles != null) {
+          for (var file in newPortfolioFiles) {
             final fileStream = http.ByteStream(file.openRead());
             final length = await file.length();
             final multipartFile = http.MultipartFile(
@@ -156,11 +177,7 @@ class ProviderProfileController extends ChangeNotifier {
           
           profProfileSuccess = (response.statusCode >= 200 && response.statusCode < 300);
           if (!profProfileSuccess) {
-            try {
-              _errorMessage = jsonDecode(response.body)['message'];
-            } catch (_) {
-              _errorMessage = "Failed to update professional profile.";
-            }
+             _errorMessage = "Failed to update professional profile.";
           }
         } catch (e) {
           debugPrint('👔 Update failed: $e');
@@ -172,7 +189,7 @@ class ProviderProfileController extends ChangeNotifier {
       // 2. Update User Profile Data
       bool userProfileSuccess = true;
       if (description != null || name != null) {
-        debugPrint('👔 Updating User Profile: name=$name, description=${description?.substring(0, 20)}...');
+        debugPrint('👔 Updating User Profile: name=$name');
         final response = await NetworkCaller.patchRequest(
           url: Urls.updateUserProfile,
           body: {
