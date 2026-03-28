@@ -298,11 +298,30 @@ class _ProviderCreateListingScreenState
   }
 
   Future<void> _publishListing() async {
+    // Client-side validation for required fields
     if (!_isFormValid()) {
       CustomSnackBar.show(
         context: context,
-        message:
-            'Please fill in all required fields and upload at least one photo',
+        message: 'Please fill in all required fields and upload at least one photo',
+        isError: true,
+      );
+      return;
+    }
+
+    // Specific length validation based on backend requirements
+    if (_titleController.text.trim().length < 3) {
+      CustomSnackBar.show(
+        context: context,
+        message: 'Title must be at least 3 characters',
+        isError: true,
+      );
+      return;
+    }
+
+    if (_descriptionController.text.trim().length < 10) {
+      CustomSnackBar.show(
+        context: context,
+        message: 'Description must be at least 10 characters',
         isError: true,
       );
       return;

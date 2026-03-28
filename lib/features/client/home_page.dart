@@ -173,11 +173,19 @@ class _MyHomePageState extends State<MyHomePage> {
                   final availableNow = services.where((s) => s.isActive == true).toList();
                   final trendingProjects = [...services]..sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
 
-                  return SingleChildScrollView(
-                    controller: _scrollController, 
-                    physics: const BouncingScrollPhysics(), 
-                    child: Column(
-                      children: [
+                  return RefreshIndicator(
+                    color: Colors.black,
+                    backgroundColor: Colors.white,
+                    onRefresh: () async {
+                      await serviceListController.getAllServices();
+                    },
+                    child: SingleChildScrollView(
+                      controller: _scrollController, 
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      child: Column(
+                        children: [
                         SizedBox(height: 10.h),
                         // Original Projects Section
                         _buildHorizontalSection(
@@ -202,6 +210,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ), // Bottom padding for navigation bar
                       ],
                     ),
+                  ),
                   );
                 },
               ),

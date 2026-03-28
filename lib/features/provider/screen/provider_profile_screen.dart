@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:ui';
-import 'package:photopia/core/constants/app_typography.dart';
-import 'package:photopia/features/provider/screen/provider_edit_profile_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_profile_controller.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:photopia/features/client/widgets/auth_profile_image.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class ProviderProfileScreen extends StatefulWidget {
   const ProviderProfileScreen({super.key});
@@ -16,12 +18,170 @@ class ProviderProfileScreen extends StatefulWidget {
 }
 
 class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
+  bool _isEditing = false;
+  bool _isSaving = false;
+  final TextEditingController _aboutController = TextEditingController();
+  final TextEditingController _bioController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  File? _coverPhoto;
+  
+  // Temporary state for in-place editing
+  List<String> _tempSpecializations = [];
+  List<String> _tempLanguages = [];
+  List<dynamic> _tempPortfolio = [];
+
+  // Tracking deletions for the /remove-items API
+  final Set<String> _removedSpecializations = {};
+  final Set<String> _removedLanguages = {};
+  final Set<String> _removedPortfolio = {};
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProviderProfileController>().getProviderProfile();
+      _loadProfileData();
     });
+  }
+
+  void _loadProfileData() {
+    context.read<ProviderProfileController>().getProviderProfile().then((success) {
+      if (success) {
+        final ctrl = context.read<ProviderProfileController>();
+        _aboutController.text = ctrl.aboutMe;
+        _bioController.text = ctrl.shortBio;
+        _nameController.text = ctrl.name;
+        _tempSpecializations = List<String>.from(ctrl.specializations);
+        _tempLanguages = List<String>.from(ctrl.languages);
+        _tempPortfolio = List<dynamic>.from(ctrl.recentWork);
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _aboutController.dispose();
+    _bioController.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveChanges() async {
+    final controller = context.read<ProviderProfileController>();
+    
+    setState(() {
+      _isEditing = false;
+      _isSaving = true;
+    });
+    
+    // 1. Handle explicit removals first using the new API
+    bool removalSuccess = true;
+    
+    if (_removedSpecializations.isNotEmpty) {
+       for (var item in _removedSpecializations) {
+         if (!await controller.removeItemFromProfessionalProfile(field: 'specialties', value: item)) removalSuccess = false;
+       }
+    }
+    if (_removedLanguages.isNotEmpty) {
+       for (var item in _removedLanguages) {
+         if (!await controller.removeItemFromProfessionalProfile(field: 'language', value: item)) removalSuccess = false;
+       }
+    }
+    if (_removedPortfolio.isNotEmpty) {
+       for (var item in _removedPortfolio) {
+         if (!await controller.removeItemFromProfessionalProfile(field: 'portfolio', value: item)) removalSuccess = false;
+       }
+    }
+
+    if (!removalSuccess) {
+      setState(() {
+         _isSaving = false;
+         _isEditing = true;
+      });
+      if (mounted) {
+        CustomSnackBar.show(
+          context: context, 
+          message: 'Some items failed to delete: ${controller.errorMessage}', 
+          isError: true
+        );
+      }
+      return; 
+    }
+
+    // 2. Perform main update (only new files and text changes)
+    final success = await controller.updateProviderProfile(
+      name: _nameController.text != controller.name ? _nameController.text : null,
+      bio: _bioController.text != controller.shortBio ? _bioController.text : null,
+      description: _aboutController.text != controller.aboutMe ? _aboutController.text : null,
+      recentWork: _tempPortfolio, // updateProviderProfile will now only upload the File items
+      specializations: _tempSpecializations, 
+      languages: _tempLanguages,
+    );
+
+    setState(() => _isSaving = false);
+
+    if (success) {
+      if (mounted) {
+        // Clear removal trackers
+        _removedSpecializations.clear();
+        _removedLanguages.clear();
+        _removedPortfolio.clear();
+        
+        // Reload from fresh API data
+        _aboutController.text = controller.aboutMe;
+        _bioController.text = controller.shortBio;
+        _nameController.text = controller.name;
+        _tempSpecializations = List<String>.from(controller.specializations);
+        _tempLanguages = List<String>.from(controller.languages);
+        _tempPortfolio = List<dynamic>.from(controller.recentWork);
+        setState(() {});
+        
+        CustomSnackBar.show(
+          context: context, 
+          message: 'Profile updated successfully', 
+          isError: false
+        );
+      }
+    } else {
+      setState(() => _isEditing = true);
+      if (mounted) {
+        CustomSnackBar.show(
+          context: context, 
+          message: controller.errorMessage ?? 'Update failed', 
+          isError: true
+        );
+      }
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70, // Compress at picker level
+      maxWidth: 800,
+      maxHeight: 800,
+    );
+    if (image != null) {
+      setState(() {
+        _tempPortfolio.add(File(image.path));
+      });
+    }
+  }
+
+  Future<void> _pickCoverPhoto() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+      maxWidth: 1200,
+      maxHeight: 800,
+    );
+    if (image != null) {
+      setState(() {
+        _coverPhoto = File(image.path);
+      });
+    }
   }
 
   @override
@@ -36,29 +196,102 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         }
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF8F9FA),
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            surfaceTintColor: Colors.transparent,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.sp),
+              onPressed: () => Navigator.pop(context),
+            ),
+            actions: [
+              IconButton(
+                icon: Icon(Icons.camera_alt_outlined, color: Colors.black, size: 24.sp),
+                onPressed: _pickCoverPhoto,
+              ),
+              SizedBox(width: 10.w),
+            ],
+          ),
           body: RefreshIndicator(
-            onRefresh: () => profileController.getProviderProfile(),
+            onRefresh: () async => _loadProfileData(),
             color: Colors.black,
             child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(
-                parent: BouncingScrollPhysics(),
-              ),
+              physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 children: [
-                  _buildHeader(profileController),
+                  // Header Stack with Card + Stats overlapping
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      // Header Image
+                      Container(
+                        height: 220.h,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: _coverPhoto != null
+                                ? FileImage(_coverPhoto!) as ImageProvider
+                                : const AssetImage('assets/images/img5.png'),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      // Gradient Overlay
+                      Container(
+                        height: 200.h,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withOpacity(0.1),
+                              Colors.black.withOpacity(0.4),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Floating Glassmorphism Profile Card
+                      Positioned(
+                        bottom: -5.h,
+                        left: 6.w,
+                        right: 6.w,
+                        child: _buildProfileCard(profileController),
+                      ),
+
+                      // Overlapping Stats Row
+                      Positioned(
+                        bottom: -80.h,
+                        left: 0,
+                        right: 0,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10.w),
+                          child: _buildStatsRow(profileController),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Padding for the overlapping stats cards
+                  SizedBox(height: 100.h),
+
+                  // Content below
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20.w),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 100.h), // Spacing for the overlapping profile card
-                        _buildViewPublicProfileButton(),
-                        SizedBox(height: 20.h),
-                        _buildStatsGrid(profileController),
-                        SizedBox(height: 20.h),
-                        _buildPremiumCard(profileController),
-                        SizedBox(height: 30.h),
-                        _buildBody(profileController),
+                        _buildAboutSection(),
+                        SizedBox(height: 25.h),
+                        _buildChipsSection('Specializations', true),
+                        SizedBox(height: 25.h),
+                        _buildChipsSection('Languages', false),
+                        SizedBox(height: 25.h),
+                        _buildRecentWorkSection(),
+                        SizedBox(height: 25.h),
+                        _buildReviewsSection(profileController),
+                        SizedBox(height: 40.h),
                       ],
                     ),
                   ),
@@ -68,43 +301,6 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildHeader(ProviderProfileController controller) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        // Header Image (Background)
-        CustomNetworkImage(
-          width: double.infinity,
-          height: 220.h,
-          imageUrl: controller.userProfile?.profile ?? 'assets/images/img5.png',
-          fit: BoxFit.cover,
-        ),
-        // Gradient Overlay
-        Container(
-          height: 220.h,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withOpacity(0.1),
-                Colors.black.withOpacity(0.4),
-              ],
-            ),
-          ),
-        ),
-
-        // Floating Glassmorphism Profile Card
-        Positioned(
-          bottom: -80.h,
-          left: 20.w,
-          right: 20.w,
-          child: _buildProfileCard(controller),
-        ),
-      ],
     );
   }
 
@@ -124,80 +320,150 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Edit Button (Stylized top right)
+              // "Profile" title + Edit button row
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Profile',
                     style: TextStyle(
-                      fontSize: AppTypography.h1,
+                      fontSize: 18.sp,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                       letterSpacing: 1,
                     ),
                   ),
-
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const ProviderEditProfileScreen(),
+                  if (!_isEditing && !_isSaving)
+                    GestureDetector(
+                      onTap: () => setState(() => _isEditing = true),
+                      child: Container(
+                        padding: EdgeInsets.all(8.w),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(10.r),
+                          border: Border.all(color: Colors.white.withOpacity(0.3)),
                         ),
-                      );
-                    },
-                    child: Container(
+                        child: Icon(Icons.edit_outlined, color: Colors.white, size: 20.sp),
+                      ),
+                    )
+                  else if (_isSaving)
+                    Container(
                       padding: EdgeInsets.all(8.w),
                       decoration: BoxDecoration(
                         color: Colors.white.withOpacity(0.15),
                         borderRadius: BorderRadius.circular(10.r),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
-                        ),
                       ),
-                      child: Icon(
-                        Icons.edit_outlined,
-                        color: Colors.white,
-                        size: 20.sp,
+                      child: SizedBox(
+                        width: 20.sp,
+                        height: 20.sp,
+                        child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      ),
+                    )
+                  else
+                    GestureDetector(
+                      onTap: _saveChanges,
+                      child: Container(
+                        padding: EdgeInsets.all(8.w),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.7),
+                          borderRadius: BorderRadius.circular(10.r),
+                        ),
+                        child: Icon(Icons.check, color: Colors.white, size: 20.sp),
                       ),
                     ),
-                  ),
                 ],
               ),
               SizedBox(height: 8.h),
+              // Avatar + Name/Specialty/Badge row
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  AuthProfileImage(
-                    imageUrl: controller.profileImage,
-                    size: 75.r,
+                  Stack(
+                    children: [
+                      Container(
+                        width: 75.r,
+                        height: 75.r,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2.5.w),
+                        ),
+                        child: ClipOval(
+                          child: AuthProfileImage(
+                            imageUrl: controller.profileImage,
+                            size: 75.r,
+                          ),
+                        ),
+                      ),
+                      if (_isEditing)
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: EdgeInsets.all(4.w),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(Icons.camera_alt, size: 14.sp, color: Colors.black),
+                          ),
+                        ),
+                    ],
                   ),
                   SizedBox(width: 18.w),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          controller.name,
-                          style: TextStyle(
-                            fontSize: AppTypography.h1,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                        if (_isEditing) ...[
+                          TextFormField(
+                            controller: _nameController,
+                            style: TextStyle(fontSize: 19.sp, fontWeight: FontWeight.bold, color: Colors.white),
+                            decoration: InputDecoration(
+                              hintText: 'Full Name',
+                              hintStyle: TextStyle(color: Colors.white60, fontSize: 16.sp),
+                              isCollapsed: true,
+                              contentPadding: EdgeInsets.symmetric(vertical: 4.h),
+                              border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.3))),
+                            ),
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        SizedBox(height: 2.h),
-                        Text(
-                          controller.specialty,
-                          style: TextStyle(
-                            fontSize: AppTypography.bodyMedium,
-                            color: Colors.white.withOpacity(0.9),
-                            fontWeight: FontWeight.w400,
+                          SizedBox(height: 8.h),
+                          TextFormField(
+                            controller: _bioController,
+                            style: TextStyle(fontSize: 12.5.sp, color: Colors.white.withOpacity(0.8)),
+                            decoration: InputDecoration(
+                              hintText: 'Bio Tagline (e.g. Wedding Photographer)',
+                              hintStyle: TextStyle(color: Colors.white60, fontSize: 13.sp),
+                              isCollapsed: true,
+                              contentPadding: EdgeInsets.symmetric(vertical: 4.h),
+                              border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white.withOpacity(0.3))),
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 6.h),
+                        ] else ...[
+                          Text(
+                            controller.name,
+                            style: TextStyle(
+                              fontSize: 19.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (controller.shortBio.isNotEmpty) ...[
+                            SizedBox(height: 4.h),
+                            Text(
+                              controller.shortBio,
+                              style: TextStyle(
+                                fontSize: 12.5.sp,
+                                color: Colors.white.withOpacity(0.9),
+                                height: 1.3,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
+                        SizedBox(height: 10.h),
                         Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: 14.w,
@@ -227,7 +493,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                             ],
                           ),
                         ),
-                        SizedBox(height: 15.h),
+                        SizedBox(height: 5.h),
                       ],
                     ),
                   ),
@@ -240,134 +506,62 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
     );
   }
 
-  Widget _buildViewPublicProfileButton() {
-    return Container(
-      width: double.infinity,
-      height: 54.h,
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Center(
-        child: Text(
-          'View Public Profile',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
+  Widget _buildStatsRow(ProviderProfileController controller) {
+    final rating = controller.rating.toStringAsFixed(1);
+    final reviews = controller.reviewCount.toString();
+    final responseRate = '${controller.responseRate}%';
+    final projectsCount = controller.projectsCount.toString();
 
-  Widget _buildStatsGrid(ProviderProfileController controller) {
-    return Column(
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _buildDashboardCard(
-                icon: Icons.calendar_today_outlined,
-                title: 'Bookings',
-                value: controller.bookingsCount.toString(),
-                subtitle: '+${controller.bookingsThisWeek} this week',
-                subtitleColor: Colors.blueAccent,
-              ),
-            ),
-            SizedBox(width: 15.w),
-            Expanded(
-              child: _buildDashboardCard(
-                icon: Icons.euro, // Updated to Euro to match screenshot
-                title: 'Revenue',
-                value: '€${_formatLargeNumber(controller.revenueAmount)}',
-                subtitle: '+${controller.revenueChange}% vs last month',
-                subtitleColor: Colors.green,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 15.h),
-        Row(
-          children: [
-            Expanded(
-              child: _buildDashboardCard(
-                icon: Icons.trending_up,
-                title: 'Profile Views',
-                value: _formatLargeNumber(controller.profileViews.toDouble()),
-                subtitle: 'this week', // API doesn't have weekly views % yet
-                subtitleColor: Colors.grey,
-              ),
-            ),
-            SizedBox(width: 15.w),
-            Expanded(
-              child: _buildDashboardCard(
-                icon: Icons.star_border,
-                title: 'Rating',
-                value: controller.rating.toStringAsFixed(1),
-                subtitle: '${controller.reviewCount} reviews',
-                subtitleColor: Colors.grey,
-              ),
-            ),
-          ],
-        ),
+        _buildStatItem(Icons.star_border, rating, 'Rating'),
+        _buildStatItem(Icons.verified_outlined, reviews, 'Reviews'),
+        _buildStatItem(Icons.military_tech_outlined, responseRate, 'Response\nRate'),
+        _buildStatItem(Icons.camera_alt_outlined, projectsCount, 'Projects'),
       ],
     );
   }
 
-  Widget _buildDashboardCard({
-    required IconData icon,
-    required String title,
-    required String value,
-    required String subtitle,
-    required Color subtitleColor,
-  }) {
+  Widget _buildStatItem(IconData icon, String value, String label) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      width: 78.w,
+      height: 90.h,
+      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(10).r,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Row(
-            children: [
-              Icon(icon, size: 20.sp, color: Colors.grey[600]),
-              SizedBox(width: 8.w),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
-                ),
+          Icon(icon, size: 22.sp, color: Colors.black87),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
-            ],
-          ),
-          SizedBox(height: 12.h),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
             ),
           ),
-          SizedBox(height: 4.h),
           Text(
-            subtitle,
+            label,
+            textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 12.sp,
-              color: subtitleColor,
-              fontWeight: FontWeight.w400,
+              fontSize: 11.sp,
+              color: Colors.grey[600],
+              height: 1,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -375,129 +569,43 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
     );
   }
 
-  Widget _buildPremiumCard(ProviderProfileController controller) {
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.stars, color: Colors.amber, size: 24.sp),
-                  SizedBox(width: 10.w),
-                  Text(
-                    'Premium Member',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                '€10/month',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 15.h),
-          Text(
-            'Priority search placement • Extended analytics • Premium badge',
-            style: TextStyle(
-              color: Colors.grey[400],
-              fontSize: 13.sp,
-              height: 1.4,
-            ),
-          ),
-          SizedBox(height: 20.h),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 14.h),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[800]!),
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Center(
-              child: Text(
-                'Manage Subscription',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatLargeNumber(double number) {
-    if (number >= 1000) {
-      return '${(number / 1000).toStringAsFixed(1)}K';
-    }
-    return number.toInt().toString();
-  }
-
-  Widget _buildBody(ProviderProfileController controller) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildAboutSection(controller),
-          SizedBox(height: 25.h),
-          _buildSpecializationsSection(controller),
-          SizedBox(height: 25.h),
-          _buildLanguagesSection(controller),
-          SizedBox(height: 25.h),
-          _buildRecentSection(controller),
-          SizedBox(height: 25.h),
-          _buildReviewsSection(),
-          SizedBox(height: 40.h),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAboutSection(ProviderProfileController controller) {
+  Widget _buildAboutSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'About Me',
-          style: TextStyle(
-            fontSize: AppTypography.h2,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 12.h),
-        Text(
-          controller.aboutMe,
-          style: TextStyle(
-            fontSize: AppTypography.bodyLarge,
-            color: Colors.black87,
-            height: 1.5,
+        if (_isEditing)
+          TextFormField(
+            controller: _aboutController,
+            maxLines: null,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: const Color(0xFFF5F5F7),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          )
+        else
+          Text(
+            _aboutController.text,
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: Colors.grey[700],
+              height: 1.5,
+            ),
           ),
-        ),
       ],
     );
   }
 
-  Widget _buildSpecializationsSection(ProviderProfileController controller) {
+  Widget _buildChipsSection(String title, bool isSpecialty) {
+    final List<String> list = isSpecialty ? _tempSpecializations : _tempLanguages;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -505,72 +613,65 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Specializations',
-              style: TextStyle(
-                fontSize: AppTypography.h2,
-                fontWeight: FontWeight.bold,
-              ),
+              title,
+              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
             ),
+            if (_isEditing)
+              IconButton(
+                icon: Icon(Icons.add_circle_outline, color: Colors.blueAccent, size: 22.sp),
+                onPressed: () => _showAddChipDialog(title, isSpecialty),
+              ),
           ],
         ),
         SizedBox(height: 12.h),
         Wrap(
           spacing: 10.w,
           runSpacing: 10.h,
-          children: controller.specializations
-              .map((spec) => _buildChip(spec))
-              .toList(),
+          children: list.map((item) => _buildChip(item, isSpecialty)).toList(),
         ),
       ],
     );
   }
 
-  Widget _buildLanguagesSection(ProviderProfileController controller) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Languages',
-              style: TextStyle(
-                fontSize: AppTypography.h2,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 12.h),
-        Wrap(
-          spacing: 10.w,
-          runSpacing: 10.h,
-          children: controller.languages
-              .map((lang) => _buildChip(lang))
-              .toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildChip(String label) {
+  Widget _buildChip(String label, bool isSpecialty) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: const Color(0xFFF5F5F7),
-        borderRadius: BorderRadius.circular(20.r),
+        borderRadius: BorderRadius.circular(20).r,
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: AppTypography.bodySmall,
-          color: Colors.black87,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontSize: 13.sp, color: Colors.black87),
+          ),
+          if (_isEditing) ...[
+            SizedBox(width: 8.w),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (isSpecialty) {
+                    final item = label;
+                    _tempSpecializations.remove(item);
+                    _removedSpecializations.add(item);
+                  } else {
+                    final item = label;
+                    _tempLanguages.remove(item);
+                    _removedLanguages.add(item);
+                  }
+                });
+              },
+              child: Icon(Icons.close, size: 14.sp, color: Colors.red),
+            ),
+          ],
+        ],
       ),
     );
   }
 
-  Widget _buildRecentSection(ProviderProfileController controller) {
+  Widget _buildRecentWorkSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -578,12 +679,31 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Recent (${controller.recentWork.length})',
-              style: TextStyle(
-                fontSize: AppTypography.h2,
-                fontWeight: FontWeight.bold,
-              ),
+              'Portfolio (${_tempPortfolio.length})',
+              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
             ),
+            if (_isEditing)
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+                  decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(20.r),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add_photo_alternate_outlined, color: Colors.white, size: 16.sp),
+                      SizedBox(width: 6.w),
+                      Text(
+                        'Add Photo',
+                        style: TextStyle(color: Colors.white, fontSize: 13.sp, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
           ],
         ),
         SizedBox(height: 15.h),
@@ -593,18 +713,44 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 3,
-            mainAxisSpacing: 12.h,
-            crossAxisSpacing: 12.w,
+            mainAxisSpacing: 10.h,
+            crossAxisSpacing: 10.w,
             childAspectRatio: 1,
           ),
-          itemCount: controller.recentWork.length,
+          itemCount: _tempPortfolio.length,
           itemBuilder: (context, index) {
-            return CustomNetworkImage(
-              imageUrl: controller.recentWork[index],
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-              borderRadius: BorderRadius.circular(10.r),
+            final item = _tempPortfolio[index];
+            return Stack(
+              children: [
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10).r,
+                    child: item is File
+                        ? Image.file(item, fit: BoxFit.cover)
+                        : CustomNetworkImage(imageUrl: item.toString(), fit: BoxFit.cover),
+                  ),
+                ),
+                if (_isEditing)
+                  Positioned(
+                    top: 5,
+                    right: 5,
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          final removedItem = _tempPortfolio.removeAt(index);
+                          if (removedItem is String) {
+                            _removedPortfolio.add(removedItem);
+                          }
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                        child: const Icon(Icons.close, size: 12, color: Colors.white),
+                      ),
+                    ),
+                  ),
+              ],
             );
           },
         ),
@@ -612,7 +758,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
     );
   }
 
-  Widget _buildReviewsSection() {
+  Widget _buildReviewsSection(ProviderProfileController controller) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -621,39 +767,25 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
           children: [
             Text(
               'Client Reviews',
-              style: TextStyle(
-                fontSize: AppTypography.h2,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
             ),
             Row(
               children: [
                 Icon(Icons.star, color: Colors.amber, size: 16.sp),
                 SizedBox(width: 4.w),
                 Text(
-                  '4.9 (127 reviews)',
-                  style: TextStyle(
-                    fontSize: AppTypography.bodySmall,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  '${controller.rating.toStringAsFixed(1)} (${controller.reviewCount} reviews)',
+                  style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
           ],
         ),
         SizedBox(height: 20.h),
-        _buildReviewItem(
-          'Sarah Johnson',
-          'Nov 28, 2024',
-          'Emma was absolutely amazing! She captured every special moment of our wedding perfectly.',
-        ),
+        _buildReviewItem('Sarah Johnson', 'Nov 28, 2024', 'Emma was absolutely amazing! She captured every special moment of our wedding perfectly.'),
         SizedBox(height: 20.h),
-        _buildReviewItem(
-          'Michael Chen',
-          'Nov 15, 2024',
-          'Professional, creative, and easy to work with. Highly recommend!',
-        ),
-        SizedBox(height: 20.h),
+        _buildReviewItem('Michael Chen', 'Nov 15, 2024', 'Professional, creative, and easy to work with. Highly recommend!'),
+        SizedBox(height: 25.h),
         Center(
           child: Container(
             width: double.infinity,
@@ -665,10 +797,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
             child: Text(
               'View All Reviews',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: AppTypography.bodyLarge,
-                fontWeight: FontWeight.w500,
-              ),
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -676,16 +805,13 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
     );
   }
 
-  Widget _buildReviewItem(String name, String date, String content) {
+  Widget _buildReviewItem(String name, String date, String comment) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomNetworkImage(
-          width: 40.r,
-          height: 40.r,
-          shape: BoxShape.circle,
-          imageUrl: 'assets/images/img7.jpg',
-          fit: BoxFit.cover,
+        CircleAvatar(
+          radius: 18.r,
+          backgroundImage: const AssetImage('assets/images/img7.jpg'),
         ),
         SizedBox(width: 12.w),
         Expanded(
@@ -695,24 +821,8 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
-                    child: Text(
-                      name,
-                      style: TextStyle(
-                        fontSize: AppTypography.bodyLarge,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  SizedBox(width: 8.w),
-                  Text(
-                    date,
-                    style: TextStyle(
-                      fontSize: AppTypography.bodySmall,
-                      color: Colors.grey,
-                    ),
-                  ),
+                  Text(name, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                  Text(date, style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
                 ],
               ),
               Row(
@@ -721,19 +831,120 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                   (_) => Icon(Icons.star, color: Colors.amber, size: 12.sp),
                 ),
               ),
-              SizedBox(height: 8.h),
+              SizedBox(height: 6.h),
               Text(
-                content,
-                style: TextStyle(
-                  fontSize: AppTypography.bodyMedium,
-                  color: Colors.black87,
-                  height: 1.4,
-                ),
+                comment,
+                style: TextStyle(fontSize: 13.sp, color: Colors.grey[700], height: 1.4),
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  void _showAddChipDialog(String title, bool isSpecialty) {
+    final TextEditingController chipController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.r)),
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: EdgeInsets.all(24.w),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Add $title',
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Text(
+                'Enter the ${title.toLowerCase()} you want to add to your profile.',
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: Colors.grey[600],
+                  height: 1.4,
+                ),
+              ),
+              SizedBox(height: 24.h),
+              TextField(
+                controller: chipController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: 'e.g. ${isSpecialty ? "Portrait Photography" : "English"}',
+                  hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14.sp),
+                  filled: true,
+                  fillColor: const Color(0xFFF5F5F7),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: const BorderSide(color: Colors.black, width: 1),
+                  ),
+                ),
+                style: TextStyle(fontSize: 15.sp),
+              ),
+              SizedBox(height: 24.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12).r),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12).r),
+                      ),
+                      onPressed: () {
+                        if (chipController.text.trim().isNotEmpty) {
+                          setState(() {
+                            if (isSpecialty) {
+                              _tempSpecializations.add(chipController.text.trim());
+                            } else {
+                              _tempLanguages.add(chipController.text.trim());
+                            }
+                          });
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: Text(
+                        'Add',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

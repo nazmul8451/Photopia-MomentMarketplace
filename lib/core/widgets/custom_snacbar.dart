@@ -60,7 +60,7 @@ class CustomSnackBar {
                       ),
                     ),
                     child: Icon(
-                      isError ? Icons.close : Icons.check,
+                      isError ? Icons.error_outline_rounded : Icons.check_circle_rounded,
                       color: isError
                           ? const Color(0xFFE53935)
                           : const Color(0xFF4CAF50),

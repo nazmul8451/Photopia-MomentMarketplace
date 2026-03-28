@@ -12,7 +12,6 @@ import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
-import 'package:photopia/data/models/service_list_model.dart';
 
 class ProviderProfileScreen extends StatefulWidget {
   final Map<String, dynamic> provider;
@@ -36,14 +35,25 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Robust ID extraction
       dynamic rawId = widget.provider['_id'] ?? widget.provider['id'];
       
-      // If rawId is itself a Map (due to incorrect passing), extract the ID from it
       if (rawId is Map) {
         rawId = rawId['_id'] ?? rawId['id'];
       }
       
+      // If still null, check if there's a nested providerId object
+      if (rawId == null && widget.provider['providerId'] != null) {
+        final pId = widget.provider['providerId'];
+        if (pId is Map) {
+          rawId = pId['_id'] ?? pId['id'];
+        } else {
+          rawId = pId;
+        }
+      }
+      
       final String? providerId = rawId?.toString();
+      debugPrint("🚀 [ProviderProfileScreen] Initializing with ID: $providerId");
       
       if (providerId != null && providerId.isNotEmpty) {
         context.read<ServiceListController>().getProviderServices(providerId);
@@ -51,6 +61,8 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
           providerId,
         );
         context.read<ReviewController>().getProviderReviews(providerId);
+      } else {
+        debugPrint("⚠️ [ProviderProfileScreen] No valid provider ID found in widget.provider: ${widget.provider}");
       }
     });
   }
@@ -96,8 +108,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                       ...widget.provider,
                       'isPremium': true,
                       'category': 'Wedding & Event Photography',
-                      'location':
-                          'Barcelona, Spain', // Matching ProviderCard default for now
+                      'location': 'Barcelona, Spain',
                     },
                   );
                 },
@@ -105,7 +116,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
             },
           ),
           IconButton(
-            icon: Icon(Icons.outlined_flag, color: Colors.red, size: 24.sp),
+            icon: Icon(Icons.outlined_flag, color: Colors.blueGrey, size: 24.sp),
             onPressed: () {},
           ),
           SizedBox(width: 10.w),
@@ -118,7 +129,6 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
             Stack(
               clipBehavior: Clip.none,
               children: [
-                // Header Image
                 Container(
                   height: 220.h,
                   width: double.infinity,
@@ -129,7 +139,6 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                     ),
                   ),
                 ),
-                // Gradient Overlay
                 Container(
                   height: 200.h,
                   decoration: BoxDecoration(
@@ -143,8 +152,6 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                     ),
                   ),
                 ),
-
-                // Floating Glassmorphism Profile Card
                 Positioned(
                   bottom: -5.h,
                   left: 6.w,
@@ -155,8 +162,6 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                     },
                   ),
                 ),
-
-                // Overlapping Stats Row
                 Positioned(
                   bottom: -80.h,
                   left: 0,
@@ -172,14 +177,11 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                 ),
               ],
             ),
-
-            // Padding for the overlapping stats cards
             SizedBox(height: 100.h),
-
-            // TabBar and Content
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.w),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildTabBar(),
                   SizedBox(height: 20.h),
@@ -197,20 +199,18 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
   Widget _buildProfileInfo(ProviderDetailsController controller) {
     final providerDetails = controller.providerDetails;
     final isLoading = controller.isLoading;
-
-    // Fallback to widget.provider if API data is loading or missing
     final avatar = providerDetails?.profile ?? widget.provider['avatar']?.toString();
-    final name =
-        providerDetails?.fullName ?? widget.provider['name']?.toString() ?? 'Provider Name';
-
-    // Handle category name extraction
+    final name = providerDetails?.fullName ?? widget.provider['name']?.toString() ?? 'Provider Name';
     String categoryDisplay = 'Wedding & Event Photography';
-    if (providerDetails?.specialty != null &&
-        providerDetails!.specialty!.isNotEmpty) {
+    final prof = controller.profProfileDetails;
+    
+    // Use Bio if available, else use Specialty, else static fallback
+    if (prof?.bio != null && prof!.bio!.isNotEmpty) {
+      categoryDisplay = prof.bio!;
+    } else if (prof?.specialty != null && prof!.specialty!.isNotEmpty) {
+      categoryDisplay = prof.specialty!;
+    } else if (providerDetails?.specialty != null && providerDetails!.specialty!.isNotEmpty) {
       categoryDisplay = providerDetails.specialty!;
-    } else if (widget.provider['category'] != null &&
-        widget.provider['category'].toString().isNotEmpty) {
-      categoryDisplay = widget.provider['category'].toString();
     }
 
     return ClipRRect(
@@ -250,14 +250,8 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                     ),
                     child: ClipOval(
                       child: avatar != null && avatar.toString().isNotEmpty
-                          ? CustomNetworkImage(
-                              imageUrl: avatar,
-                              fit: BoxFit.cover,
-                            )
-                          : Image.asset(
-                              'assets/images/img6.png',
-                              fit: BoxFit.cover,
-                            ),
+                          ? CustomNetworkImage(imageUrl: avatar, fit: BoxFit.cover)
+                          : Image.asset('assets/images/img6.png', fit: BoxFit.cover),
                     ),
                   ),
                   SizedBox(width: 18.w),
@@ -267,62 +261,25 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                       children: [
                         Text(
                           name,
-                          style: TextStyle(
-                            fontSize: 19.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                          style: TextStyle(fontSize: 19.sp, fontWeight: FontWeight.bold, color: Colors.white),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 2.h),
                         if (isLoading)
-                          SizedBox(
-                            height: 14.h,
-                            width: 100.w,
-                            child: const CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white54,
-                            ),
-                          )
+                          SizedBox(height: 14.h, width: 100.w, child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white54))
                         else
-                          Text(
-                            categoryDisplay,
-                            style: TextStyle(
-                              fontSize: 13.sp,
-                              color: Colors.white.withOpacity(0.9),
-                              fontWeight: FontWeight.w400,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          Text(categoryDisplay, style: TextStyle(fontSize: 13.sp, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w400)),
                         SizedBox(height: 6.h),
                         Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 14.w,
-                            vertical: 5.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(30).r,
-                          ),
+                          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
+                          decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(30).r),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                Icons.stars,
-                                color: Colors.white,
-                                size: 12.sp,
-                              ),
+                              Icon(Icons.stars, color: Colors.white, size: 12.sp),
                               SizedBox(width: 6.w),
-                              Text(
-                                'Premium',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10.5.sp,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              Text('Premium', style: TextStyle(color: Colors.white, fontSize: 10.5.sp, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
@@ -341,36 +298,24 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
 
   Widget _buildStatsRow(ProviderDetailsController controller) {
     if (controller.isLoading) {
-      return SizedBox(
-        height: 90.h,
-        child: const Center(
-          child: CircularProgressIndicator(color: Colors.black54),
-        ),
-      );
+      return SizedBox(height: 90.h, child: const Center(child: CircularProgressIndicator(color: Colors.black54)));
     }
+    
+    // Pull data from professional profile first, then fallback to user details or widget map
+    final prof = controller.profProfileDetails;
+    final user = controller.providerDetails;
 
-    // Always display the cards, fallback to defaults or placeholders if data is missing.
-    final dynamic providerData =
-        controller.providerDetails?.toJson() ?? widget.provider;
-
-    final rating = providerData['rating']?.toString() ?? '4.9';
-    final reviews = providerData['reviews']?.toString() ?? '127';
-    final responseRate = providerData['responseRate']?.toString() ?? '95%';
-    final projectsCount =
-        providerData['projectsCount']?.toString() ??
-        providerData['projects']?.toString() ??
-        '342';
+    final rating = prof?.rating?.toString() ?? '0.0';
+    final reviews = prof?.reviewCount?.toString() ?? '0';
+    final responseRate = prof?.responseRate != null ? '${prof!.responseRate}%' : '0%';
+    final projectsCount = prof?.projects?.toString() ?? (user?.id != null ? '0' : '0');
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         _buildStatItem(Icons.star_border, rating, 'Rating'),
         _buildStatItem(Icons.verified_outlined, reviews, 'Reviews'),
-        _buildStatItem(
-          Icons.military_tech_outlined,
-          responseRate,
-          'Response Rate',
-        ),
+        _buildStatItem(Icons.military_tech_outlined, responseRate, 'Response Rate'),
         _buildStatItem(Icons.camera_alt_outlined, projectsCount, 'Projects'),
       ],
     );
@@ -381,42 +326,13 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
       width: 78.w,
       height: 90.h,
       padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10).r,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10).r, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))]),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           Icon(icon, size: 22.sp, color: Colors.black87),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-          ),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11.sp,
-              color: Colors.grey[600],
-              height: 1,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          FittedBox(fit: BoxFit.scaleDown, child: Text(value, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.black))),
+          Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 11.sp, color: Colors.grey[600], height: 1, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -425,182 +341,84 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
   Widget _buildTabBar() {
     return Container(
       height: 35.h,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F7),
-        borderRadius: BorderRadius.circular(30).r,
-      ),
+      decoration: BoxDecoration(color: const Color(0xFFF5F5F7), borderRadius: BorderRadius.circular(30).r),
       child: TabBar(
         controller: _tabController,
         padding: EdgeInsets.all(4.w),
-        onTap: (index) {
-          setState(() {});
-        },
-        indicator: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
-          borderRadius: BorderRadius.circular(30).r,
-        ),
+        indicator: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(30).r),
         labelColor: Colors.white,
         unselectedLabelColor: const Color(0xFF455A64),
-        labelStyle: TextStyle(
-          fontSize: 12.sp.clamp(11, 13),
-          fontWeight: FontWeight.w600,
-        ),
-        unselectedLabelStyle: TextStyle(
-          fontSize: 12.sp.clamp(11, 13),
-          fontWeight: FontWeight.w500,
-        ),
+        labelStyle: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w500),
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
         tabs: [
-          Tab(
-            child: FittedBox(fit: BoxFit.scaleDown, child: Text('Portfolio')),
-          ),
-          Tab(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Consumer<ReviewController>(
-                builder: (context, controller, child) {
-                  return Text('Reviews (${controller.reviews.length})');
-                },
-              ),
-            ),
-          ),
-          Tab(
-            child: FittedBox(fit: BoxFit.scaleDown, child: Text('About')),
-          ),
+          Tab(child: FittedBox(fit: BoxFit.scaleDown, child: Text('Portfolio'))),
+          Tab(child: FittedBox(fit: BoxFit.scaleDown, child: Consumer<ReviewController>(builder: (context, controller, child) => Text('Reviews (${controller.reviews.length})')))),
+          Tab(child: FittedBox(fit: BoxFit.scaleDown, child: Text('About'))),
         ],
       ),
     );
   }
 
   Widget _buildTabContent() {
-    return Container(
-      key: ValueKey(_tabController.index),
-      child: [
-        _buildPortfolioContent(),
-        _buildReviewsContent(),
-        _buildAboutContent(),
-      ][_tabController.index],
-    );
+    return [
+      _buildPortfolioContent(),
+      _buildReviewsContent(),
+      _buildAboutContent(),
+    ][_tabController.index];
   }
 
   Widget _buildPortfolioContent() {
-    return Consumer<ServiceListController>(
-      builder: (context, controller, child) {
-        final isLoading = controller.isLoading;
-        final services = controller.services;
+    return Consumer2<ServiceListController, ProviderDetailsController>(
+      builder: (context, serviceController, detailsController, child) {
+        final isLoading = serviceController.isLoading;
+        final services = serviceController.services;
 
-        // Extract all gallery items from all services for the Recent Work section
-        final List<String> allGalleryImages = [];
-        for (var service in services) {
-          if (service.gallery != null) {
-            for (var img in service.gallery!) {
-              if (img != null && img.toString().isNotEmpty) {
-                allGalleryImages.add(img.toString());
-              }
-            }
-          }
-        }
+        // Get portfolio images from professional profile
+        final portfolioImages = detailsController.profProfileDetails?.portfolio
+            ?.map((e) => e.toString())
+            .where((url) => url.isNotEmpty)
+            .toList() ?? [];
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Services Offered',
-              style: TextStyle(
-                fontSize: AppTypography.h2,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text('Services Offered', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
             SizedBox(height: 15.h),
             if (isLoading)
-              GridView.builder(
-                padding: EdgeInsets.zero,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 15.h,
-                  crossAxisSpacing: 15.w,
-                  childAspectRatio: 0.55,
-                ),
-                itemCount: 2,
-                itemBuilder: (context, index) => const ServiceCardSkeleton(),
-              )
+              GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 15, crossAxisSpacing: 15, childAspectRatio: 0.55), itemCount: 2, itemBuilder: (context, index) => const ServiceCardSkeleton())
             else if (services.isEmpty)
-              Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20.h),
-                  child: Text(
-                    'No services found.',
-                    style: TextStyle(
-                      fontSize: AppTypography.bodyLarge,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-              )
+              const Center(child: Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Text('No services found.')))
             else
               GridView.builder(
-                padding: EdgeInsets.zero,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 15.h,
-                  crossAxisSpacing: 15.w,
-                  childAspectRatio: 0.55,
-                ),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 15, crossAxisSpacing: 15, childAspectRatio: 0.55),
                 itemCount: services.length,
                 itemBuilder: (context, index) {
-                  final dynamic service = services[index];
+                  final service = services[index];
                   return ServiceCard(
-                    id: (service is ServiceItem) ? service.sId : service['_id']?.toString(),
-                    title: (service is ServiceItem) ? (service.title ?? 'Service') : (service['title']?.toString() ?? 'Service'),
-                    subtitle: (service is ServiceItem) 
-                        ? (service.providerId?.name ?? widget.provider['name'] ?? 'Provider')
-                        : (service['providerId']?['name'] ?? widget.provider['name'] ?? 'Provider'),
-                    imageUrl: (service is ServiceItem) ? (service.coverMedia ?? '') : (service['coverMedia']?.toString() ?? ''),
-                    rating: (service is ServiceItem) ? (service.rating ?? 0.0) : (double.tryParse(service['rating']?.toString() ?? '0.0') ?? 0.0),
-                    reviews: (service is ServiceItem) ? (service.reviews ?? 0) : (int.tryParse(service['reviews']?.toString() ?? '0') ?? 0),
-                    priceRange: (service is ServiceItem) 
-                        ? '€${service.price ?? 0}'
-                        : '€${service['price'] ?? 0}',
+                    id: service.sId ?? '',
+                    title: service.title ?? 'Service',
+                    subtitle: widget.provider['name'] ?? 'Provider',
+                    imageUrl: service.coverMedia ?? '',
+                    rating: service.rating ?? 0.0,
+                    reviews: service.reviews ?? 0,
+                    priceRange: '€${service.price ?? 0}',
                     tags: const [],
                     isPremium: false,
-                    providerId: (service is ServiceItem) 
-                        ? (service.providerId?.sId ?? widget.provider['_id'] ?? widget.provider['id'])
-                        : (service['providerId']?['_id'] ?? widget.provider['_id'] ?? widget.provider['id']),
+                    providerId: widget.provider['_id'] ?? widget.provider['id'],
                   );
                 },
               ),
-            SizedBox(height: 30.h),
-            Text(
-              'Recent Work',
-              style: TextStyle(
-                fontSize: AppTypography.h2,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 15.h),
-            if (isLoading)
-              const Center(child: CircularProgressIndicator())
-            else if (allGalleryImages.isEmpty)
-              Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20.h),
-                  child: Text(
-                    'No recent work available.',
-                    style: TextStyle(
-                      fontSize: AppTypography.bodyLarge,
-                      color: Colors.grey,
-                    ),
-                  ),
-                ),
-              )
-            else
+
+            // Portfolio images from professional profile
+            if (portfolioImages.isNotEmpty) ...[
+              SizedBox(height: 30.h),
+              Text('Portfolio', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
+              SizedBox(height: 15.h),
               GridView.builder(
-                padding: EdgeInsets.zero,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -609,17 +427,18 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                   crossAxisSpacing: 12.w,
                   childAspectRatio: 1,
                 ),
-                itemCount: allGalleryImages.length,
+                itemCount: portfolioImages.length,
                 itemBuilder: (context, index) {
                   return ClipRRect(
                     borderRadius: BorderRadius.circular(12).r,
                     child: CustomNetworkImage(
-                      imageUrl: allGalleryImages[index],
+                      imageUrl: portfolioImages[index],
                       fit: BoxFit.cover,
                     ),
                   );
                 },
               ),
+            ],
           ],
         );
       },
@@ -629,123 +448,30 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
   Widget _buildReviewsContent() {
     return Consumer<ReviewController>(
       builder: (context, controller, child) {
-        if (controller.isLoading) {
-          return const Center(
-            child: CircularProgressIndicator(color: Colors.black),
-          );
-        }
-
+        if (controller.isLoading) return const Center(child: CircularProgressIndicator());
         final reviews = controller.reviews;
-
-        if (reviews.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 40.h),
-              child: Column(
-                children: [
-                  Icon(Icons.rate_review_outlined, size: 64.sp, color: Colors.grey[300]),
-                  SizedBox(height: 16.h),
-                  Text(
-                    'No reviews yet',
-                    style: TextStyle(
-                      fontSize: AppTypography.bodyLarge,
-                      color: Colors.grey,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-
+        if (reviews.isEmpty) return const Center(child: Text('No reviews yet'));
         return Column(
-          children: reviews.map((review) {
-            // Format date if possible
-            String formattedDate = 'Recent';
-            if (review.createdAt != null) {
-              try {
-                final date = DateTime.parse(review.createdAt!);
-                formattedDate = "${date.day}/${date.month}/${date.year}";
-              } catch (_) {}
-            }
-
-            return Padding(
-              padding: EdgeInsets.only(bottom: 30.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 20.r,
-                        backgroundImage: (review.user?.profile != null && review.user!.profile!.startsWith('http'))
-                            ? NetworkImage(review.user!.profile!) as ImageProvider
-                            : const AssetImage('assets/images/img7.jpg'),
-                      ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              review.user?.name ?? 'Anonymous',
-                              style: TextStyle(
-                                fontSize: AppTypography.bodyLarge,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Row(
-                                  children: List.generate(
-                                    5,
-                                    (i) => Icon(
-                                      Icons.star,
-                                      color: i < (review.rating ?? 0) ? Colors.orange : Colors.grey[300],
-                                      size: 14.sp,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 8.w),
-                                Text(
-                                  formattedDate,
-                                  style: TextStyle(
-                                    fontSize: AppTypography.bodySmall,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (review.service?.title != null) ...[
-                    SizedBox(height: 8.h),
-                    Text(
-                      review.service!.title!,
-                      style: TextStyle(
-                        fontSize: AppTypography.bodySmall,
-                        color: Colors.grey[700],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+          children: reviews.map((review) => Padding(
+            padding: EdgeInsets.only(bottom: 20.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(radius: 20.r, backgroundImage: const AssetImage('assets/images/img7.jpg')),
+                    SizedBox(width: 12.w),
+                    Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(review.user?.name ?? 'Anonymous', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
+                      Row(children: List.generate(5, (i) => Icon(Icons.star, color: i < (review.rating ?? 0) ? Colors.orange : Colors.grey[300], size: 14.sp))),
+                    ]),
                   ],
-                  SizedBox(height: 12.h),
-                  Text(
-                    review.comment ?? '',
-                    style: TextStyle(
-                      fontSize: AppTypography.bodyMedium,
-                      color: Colors.black87,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
+                ),
+                SizedBox(height: 10.h),
+                Text(review.comment ?? '', style: TextStyle(fontSize: 13.sp, color: Colors.black87)),
+              ],
+            ),
+          )).toList(),
         );
       },
     );
@@ -754,25 +480,36 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
   Widget _buildAboutContent() {
     return Consumer<ProviderDetailsController>(
       builder: (context, controller, child) {
-        final description =
-            controller.providerDetails?.description ??
-            widget.provider['description'] ??
-            "Professional wedding and event photographer with over 8 years of experience capturing life's most precious moments. I specialize in candid, emotional photography that tells your unique story. My approach combines artistic vision with journalistic documentation to create timeless images you'll treasure forever.";
+        // Data sources
+        final userProfile = controller.providerDetails;
+        final profProfile = controller.profProfileDetails;
 
-        final createdAt = controller.providerDetails?.createdAt ?? widget.provider['createdAt'];
+        // Description priority
+        final description = 
+            profProfile?.user?.description ??
+            userProfile?.description ?? 
+            widget.provider['description']?.toString() ??
+            "";
+        
+        // Member since from createdAt
         String memberSince = "";
-        if (createdAt != null) {
+        if (userProfile?.createdAt != null) {
           try {
-            final date = DateTime.parse(createdAt.toString());
+            final date = DateTime.parse(userProfile!.createdAt!);
             memberSince = "Member since ${date.year}";
-          } catch (_) {
-            memberSince = "Member since 2026"; // Fallback
-          }
-        } else {
-          memberSince = "Member since 2026"; // Fallback
+          } catch (_) {}
         }
 
-        final languages = controller.providerDetails?.languages ?? [];
+        // Combine languages and specializations from both models
+        final List<String> languages = [
+          ...?(userProfile?.languages),
+          ...?(profProfile?.language?.map((e) => e.toString())),
+        ].toSet().where((e) => e.isNotEmpty).toList();
+
+        final List<String> specializations = [
+          if (userProfile?.specialty != null && userProfile!.specialty!.isNotEmpty) userProfile.specialty!,
+          ...?(profProfile?.specialties?.map((e) => e.toString())),
+        ].toSet().where((e) => e.isNotEmpty).toList();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -780,67 +517,64 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
             Text(
               'About Me',
               style: TextStyle(
-                fontSize: AppTypography.bodyLarge,
+                fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
             ),
-            SizedBox(height: 10.h),
+            SizedBox(height: 12.h),
             Text(
-              description.toString().isNotEmpty
-                  ? description
-                  : "No description available.",
+              description.isEmpty ? "No description available." : description,
               style: TextStyle(
-                fontSize: AppTypography.bodyMedium,
-                color: Colors.black87,
-                height: 1.5,
+                fontSize: 14.sp,
+                color: const Color(0xFF455A64),
+                height: 1.6,
               ),
             ),
-            SizedBox(height: 15.h),
-            Text(
-              memberSince,
-              style: TextStyle(
-                fontSize: AppTypography.bodySmall,
-                color: Colors.grey,
+            if (memberSince.isNotEmpty) ...[
+              SizedBox(height: 10.h),
+              Text(
+                memberSince,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  color: const Color(0xFF90A4AE),
+                ),
               ),
-            ),
+            ],
+            
             if (languages.isNotEmpty) ...[
-              SizedBox(height: 30.h),
+              SizedBox(height: 25.h),
               Text(
                 'Languages',
                 style: TextStyle(
-                  fontSize: AppTypography.bodyLarge,
+                  fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
               ),
-              SizedBox(height: 10.h),
+              SizedBox(height: 12.h),
               Wrap(
-                spacing: 12.w,
-                runSpacing: 8.h,
-                children: languages.map((lang) => _buildAboutChip(lang)).toList(),
+                spacing: 10.w,
+                runSpacing: 10.h,
+                children: languages.map((item) => _buildReadOnlyChip(item)).toList(),
               ),
             ],
-            if (controller.providerDetails?.specialty != null || widget.provider['specialty'] != null) ...[
-              SizedBox(height: 30.h),
+
+            if (specializations.isNotEmpty) ...[
+              SizedBox(height: 25.h),
               Text(
                 'Specializations',
                 style: TextStyle(
-                  fontSize: AppTypography.bodyLarge,
+                  fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
               ),
-              SizedBox(height: 10.h),
-              Builder(
-                builder: (context) {
-                  final specialtyStr = controller.providerDetails?.specialty ?? widget.provider['specialty']?.toString() ?? "";
-                  final specialties = specialtyStr.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-                  return Wrap(
-                    spacing: 12.w,
-                    runSpacing: 8.h,
-                    children: specialties.isNotEmpty 
-                        ? specialties.map((spec) => _buildAboutChip(spec)).toList()
-                        : [_buildAboutChip('Photography')], // Default
-                  );
-                }
+              SizedBox(height: 12.h),
+              Wrap(
+                spacing: 10.w,
+                runSpacing: 10.h,
+                children: specializations.map((item) => _buildReadOnlyChip(item)).toList(),
               ),
             ],
           ],
@@ -849,18 +583,19 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
     );
   }
 
-  Widget _buildAboutChip(String label) {
+  Widget _buildReadOnlyChip(String label) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F3F5),
-        borderRadius: BorderRadius.circular(12).r,
+        color: const Color(0xFFF5F7F9),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: const Color(0xFFECEFF1)),
       ),
       child: Text(
         label,
         style: TextStyle(
-          fontSize: AppTypography.bodySmall,
-          color: Colors.black87,
+          fontSize: 13.sp, 
+          color: const Color(0xFF455A64),
           fontWeight: FontWeight.w500,
         ),
       ),

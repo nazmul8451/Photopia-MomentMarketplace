@@ -10,6 +10,8 @@ class ProfessionalProfileModel {
   final bool? isVerified;
   final double? rating;
   final int? reviewCount;
+  final String? bio;
+  final String? specialty;
   final Statistics? statistics;
 
   ProfessionalProfileModel({
@@ -24,6 +26,8 @@ class ProfessionalProfileModel {
     this.isVerified,
     this.rating,
     this.reviewCount,
+    this.bio,
+    this.specialty,
     this.statistics,
   });
 
@@ -40,6 +44,8 @@ class ProfessionalProfileModel {
       isVerified: json['isVerified'],
       rating: (json['rating'] ?? 0).toDouble(),
       reviewCount: json['reviewCount'],
+      bio: json['bio'],
+      specialty: json['specialty'],
       statistics: json['statistics'] != null
           ? Statistics.fromJson(json['statistics'])
           : null,

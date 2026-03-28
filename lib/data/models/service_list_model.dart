@@ -104,6 +104,7 @@ class ServiceItem {
   double? rating;
   int? reviews;
   String? description;
+  List<String>? tags;
   List<String>? equipment;
   List<dynamic>? gallery;
   String? responseTime;
@@ -124,6 +125,7 @@ class ServiceItem {
     this.rating,
     this.reviews,
     this.description,
+    this.tags,
     this.equipment,
     this.gallery,
     this.responseTime,
@@ -177,6 +179,7 @@ class ServiceItem {
       rating: double.tryParse(json['rating']?.toString() ?? '0.0') ?? 0.0,
       reviews: int.tryParse(json['reviews']?.toString() ?? '0') ?? 0,
       description: json['description'],
+      tags: json['tags'] != null ? List<String>.from(json['tags']) : null,
       equipment: json['equipment'] != null
           ? List<String>.from(json['equipment'])
           : null,
@@ -213,6 +216,7 @@ class ServiceItem {
     data['rating'] = rating;
     data['reviews'] = reviews;
     data['description'] = description;
+    data['tags'] = tags;
     data['equipment'] = equipment;
     data['gallery'] = gallery;
     data['responseTime'] = responseTime;

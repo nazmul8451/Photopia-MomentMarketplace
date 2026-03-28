@@ -24,7 +24,7 @@ class ServiceListController extends ChangeNotifier {
 
     try {
       final response = await NetworkCaller.getRequest(
-        url: Urls.getAllservice,
+        url: Urls.service,
         requireAuth: false,
       );
 

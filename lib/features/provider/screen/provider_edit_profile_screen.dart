@@ -51,7 +51,7 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
     // Call update API
     final success = await controller.updateProviderProfile(
       name: _nameController.text,
-      description: _aboutController.text,
+      bio: _aboutController.text,
       specialty: _specialtyController.text,
     );
 

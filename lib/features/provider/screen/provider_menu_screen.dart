@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/features/provider/screen/provider_wallet_screen.dart';
 import 'package:photopia/features/common/mode_transition_screen.dart';
 import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/features/provider/screen/provider_subscription_screen.dart';
-import 'package:photopia/features/provider/screen/provider_profile_screen.dart';
-import 'package:photopia/features/provider/screen/provider_wallet_screen.dart';
-import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_profile_controller.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/controller/client/log_out_controller.dart';
 import 'package:photopia/features/client/widgets/auth_profile_image.dart';
 import 'package:photopia/features/provider/screen/provider_statistics_screen.dart';
 import 'package:photopia/features/provider/screen/provider_notification_screen.dart';
+import 'package:photopia/features/provider/screen/provider_profile_screen.dart';
 
 class ProviderMenuScreen extends StatefulWidget {
   const ProviderMenuScreen({super.key});
@@ -76,7 +76,8 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ProviderStatisticsScreen(),
+                            builder: (context) =>
+                                const ProviderStatisticsScreen(),
                           ),
                         );
                       },
@@ -98,7 +99,8 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ProviderNotificationScreen(),
+                            builder: (context) =>
+                                const ProviderNotificationScreen(),
                           ),
                         );
                       },
@@ -559,13 +561,15 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                 ? null
                 : () async {
                     debugPrint('🚪 Provider Logout initiated...');
-                    
+
                     // 1. Attempt API logout (optional server-side cleanup)
                     final result = await logOutController.logOut();
-                    
+
                     if (context.mounted) {
                       if (!result) {
-                        debugPrint('⚠️ Server logout failed/refused (403), but clearing local state.');
+                        debugPrint(
+                          '⚠️ Server logout failed/refused (403), but clearing local state.',
+                        );
                       }
 
                       // 2. ALWAYS clear local state and navigate to login

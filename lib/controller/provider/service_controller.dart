@@ -116,7 +116,17 @@ class ServiceController extends ChangeNotifier {
         return true;
       } else {
         final Map<String, dynamic> responseBody = jsonDecode(response.body);
-        _errorMessage = responseBody['message'] ?? 'Failed to create service';
+        
+        // Handle Zod or field-specific errors for better UX
+        String? errorMsg;
+        if (responseBody['errorMessages'] != null && (responseBody['errorMessages'] as List).isNotEmpty) {
+          final firstError = responseBody['errorMessages'][0];
+          final path = firstError['path'];
+          final msg = firstError['message'];
+          errorMsg = "$path: $msg";
+        }
+
+        _errorMessage = errorMsg ?? responseBody['message'] ?? 'Failed to create service';
         notifyListeners();
         return false;
       }
@@ -241,7 +251,17 @@ class ServiceController extends ChangeNotifier {
         return true;
       } else {
         final Map<String, dynamic> responseBody = jsonDecode(response.body);
-        _errorMessage = responseBody['message'] ?? 'Failed to update service';
+
+        // Handle Zod or field-specific errors for better UX
+        String? errorMsg;
+        if (responseBody['errorMessages'] != null && (responseBody['errorMessages'] as List).isNotEmpty) {
+          final firstError = responseBody['errorMessages'][0];
+          final path = firstError['path'];
+          final msg = firstError['message'];
+          errorMsg = "$path: $msg";
+        }
+
+        _errorMessage = errorMsg ?? responseBody['message'] ?? 'Failed to update service';
         notifyListeners();
         return false;
       }
