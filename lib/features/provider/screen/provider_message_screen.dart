@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:photopia/data/models/conversation_model.dart';
 import 'package:photopia/features/client/widgets/message_list_item.dart';
 import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:photopia/features/client/chat_screen.dart';
-import 'dart:async';
+import 'package:provider/provider.dart';
+import 'package:photopia/controller/client/chat_controller.dart';
+import 'package:photopia/controller/auth_controller.dart';
 
 class ProviderMessageScreen extends StatefulWidget {
   const ProviderMessageScreen({super.key});
@@ -14,62 +15,13 @@ class ProviderMessageScreen extends StatefulWidget {
 }
 
 class _ProviderMessageScreenState extends State<ProviderMessageScreen> {
-  bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
-
-  final List<Conversation> _mockConversations = [
-    Conversation(
-      id: '1',
-      name: 'Emma Wilson',
-      lastMessage: 'Thank you! I can do the shoot on Saturday.',
-      avatarUrl: 'assets/images/img1.png',
-      lastMessageTime: DateTime.now().subtract(const Duration(minutes: 2)),
-      unreadCount: 2,
-      isOnline: true,
-      status: MessageStatus.read,
-    ),
-    Conversation(
-      id: '2',
-      name: 'Tech Media Studio',
-      lastMessage: "I've sent you the quote for the corporate video.",
-      avatarUrl: 'assets/images/img2.png',
-      lastMessageTime: DateTime.now().subtract(const Duration(hours: 1)),
-      unreadCount: 0,
-      isOnline: true,
-      status: MessageStatus.read,
-    ),
-    Conversation(
-      id: '3',
-      name: 'Marco Silva',
-      lastMessage: 'Perfect! Looking forward to working with you.',
-      avatarUrl: 'assets/images/img3.png',
-      lastMessageTime: DateTime.now().subtract(const Duration(hours: 3)),
-      unreadCount: 0,
-      isOnline: true,
-      status: MessageStatus.read,
-    ),
-    Conversation(
-      id: '4',
-      name: 'Lucia Rossi',
-      lastMessage: 'The portfolio is ready for review.',
-      avatarUrl: 'assets/images/img7.jpg',
-      lastMessageTime: DateTime.now().subtract(const Duration(days: 1)),
-      unreadCount: 0,
-      isOnline: true,
-      status: MessageStatus.delivered,
-    ),
-  ];
 
   @override
   void initState() {
     super.initState();
-    // Simulate loading for shimmer effect
-    Timer(const Duration(seconds: 1), () {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ChatController>().getChats();
     });
   }
 
@@ -89,10 +41,50 @@ class _ProviderMessageScreenState extends State<ProviderMessageScreen> {
             _buildHeader(),
             _buildSearchBar(),
             Expanded(
-              child: _isLoading ? _buildShimmerList() : _buildConversationList(),
+              child: Consumer<ChatController>(
+                builder: (context, controller, child) {
+                  if (controller.isLoading && controller.chats.isEmpty) {
+                    return _buildShimmerList();
+                  }
+
+                  if (controller.errorMessage.isNotEmpty && controller.chats.isEmpty) {
+                    return Center(child: Text(controller.errorMessage));
+                  }
+
+                  if (controller.chats.isEmpty) {
+                    return _buildEmptyState();
+                  }
+
+                  return RefreshIndicator(
+                    onRefresh: () => controller.getChats(),
+                    color: Colors.black,
+                    child: _buildConversationList(controller),
+                  );
+                },
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.message_outlined, size: 64.sp, color: Colors.grey[300]),
+          SizedBox(height: 16.h),
+          Text(
+            'No messages yet',
+            style: TextStyle(
+              fontSize: 16.sp,
+              color: Colors.grey,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -150,18 +142,24 @@ class _ProviderMessageScreenState extends State<ProviderMessageScreen> {
     );
   }
 
-  Widget _buildConversationList() {
+  Widget _buildConversationList(ChatController controller) {
+    final chats = controller.chats;
+    final currentUserId = AuthController.userId;
+
     return ListView.builder(
-      physics: const BouncingScrollPhysics(),
-      itemCount: _mockConversations.length,
+      physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+      itemCount: chats.length,
       itemBuilder: (context, index) {
+        final chatRoom = chats[index];
+        final conversation = chatRoom.toConversation(currentUserId);
+
         return MessageListItem(
-          conversation: _mockConversations[index],
+          conversation: conversation,
           onTap: () {
             Navigator.of(context, rootNavigator: true).push(
               MaterialPageRoute(
                 builder: (context) =>
-                    ChatScreen(conversation: _mockConversations[index]),
+                    ChatScreen(conversation: conversation),
               ),
             );
           },

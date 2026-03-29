@@ -132,11 +132,20 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                 Container(
                   height: 220.h,
                   width: double.infinity,
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: AssetImage('assets/images/img5.png'),
-                      fit: BoxFit.cover,
-                    ),
+                  child: Consumer<ProviderDetailsController>(
+                    builder: (context, controller, child) {
+                      final cover = controller.profProfileDetails?.coverPhoto;
+                      return Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: cover != null
+                                ? NetworkImage(cover) as ImageProvider
+                                : const AssetImage('assets/images/img5.png'),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 Container(
@@ -459,7 +468,13 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
               children: [
                 Row(
                   children: [
-                    CircleAvatar(radius: 20.r, backgroundImage: const AssetImage('assets/images/img7.jpg')),
+                    CircleAvatar(
+                      radius: 20.r,
+                      backgroundColor: Colors.grey[200],
+                      backgroundImage: review.user?.profile != null
+                          ? NetworkImage(review.user!.profile!) as ImageProvider
+                          : const AssetImage('assets/images/img7.jpg'),
+                    ),
                     SizedBox(width: 12.w),
                     Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(review.user?.name ?? 'Anonymous', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),

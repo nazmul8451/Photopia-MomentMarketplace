@@ -1,3 +1,5 @@
+import 'package:photopia/core/network/urls.dart';
+
 class ProfessionalProfileModel {
   final int? profileViews;
   final int? projects;
@@ -12,6 +14,7 @@ class ProfessionalProfileModel {
   final int? reviewCount;
   final String? bio;
   final String? specialty;
+  final String? coverPhoto;
   final Statistics? statistics;
 
   ProfessionalProfileModel({
@@ -28,6 +31,7 @@ class ProfessionalProfileModel {
     this.reviewCount,
     this.bio,
     this.specialty,
+    this.coverPhoto,
     this.statistics,
   });
 
@@ -39,17 +43,25 @@ class ProfessionalProfileModel {
       id: json['_id'],
       user: json['user'] != null ? User.fromJson(json['user']) : null,
       specialties: json['specialties'],
-      portfolio: json['portfolio'],
+      portfolio: (json['portfolio'] as List?)?.map((e) => formatUrl(e)).toList(),
       language: json['language'],
       isVerified: json['isVerified'],
       rating: (json['rating'] ?? 0).toDouble(),
       reviewCount: json['reviewCount'],
       bio: json['bio'],
       specialty: json['specialty'],
+      coverPhoto: formatUrl(json['coverPhoto']),
       statistics: json['statistics'] != null
           ? Statistics.fromJson(json['statistics'])
           : null,
     );
+  }
+
+  static String? formatUrl(dynamic url) {
+    if (url == null) return null;
+    String urlString = url.toString();
+    if (urlString.startsWith('http')) return urlString;
+    return '${Urls.baseUrl}$urlString';
   }
 }
 
@@ -75,7 +87,7 @@ class User {
       id: json['_id'],
       name: json['name'],
       email: json['email'],
-      profile: json['profile'],
+      profile: ProfessionalProfileModel.formatUrl(json['profile']),
       description: json['description'],
       verified: json['verified'],
     );

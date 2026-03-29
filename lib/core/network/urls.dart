@@ -57,6 +57,10 @@ class Urls {
 
   //** chat api */
   static const String chat = '$baseUrl/api/v1/chat';
+  static String getMessages(String chatId) => '$baseUrl/api/v1/message/$chatId';
+  static const String sendMessage = '$baseUrl/api/v1/message';
+  static String createChat(String otherUserId) => '$baseUrl/api/v1/chat/$otherUserId';
+
   static const String statistics = '$baseUrl/api/v1/professional-profiles/statistics';
   static const String statisticsExport = '$baseUrl/api/v1/professional-profiles/statistics/export';
   static const String createBooking = '$baseUrl/api/v1/booking';

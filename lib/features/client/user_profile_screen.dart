@@ -98,19 +98,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Container(
       width: double.infinity,
       color: Colors.white,
-      padding: EdgeInsets.symmetric(vertical: 30.h),
+      padding: EdgeInsets.symmetric(vertical: 15.h),
       child: Column(
         children: [
-          AuthProfileImage(imageUrl: imageUrl, size: 100.w),
-          Container(
-            padding: EdgeInsets.all(6.w),
-            decoration: const BoxDecoration(
-              color: Color(0xFF1A1A1A),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.person_outline, color: Colors.white, size: 14.sp),
-          ),
-          SizedBox(height: 15.h),
+          AuthProfileImage(imageUrl: imageUrl, size: 90.w),
+          SizedBox(height: 10.h),
           Text(
             user?.fullName ?? 'Loading...',
             style: TextStyle(

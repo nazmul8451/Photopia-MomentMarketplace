@@ -24,6 +24,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
   final TextEditingController _bioController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   File? _coverPhoto;
+  File? _profilePhoto;
   
   // Temporary state for in-place editing
   List<String> _tempSpecializations = [];
@@ -53,6 +54,8 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         _tempSpecializations = List<String>.from(ctrl.specializations);
         _tempLanguages = List<String>.from(ctrl.languages);
         _tempPortfolio = List<dynamic>.from(ctrl.recentWork);
+        _profilePhoto = null;
+        _coverPhoto = null;
         setState(() {});
 
         // Fetch reviews using the provider's ID
@@ -127,6 +130,8 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
       newSpecializations: newSpecializations,
       newLanguages: newLanguages,
       newPortfolioFiles: newPortfolioFiles,
+      profilePhoto: _profilePhoto,
+      coverPhoto: _coverPhoto,
     );
 
     setState(() => _isSaving = false);
@@ -165,17 +170,32 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
     }
   }
 
-  Future<void> _pickImage() async {
+  Future<void> _pickPortfolioImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 70, // Compress at picker level
+      imageQuality: 70,
       maxWidth: 800,
       maxHeight: 800,
     );
     if (image != null) {
       setState(() {
         _tempPortfolio.add(File(image.path));
+      });
+    }
+  }
+
+  Future<void> _pickProfilePhoto() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+      maxWidth: 500,
+      maxHeight: 500,
+    );
+    if (image != null) {
+      setState(() {
+        _profilePhoto = File(image.path);
       });
     }
   }
@@ -217,10 +237,11 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
               onPressed: () => Navigator.pop(context),
             ),
             actions: [
-              IconButton(
-                icon: Icon(Icons.camera_alt_outlined, color: Colors.black, size: 24.sp),
-                onPressed: _pickCoverPhoto,
-              ),
+              if (_isEditing)
+                IconButton(
+                  icon: Icon(Icons.camera_alt_outlined, color: Colors.black, size: 24.sp),
+                  onPressed: _pickCoverPhoto,
+                ),
               SizedBox(width: 10.w),
             ],
           ),
@@ -243,7 +264,9 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                           image: DecorationImage(
                             image: _coverPhoto != null
                                 ? FileImage(_coverPhoto!) as ImageProvider
-                                : const AssetImage('assets/images/img5.png'),
+                                : (profileController.coverPhoto != null 
+                                   ? NetworkImage(profileController.coverPhoto!) as ImageProvider
+                                   : const AssetImage('assets/images/img5.png')),
                             fit: BoxFit.cover,
                           ),
                         ),
@@ -399,23 +422,28 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                           border: Border.all(color: Colors.white, width: 2.5.w),
                         ),
                         child: ClipOval(
-                          child: AuthProfileImage(
-                            imageUrl: controller.profileImage,
-                            size: 75.r,
-                          ),
+                          child: _profilePhoto != null 
+                              ? Image.file(_profilePhoto!, fit: BoxFit.cover, width: 75.r, height: 75.r)
+                              : AuthProfileImage(
+                                  imageUrl: controller.profileImage,
+                                  size: 75.r,
+                                ),
                         ),
                       ),
                       if (_isEditing)
                         Positioned(
                           bottom: 0,
                           right: 0,
-                          child: Container(
-                            padding: EdgeInsets.all(4.w),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
+                          child: GestureDetector(
+                            onTap: _pickProfilePhoto,
+                            child: Container(
+                              padding: EdgeInsets.all(4.w),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(Icons.camera_alt, size: 14.sp, color: Colors.black),
                             ),
-                            child: Icon(Icons.camera_alt, size: 14.sp, color: Colors.black),
                           ),
                         ),
                     ],
@@ -695,7 +723,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
             ),
             if (_isEditing)
               GestureDetector(
-                onTap: _pickImage,
+                onTap: _pickPortfolioImage,
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
                   decoration: BoxDecoration(

@@ -1,3 +1,5 @@
+import 'package:photopia/data/models/professional_profile_model.dart';
+
 class ReviewResponse {
   int? statusCode;
   bool? success;
@@ -84,7 +86,8 @@ class ReviewUser {
   ReviewUser.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     name = json['name'];
-    profile = json['profile'] ?? json['avatar'];
+    final rawProfile = json['profile'] ?? json['avatar'];
+    profile = ProfessionalProfileModel.formatUrl(rawProfile);
   }
 }
 

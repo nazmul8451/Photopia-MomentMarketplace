@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/controller/client/chat_controller.dart';
-import 'package:photopia/controller/client/user_profile_controller.dart';
 import 'package:photopia/data/models/chat_response_model.dart';
-import 'package:photopia/data/models/conversation_model.dart';
 import 'package:photopia/features/client/widgets/message_list_item.dart';
 import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:photopia/features/client/chat_screen.dart';
+import 'package:photopia/controller/auth_controller.dart';
 import 'package:provider/provider.dart';
 
 class MessagesScreen extends StatefulWidget {
@@ -153,16 +152,18 @@ class _MessagesScreenState extends State<MessagesScreen> {
         ),
         child: TextField(
           controller: _searchController,
+          textAlignVertical: TextAlignVertical.center,
           decoration: InputDecoration(
             hintText: 'Search conversations...',
+            isCollapsed: true,
             hintStyle: TextStyle(
               color: Colors.grey,
               fontSize: 14.sp.clamp(14, 16),
             ),
-            prefixIcon:
-                Icon(Icons.search, color: Colors.grey, size: 20.sp.clamp(18, 24)),
+            prefixIcon: Icon(Icons.search,
+                color: Colors.grey, size: 20.sp.clamp(18, 24)),
             border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: 8.h),
+            contentPadding: EdgeInsets.symmetric(vertical: 10.h),
           ),
         ),
       ),
@@ -170,34 +171,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   Widget _buildConversationList(List<ChatRoom> chats) {
-    final currentUser = context.read<UserProfileController>().userProfile;
+    final currentUserId = AuthController.userId;
     
     return ListView.builder(
-      physics: const BouncingScrollPhysics(),
+      physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
       itemCount: chats.length,
       itemBuilder: (context, index) {
-        final chat = chats[index];
-        
-        // Find the other participant
-        final otherParticipant = chat.participants?.firstWhere(
-          (p) => p.email != currentUser?.email,
-          orElse: () => chat.participants?.isNotEmpty == true 
-              ? chat.participants!.first 
-              : ChatParticipant(name: 'User', profile: ''),
-        );
-
-        final conversation = Conversation(
-          id: chat.sId ?? '',
-          name: otherParticipant?.name ?? 'Unknown',
-          lastMessage: chat.latestMessage?.content ?? 'No messages yet',
-          avatarUrl: otherParticipant?.profile ?? '',
-          lastMessageTime: chat.updatedAt != null 
-              ? DateTime.parse(chat.updatedAt!).toLocal() 
-              : DateTime.now(),
-          unreadCount: chat.unreadCount ?? 0,
-          isOnline: false,
-          status: MessageStatus.read,
-        );
+        final chatRoom = chats[index];
+        final conversation = chatRoom.toConversation(currentUserId);
 
         return MessageListItem(
           conversation: conversation,

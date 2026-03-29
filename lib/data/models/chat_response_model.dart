@@ -1,3 +1,6 @@
+import 'package:photopia/data/models/professional_profile_model.dart';
+import 'package:photopia/data/models/conversation_model.dart';
+
 class ChatResponse {
   int? statusCode;
   bool? success;
@@ -59,9 +62,28 @@ class ChatRoom {
     latestMessage = json['latestMessage'] != null
         ? LatestMessage.fromJson(json['latestMessage'])
         : null;
-    unreadCount = json['unreadCount'] ?? 0;
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
+  }
+
+  Conversation toConversation(String? currentUserId) {
+    // Filter out the current user to find the other participant
+    final otherParticipant = participants?.firstWhere(
+      (p) => p.sId != currentUserId,
+      orElse: () => participants?.first ?? ChatParticipant(),
+    );
+
+    return Conversation(
+      id: sId ?? '',
+      name: otherParticipant?.name ?? 'Unknown',
+      lastMessage: latestMessage?.content ?? '',
+      avatarUrl: otherParticipant?.profile ?? '',
+      lastMessageTime: DateTime.tryParse(latestMessage?.createdAt ?? '') ?? DateTime.now(),
+      unreadCount: unreadCount ?? 0,
+      isOnline: false,
+      status: MessageStatus.read, // UI fallback
+      receiverId: otherParticipant?.sId,
+    );
   }
 }
 
@@ -77,7 +99,7 @@ class ChatParticipant {
     sId = json['_id'];
     name = json['name'];
     email = json['email'];
-    profile = json['profile'];
+    profile = ProfessionalProfileModel.formatUrl(json['profile']);
   }
 }
 
@@ -91,9 +113,7 @@ class LatestMessage {
 
   LatestMessage.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
-    content = json['message']; // Backend uses 'message' or 'content'? Postman screenshot doesn't show. I'll use 'message' based on common patterns.
-    // wait, if Postman shows empty chats, I don't know the keys.
-    // I'll use common keys and adjust if needed.
+    content = json['message'] ?? json['content'] ?? '';
     sender = json['senderId'];
     createdAt = json['createdAt'];
   }

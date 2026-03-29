@@ -35,6 +35,8 @@ class ProviderProfileController extends ChangeNotifier {
       'Professional Photographer';
   String? get profileImage =>
       _professionalProfile?.user?.profile ?? _userProfile?.profile;
+  String? get coverPhoto =>
+      _professionalProfile?.coverPhoto;
 
   // Stats getters
   int get bookingsCount => _professionalProfile?.statistics?.bookings?.count ?? 0;
@@ -114,6 +116,8 @@ class ProviderProfileController extends ChangeNotifier {
     List<String>? newSpecializations,
     List<String>? newLanguages,
     List<File>? newPortfolioFiles,
+    File? profilePhoto,
+    File? coverPhoto,
   }) async {
     _inProgress = true;
     _errorMessage = null;
@@ -125,7 +129,8 @@ class ProviderProfileController extends ChangeNotifier {
       bool hasProfChanges = bio != null || 
                             (newSpecializations != null && newSpecializations.isNotEmpty) || 
                             (newLanguages != null && newLanguages.isNotEmpty) || 
-                            (newPortfolioFiles != null && newPortfolioFiles.isNotEmpty);
+                            (newPortfolioFiles != null && newPortfolioFiles.isNotEmpty) ||
+                            coverPhoto != null;
 
       if (hasProfChanges) {
         debugPrint('👔 Updating Prof Profile with new additions...');
@@ -139,6 +144,20 @@ class ProviderProfileController extends ChangeNotifier {
         request.headers['Accept'] = 'application/json';
 
         if (bio != null) request.fields['bio'] = bio;
+        
+        // Add cover photo if present
+        if (coverPhoto != null) {
+          final fileStream = http.ByteStream(coverPhoto.openRead());
+          final length = await coverPhoto.length();
+          final multipartFile = http.MultipartFile(
+            'coverPhoto',
+            fileStream,
+            length,
+            filename: coverPhoto.path.split('/').last,
+            contentType: MediaType('image', 'jpeg'),
+          );
+          request.files.add(multipartFile);
+        }
         
         // Add only NEW specialties as repeated keys
         if (newSpecializations != null) {
@@ -186,18 +205,42 @@ class ProviderProfileController extends ChangeNotifier {
         }
       }
 
-      // 2. Update User Profile Data
       bool userProfileSuccess = true;
-      if (description != null || name != null) {
+      if (description != null || name != null || profilePhoto != null) {
         debugPrint('👔 Updating User Profile: name=$name');
-        final response = await NetworkCaller.patchRequest(
-          url: Urls.updateUserProfile,
-          body: {
-            if (name != null) 'name': name,
-            if (description != null) 'description': description,
-          },
-        );
-        userProfileSuccess = response.isSuccess;
+        String? token = AuthController.accessToken;
+        final Uri uri = Uri.parse(Urls.updateUserProfile);
+        final request = http.MultipartRequest('PATCH', uri);
+
+        if (token != null && token.isNotEmpty) {
+          request.headers['Authorization'] = token.startsWith('Bearer ') ? token : 'Bearer $token';
+        }
+        request.headers['Accept'] = 'application/json';
+
+        if (name != null) request.fields['name'] = name;
+        if (description != null) request.fields['description'] = description;
+
+        if (profilePhoto != null) {
+          final fileStream = http.ByteStream(profilePhoto.openRead());
+          final length = await profilePhoto.length();
+          final multipartFile = http.MultipartFile(
+            'profile',
+            fileStream,
+            length,
+            filename: profilePhoto.path.split('/').last,
+            contentType: MediaType('image', 'jpeg'),
+          );
+          request.files.add(multipartFile);
+        }
+
+        try {
+          final streamedResponse = await request.send().timeout(const Duration(seconds: 60));
+          final response = await http.Response.fromStream(streamedResponse);
+          userProfileSuccess = (response.statusCode >= 200 && response.statusCode < 300);
+        } catch (e) {
+          debugPrint('❌ Avatar update failed: $e');
+          userProfileSuccess = false;
+        }
       }
 
       if (profProfileSuccess && userProfileSuccess) {

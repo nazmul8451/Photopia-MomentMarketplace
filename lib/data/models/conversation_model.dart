@@ -6,7 +6,9 @@ class Conversation {
   final DateTime lastMessageTime;
   final int unreadCount;
   final bool isOnline;
+  final bool isTemporary;
   final MessageStatus status;
+  final String? receiverId; // For temporary chats (provider's userId)
 
   Conversation({
     required this.id,
@@ -17,6 +19,8 @@ class Conversation {
     this.unreadCount = 0,
     this.isOnline = false,
     this.status = MessageStatus.sent,
+    this.isTemporary = false,
+    this.receiverId,
   });
 }
 

@@ -9,7 +9,9 @@ import 'package:photopia/features/client/search_screen.dart';
 import 'package:photopia/features/client/authentication/log_in_screen.dart';
 import 'package:photopia/features/client/authentication/sign_up_screen.dart';
 import 'package:photopia/controller/auth_controller.dart';
+import 'package:photopia/controller/client/service_list_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
+import 'package:provider/provider.dart';
 
 class BottomNavigationScreen extends StatefulWidget {
   const BottomNavigationScreen({super.key});
@@ -44,15 +46,21 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
     if (_selectedIndex == index) {
       // If tapping the already selected tab, pop to the first route
       _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
+      
+      // Refresh Home data if already on Home
+      if (index == 0) {
+        context.read<ServiceListController>().getAllServices();
+      }
     } else {
       setState(() {
         _selectedIndex = index;
       });
+      
+      // Refresh Home data when switching to Home
+      if (index == 0) {
+        context.read<ServiceListController>().getAllServices();
+      }
     }
-  }
-
-  void _showGuestDialog(BuildContext context) {
-    GuestDialogHelper.showGuestDialog(context);
   }
 
   @override

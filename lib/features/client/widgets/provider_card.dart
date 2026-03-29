@@ -6,6 +6,8 @@ import 'package:photopia/controller/client/favorites_controller.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
+import 'package:photopia/features/client/chat_screen.dart';
+import 'package:photopia/data/models/conversation_model.dart';
 
 class ProviderCard extends StatelessWidget {
   final Map<String, dynamic> provider;
@@ -172,7 +174,36 @@ class ProviderCard extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    if (!AuthController.isLoggedIn) {
+                      GuestDialogHelper.showGuestDialog(context);
+                      return;
+                    }
+
+                    final String name = provider['name'] ?? 'Provider';
+                    final String profile = provider['profile'] ?? provider['avatar'] ?? '';
+                    final String providerId = (provider['_id'] ?? provider['id'] ?? '').toString();
+
+                    final conversation = Conversation(
+                      id: '',
+                      name: name,
+                      lastMessage: '',
+                      avatarUrl: profile,
+                      lastMessageTime: DateTime.now(),
+                      unreadCount: 0,
+                      isOnline: false,
+                      status: MessageStatus.read,
+                      isTemporary: true,
+                      receiverId: providerId,
+                    );
+
+                    Navigator.of(context, rootNavigator: true).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            ChatScreen(conversation: conversation),
+                      ),
+                    );
+                  },
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 12.h),
                     side: const BorderSide(color: Color(0xFFE9ECEF)),
