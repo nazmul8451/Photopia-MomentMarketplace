@@ -121,9 +121,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
       padding: EdgeInsets.fromLTRB(20.w, 15.h, 20.w, 10.h),
       child: Row(
         children: [
-          Icon(
-            Icons.chat_bubble_outline_rounded,
-            size: 28.sp.clamp(24, 32),
+          Image.asset(
+            'assets/images/message_icon.png',
+            width: 28.sp.clamp(24, 32),
+            height: 28.sp.clamp(24, 32),
             color: Colors.black,
           ),
           SizedBox(width: 12.w),

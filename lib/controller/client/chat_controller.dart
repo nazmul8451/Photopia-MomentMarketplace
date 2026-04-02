@@ -54,6 +54,8 @@ class ChatController extends ChangeNotifier {
           roomReceiverId: receiverId
         );
         _messages = messageResponse.data;
+        // Sort newest first for reverse ListView compatibility
+        _messages.sort((a, b) => b.time.compareTo(a.time));
         return true;
       }
       _errorMessage = response.errorMessage ?? 'Failed to load messages';
@@ -84,6 +86,7 @@ class ChatController extends ChangeNotifier {
 
       if (response.isSuccess) {
         await getMessages(chatId, receiverId: receiverId);
+        await getChats(); // Update the sidebar/list with the new last message
         return true;
       }
       _errorMessage = response.errorMessage ?? 'Failed to send message';

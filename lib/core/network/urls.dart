@@ -1,5 +1,7 @@
 class Urls {
+  //live url -http://195.35.6.13:4003
   static const String baseUrl = 'http://10.10.7.50:4003';
+  //local url - http://10.10.7.50:4003
   //authentication API
   static const String signUp = '$baseUrl/api/v1/auth/signup';
   static const String signIn = '$baseUrl/api/v1/auth/login';
@@ -11,8 +13,7 @@ class Urls {
   //user profile api
   static const String userProfile = '$baseUrl/api/v1/users/profile';
   static String getUserById(String id) => '$baseUrl/api/v1/users/$id';
-  static const String updateUserProfile =
-      '$baseUrl/api/v1/users/profile'; // PATCH FOR UPDATE PROFILE
+  static const String updateUserProfile = '$baseUrl/api/v1/users/profile'; // PATCH FOR UPDATE PROFILE
 
   //Role api
   static const String role = '$baseUrl/api/v1/users/switch-role';
@@ -40,6 +41,8 @@ class Urls {
 
   //** user service */
   static const String userService = '';
+
+  static const String getMyNotification = '$baseUrl/api/v1/notifications/my';
 
   //get all service from provider
   static const String getAllservice = '$baseUrl/api/v1/services';

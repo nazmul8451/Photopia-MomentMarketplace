@@ -35,7 +35,6 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
 
   void _onItemTapped(int index) {
     // Guest check for restricted tabs: Messages (1), Favorites (3)
-    // Profile (4) is now accessible to guests with restricted functionality
     if (index == 1 || index == 3 || index == 4) {
       if (!AuthController.isLoggedIn) {
         GuestDialogHelper.showGuestDialog(context);

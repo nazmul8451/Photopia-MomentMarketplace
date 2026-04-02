@@ -42,15 +42,8 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
-  }
+  // Manual scroll logic is no longer needed with reverse: true
+  // as index 0 is always at the bottom.
 
   Future<void> _handleSendMessage() async {
     final String text = _messageController.text.trim();
@@ -80,7 +73,8 @@ class _ChatScreenState extends State<ChatScreen> {
     }
 
     if (success) {
-      Future.delayed(const Duration(milliseconds: 100), _scrollToBottom);
+      // With reverse: true on ListView, index 0 is at the bottom,
+      // so new messages appear at the bottom automatically.
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -108,6 +102,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ? _buildEmptyState()
                     : ListView.builder(
                         controller: _scrollController,
+                        reverse: true, // index 0 at bottom
                         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
                         itemCount: controller.messages.length,
                         itemBuilder: (context, index) {

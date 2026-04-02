@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/controller/client/notification_controller.dart';
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -10,57 +12,13 @@ class NotificationScreen extends StatefulWidget {
 }
 
 class _NotificationScreenState extends State<NotificationScreen> {
-  final List<Map<String, dynamic>> _notifications = [
-    {
-      'title': 'Booking Confirmed',
-      'description': 'Your session with Emma Wilson is confirmed for Dec 20',
-      'timeAgo': '2 hours ago',
-      'icon': Icons.calendar_today_outlined,
-      'isUnread': true,
-    },
-    {
-      'title': 'New Message',
-      'description': 'Marco Silva sent you a message',
-      'timeAgo': '5 hours ago',
-      'icon': Icons.chat_bubble_outline,
-      'isUnread': true,
-    },
-    {
-      'title': 'Price Drop',
-      'description': 'A service in your favorites has reduced pricing',
-      'timeAgo': '1 day ago',
-      'icon': Icons.favorite_border,
-      'isUnread': true,
-    },
-    {
-      'title': 'Review Reminder',
-      'description': "Don't forget to review your session with Tech Media Studio",
-      'timeAgo': '2 days ago',
-      'icon': Icons.star_border,
-      'isUnread': false,
-    },
-    {
-      'title': 'Payment Successful',
-      'description': 'Your payment of €1,500 has been processed',
-      'timeAgo': '3 days ago',
-      'icon': Icons.check_circle_outline,
-      'isUnread': false,
-    },
-    {
-      'title': 'Upcoming Session',
-      'description': 'Your portrait session is tomorrow at 2:00 PM',
-      'timeAgo': '4 days ago',
-      'icon': Icons.calendar_today_outlined,
-      'isUnread': false,
-    },
-    {
-      'title': 'New Message',
-      'description': 'SkyView Productions responded to your inquiry',
-      'timeAgo': '5 days ago',
-      'icon': Icons.chat_bubble_outline,
-      'isUnread': false,
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationController>().fetchMyNotifications();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,27 +35,31 @@ class _NotificationScreenState extends State<NotificationScreen> {
         ),
         title: Padding(
           padding: EdgeInsets.only(top: 10.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Notifications',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20.sp.clamp(20, 22),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '${_notifications.where((n) => n['isUnread']).length} unread',
-                style: TextStyle(
-                  color: const Color(0xFF8E949A),
-                  fontSize: 14.sp.clamp(14, 16),
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
+          child: Consumer<NotificationController>(
+            builder: (context, controller, child) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Notifications',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20.sp.clamp(20, 22),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '${controller.unreadCount} unread',
+                    style: TextStyle(
+                      color: const Color(0xFF8E949A),
+                      fontSize: 14.sp.clamp(14, 16),
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
         actions: [
@@ -105,11 +67,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             padding: EdgeInsets.only(top: 15.h, right: 8.w),
             child: TextButton(
               onPressed: () {
-                setState(() {
-                  for (var n in _notifications) {
-                    n['isUnread'] = false;
-                  }
-                });
+                context.read<NotificationController>().markAllAsRead();
               },
               child: Text(
                 'Mark all as read',
@@ -136,49 +94,74 @@ class _NotificationScreenState extends State<NotificationScreen> {
               ),
             ),
             padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                IntrinsicWidth(
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4.w),
-                        child: Text(
-                          'All (${_notifications.length})',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 14.sp.clamp(14, 16),
-                            fontWeight: FontWeight.bold,
+            child: Consumer<NotificationController>(
+              builder: (context, controller, child) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    IntrinsicWidth(
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 4.w),
+                            child: Text(
+                              'All (${controller.notifications.length})',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 14.sp.clamp(14, 16),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                        ),
+                          SizedBox(height: 12.h),
+                          Container(
+                            height: 2.h,
+                            width: double.infinity,
+                            color: Colors.black,
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 12.h),
-                      Container(
-                        height: 2.h,
-                        width: double.infinity,
-                        color: Colors.black,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),
       ),
-      body: ListView.builder(
-        padding: EdgeInsets.symmetric(vertical: 15.h, horizontal: 16.w),
-        itemCount: _notifications.length,
-        itemBuilder: (context, index) {
-          final notification = _notifications[index];
-          return _buildNotificationCard(notification, index);
+      body: Consumer<NotificationController>(
+        builder: (context, controller, child) {
+          if (controller.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (controller.errorMessage != null && controller.notifications.isEmpty) {
+            return Center(child: Text(controller.errorMessage!));
+          }
+
+          if (controller.notifications.isEmpty) {
+            return Center(
+              child: Text(
+                "No notifications available.",
+                style: TextStyle(color: Colors.grey, fontSize: 16.sp),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: EdgeInsets.symmetric(vertical: 15.h, horizontal: 16.w),
+            itemCount: controller.notifications.length,
+            itemBuilder: (context, index) {
+              final notification = controller.notifications[index];
+              return _buildNotificationCard(notification, index, controller);
+            },
+          );
         },
       ),
     );
   }
 
-  Widget _buildNotificationCard(Map<String, dynamic> notification, int index) {
+  Widget _buildNotificationCard(Map<String, dynamic> notification, int index, NotificationController controller) {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
@@ -198,7 +181,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           child: Row(
             children: [
               // Unread Indicator
-              if (notification['isUnread'])
+              if (notification['isUnread'] == true)
                 Container(
                   width: 4.w,
                   color: Colors.black,
@@ -212,8 +195,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       // Icon
                       Container(
                         padding: EdgeInsets.all(10.w),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8F9FA),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF8F9FA),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -241,9 +224,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 ),
                                 GestureDetector(
                                   onTap: () {
-                                    setState(() {
-                                      _notifications.removeAt(index);
-                                    });
+                                    controller.removeNotification(index);
                                   },
                                   child: Icon(
                                     Icons.close,

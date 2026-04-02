@@ -27,6 +27,7 @@
         "provider",
         "shimmer",
         "table_calendar",
+        "timeago",
         "url_launcher",
         "video_player"
       ],
@@ -58,6 +59,13 @@
         "stream_channel",
         "test_api",
         "vector_math"
+      ]
+    },
+    {
+      "name": "timeago",
+      "version": "3.7.1",
+      "dependencies": [
+        "intl"
       ]
     },
     {
@@ -378,6 +386,15 @@
       ]
     },
     {
+      "name": "intl",
+      "version": "0.20.2",
+      "dependencies": [
+        "clock",
+        "meta",
+        "path"
+      ]
+    },
+    {
       "name": "ffi",
       "version": "2.1.5",
       "dependencies": []
@@ -576,15 +593,6 @@
       "version": "0.2.1",
       "dependencies": [
         "flutter"
-      ]
-    },
-    {
-      "name": "intl",
-      "version": "0.20.2",
-      "dependencies": [
-        "clock",
-        "meta",
-        "path"
       ]
     },
     {

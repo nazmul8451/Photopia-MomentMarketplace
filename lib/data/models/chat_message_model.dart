@@ -65,7 +65,7 @@ class ChatMessage {
       id: (json['_id'] ?? json['id'] ?? '').toString(),
       senderId: senderId,
       text: messageText,
-      time: DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now(),
+      time: (DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now()).toLocal(),
       type: json['image'] != null || json['type'] == 'image' ? ChatMessageType.image : ChatMessageType.text,
       isMe: me,
     );

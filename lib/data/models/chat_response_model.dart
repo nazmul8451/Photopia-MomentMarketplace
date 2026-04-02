@@ -59,9 +59,15 @@ class ChatRoom {
         participants!.add(ChatParticipant.fromJson(v));
       });
     }
-    latestMessage = json['latestMessage'] != null
-        ? LatestMessage.fromJson(json['latestMessage'])
-        : null;
+    final latestMsgData = json['latestMessage'] ?? json['lastMessage'] ?? json['message'] ?? json['latest_message'] ?? json['last_message'];
+    
+    if (latestMsgData != null) {
+      if (latestMsgData is Map) {
+        latestMessage = LatestMessage.fromJson(latestMsgData as Map<String, dynamic>);
+      } else if (latestMsgData is String) {
+        latestMessage = LatestMessage(content: latestMsgData);
+      }
+    }
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
   }
@@ -78,7 +84,7 @@ class ChatRoom {
       name: otherParticipant?.name ?? 'Unknown',
       lastMessage: latestMessage?.content ?? '',
       avatarUrl: otherParticipant?.profile ?? '',
-      lastMessageTime: DateTime.tryParse(latestMessage?.createdAt ?? '') ?? DateTime.now(),
+      lastMessageTime: (DateTime.tryParse(latestMessage?.createdAt ?? '') ?? DateTime.now()).toLocal(),
       unreadCount: unreadCount ?? 0,
       isOnline: false,
       status: MessageStatus.read, // UI fallback
@@ -113,7 +119,12 @@ class LatestMessage {
 
   LatestMessage.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
-    content = json['message'] ?? json['content'] ?? '';
+    final msg = json['text'] ?? json['message'] ?? json['content'] ?? json['body'];
+    if (msg is Map) {
+      content = (msg['text'] ?? msg['message'] ?? msg['content'] ?? '').toString();
+    } else {
+      content = (msg ?? '').toString();
+    }
     sender = json['senderId'];
     createdAt = json['createdAt'];
   }
