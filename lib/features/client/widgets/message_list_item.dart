@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/data/models/chat_message_model.dart';
 import 'package:photopia/data/models/conversation_model.dart';
 import 'package:intl/intl.dart';
 
@@ -126,12 +127,20 @@ class MessageListItem extends StatelessWidget {
 
   Widget _buildStatusIcon(MessageStatus status) {
     switch (status) {
+      case MessageStatus.sending:
+        return SizedBox(
+          width: 12.r,
+          height: 12.r,
+          child: const CircularProgressIndicator(strokeWidth: 1.5, color: Colors.blue),
+        );
       case MessageStatus.sent:
         return Icon(Icons.check, size: 16.sp.clamp(14, 20), color: Colors.grey);
       case MessageStatus.delivered:
         return Icon(Icons.done_all, size: 16.sp.clamp(14, 20), color: Colors.grey);
       case MessageStatus.read:
         return Icon(Icons.done_all, size: 16.sp.clamp(14, 20), color: const Color(0xFF3498DB));
+      case MessageStatus.error:
+        return Icon(Icons.error_outline, size: 16.sp, color: Colors.red);
     }
   }
 

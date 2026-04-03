@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:mime/mime.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/network/urls.dart';
 
@@ -512,14 +513,17 @@ class NetworkCaller {
 
       // Add file if fileKey and filePath are provided
       if (filePath != null && filePath.isNotEmpty && fileKey != null) {
+        final mimeType = lookupMimeType(filePath) ?? 'application/octet-stream';
+        final typeSplit = mimeType.split('/');
+        
         request.files.add(
           await MultipartFile.fromPath(
             fileKey,
             filePath,
             contentType: MediaType(
-              'image',
-              'jpeg',
-            ), // Adding this is crucial for Node.js backends
+              typeSplit[0],
+              typeSplit.length > 1 ? typeSplit[1] : '',
+            ),
           ),
         );
       }

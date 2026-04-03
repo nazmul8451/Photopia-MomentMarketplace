@@ -73,5 +73,9 @@
     <string>This app needs access to location to show your current address on the home screen.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>This app needs access to location to show your current address on the home screen.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>This app needs camera access to take and share photos in the chat.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>This app needs microphone access for video recording in the chat.</string>
 </dict>
 </plist>

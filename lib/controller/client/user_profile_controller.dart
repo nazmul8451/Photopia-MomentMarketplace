@@ -29,6 +29,9 @@ class UserProfileController extends ChangeNotifier {
       final data = response.body?['data'];
       if (data != null) {
         _userProfile = UserProfileModel.fromJson(data);
+        if (_userProfile?.id != null) {
+          await AuthController.saveUserId(_userProfile!.id!);
+        }
         if (_userProfile?.role != null) {
           await AuthController.saveUserRole(_userProfile!.role!);
         }

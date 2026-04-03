@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/notification_controller.dart';
+import 'package:photopia/data/models/notification_model.dart';
 
 class ProviderNotificationScreen extends StatefulWidget {
   const ProviderNotificationScreen({super.key});
@@ -165,7 +166,7 @@ class _ProviderNotificationScreenState extends State<ProviderNotificationScreen>
     );
   }
 
-  Widget _buildNotificationCard(Map<String, dynamic> notification, int index, NotificationController controller) {
+  Widget _buildNotificationCard(NotificationModel notification, int index, NotificationController controller) {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
@@ -185,7 +186,7 @@ class _ProviderNotificationScreenState extends State<ProviderNotificationScreen>
           child: Row(
             children: [
               // Unread Indicator
-              if (notification['isUnread'] == true)
+              if (!notification.isRead)
                 Container(
                   width: 4.w,
                   color: Colors.black,
@@ -204,7 +205,7 @@ class _ProviderNotificationScreenState extends State<ProviderNotificationScreen>
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          notification['icon'],
+                          controller.getIconForType(notification.type),
                           size: 20.sp.clamp(20, 22),
                           color: Colors.black87,
                         ),
@@ -220,7 +221,7 @@ class _ProviderNotificationScreenState extends State<ProviderNotificationScreen>
                               children: [
                                 Expanded(
                                   child: Text(
-                                    notification['title'],
+                                    notification.title,
                                     style: TextStyle(
                                       fontSize: 15.sp.clamp(15, 17),
                                       fontWeight: FontWeight.bold,
@@ -245,7 +246,7 @@ class _ProviderNotificationScreenState extends State<ProviderNotificationScreen>
                             ),
                             SizedBox(height: 5.h),
                             Text(
-                              notification['description'],
+                              notification.content,
                               style: TextStyle(
                                 fontSize: 13.sp.clamp(13, 15),
                                 color: Colors.grey.shade600,
@@ -254,7 +255,7 @@ class _ProviderNotificationScreenState extends State<ProviderNotificationScreen>
                             ),
                             SizedBox(height: 8.h),
                             Text(
-                              notification['timeAgo'],
+                              controller.formatTime(notification.createdAt),
                               style: TextStyle(
                                 fontSize: 12.sp.clamp(12, 14),
                                 color: Colors.grey.shade400,

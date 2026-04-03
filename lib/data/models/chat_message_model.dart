@@ -1,7 +1,18 @@
+import 'package:photopia/core/network/urls.dart';
+
 enum ChatMessageType {
   text,
   file,
   image,
+  video,
+}
+
+enum MessageStatus {
+  sending,
+  sent,
+  delivered,
+  read,
+  error,
 }
 
 class ChatMessage {
@@ -14,6 +25,8 @@ class ChatMessage {
   final DateTime time;
   final ChatMessageType type;
   final bool isMe;
+  final MessageStatus status;
+  final bool isLocal;
 
   ChatMessage({
     required this.id,
@@ -25,7 +38,30 @@ class ChatMessage {
     required this.time,
     required this.type,
     required this.isMe,
+    this.status = MessageStatus.sent,
+    this.isLocal = false,
   });
+
+  ChatMessage copyWith({
+    String? id,
+    MessageStatus? status,
+    bool? isLocal,
+    String? fileUrl,
+  }) {
+    return ChatMessage(
+      id: id ?? this.id,
+      senderId: senderId,
+      text: text,
+      fileName: fileName,
+      fileSize: fileSize,
+      fileUrl: fileUrl ?? this.fileUrl,
+      time: time,
+      type: type,
+      isMe: isMe,
+      status: status ?? this.status,
+      isLocal: isLocal ?? this.isLocal,
+    );
+  }
 
   factory ChatMessage.fromJson(Map<String, dynamic> json, String currentUserId, {String? roomReceiverId}) {
     // 1. Extract sender ID
@@ -61,12 +97,38 @@ class ChatMessage {
       me = senderId.trim().toLowerCase() != roomReceiverId.trim().toLowerCase();
     }
 
+    // 4. File/Media Detection
+    String? fUrl = json['fileUrl']?.toString() ?? json['image']?.toString() ?? json['video']?.toString() ?? json['file']?.toString();
+    
+    // Convert relative paths to full URLs
+    if (fUrl != null && fUrl.isNotEmpty && !fUrl.startsWith('http')) {
+      final String baseUrl = Urls.baseUrl.endsWith('/') 
+          ? Urls.baseUrl.substring(0, Urls.baseUrl.length - 1) 
+          : Urls.baseUrl;
+      final String path = fUrl.startsWith('/') ? fUrl : '/$fUrl';
+      fUrl = "$baseUrl$path";
+    }
+
+    ChatMessageType msgType = ChatMessageType.text;
+    
+    final String rawType = (json['type'] ?? '').toString().toLowerCase();
+    if (json['image'] != null || rawType == 'image') {
+      msgType = ChatMessageType.image;
+    } else if (json['video'] != null || rawType == 'video') {
+      msgType = ChatMessageType.video;
+    } else if (json['file'] != null || rawType == 'file' || (fUrl != null && fUrl.isNotEmpty && msgType == ChatMessageType.text)) {
+      msgType = ChatMessageType.file;
+    }
+
     return ChatMessage(
       id: (json['_id'] ?? json['id'] ?? '').toString(),
       senderId: senderId,
       text: messageText,
+      fileName: json['fileName']?.toString() ?? (fUrl != null ? fUrl.split('/').last : null),
+      fileSize: json['fileSize']?.toString(),
+      fileUrl: fUrl,
       time: (DateTime.tryParse(json['createdAt'] ?? '') ?? DateTime.now()).toLocal(),
-      type: json['image'] != null || json['type'] == 'image' ? ChatMessageType.image : ChatMessageType.text,
+      type: msgType,
       isMe: me,
     );
   }

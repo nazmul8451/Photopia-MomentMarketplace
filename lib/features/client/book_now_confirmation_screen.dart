@@ -26,8 +26,11 @@ class _BookingConfirmationScreenState
   bool _isLoadingAvailability = false;
 
   // Booking Data
+  // Booking Data
   DateTime? _selectedDateTime;
   String _selectedTime = '';
+  bool _isLoadingSlots = false;
+  List<dynamic> _apiAvailableDates = [];
   String _location = '';
   double? _lat;
   double? _lng;
@@ -61,37 +64,67 @@ class _BookingConfirmationScreenState
 
   Future<void> _fetchAvailability() async {
     setState(() => _isLoadingAvailability = true);
-    
-    String? providerId;
-    if (widget.service?['providerId'] is Map) {
-      providerId = widget.service!['providerId']['_id']?.toString() ?? 
-                   widget.service!['providerId']['id']?.toString();
-    } else {
-      providerId = widget.service?['providerId']?.toString() ??
-          widget.service?['provider']?['_id']?.toString() ??
-          widget.service?['provider']?['id']?.toString();
-    }
-    
+
+    String? providerId = _getProviderId();
     debugPrint('📅 BookingScreen: Fetching availability for: $providerId');
 
     if (providerId != null) {
       final controller = context.read<CalenderAvailibilityController>();
-      final model = await controller.getAvailabilitySettings(
-          providerId: providerId);
+      
+      // Fetch general settings for legacy logic safety
+      await controller.getAvailabilitySettings(providerId: providerId);
+      
+      // Fetch dynamic calendar for current month
+      final now = DateTime.now();
+      final calendarData = await controller.getMonthCalendar(
+        providerId, 
+        now.month, 
+        now.year
+      );
+
       if (mounted) {
         setState(() {
-          _availabilityData = model?.data;
-          _buildAvailableDates();
+          _apiAvailableDates = calendarData;
+          _buildAvailableDatesFromApi();
         });
       }
     } else {
-      // No provider id — generate default 14 days
-      _buildAvailableDates();
+      _buildAvailableDatesFallback();
     }
     if (mounted) setState(() => _isLoadingAvailability = false);
   }
 
-  void _buildAvailableDates() {
+  String? _getProviderId() {
+    if (widget.service?['providerId'] is Map) {
+      return widget.service!['providerId']['_id']?.toString() ??
+          widget.service!['providerId']['id']?.toString();
+    }
+    return widget.service?['providerId']?.toString() ??
+        widget.service?['provider']?['_id']?.toString() ??
+        widget.service?['provider']?['id']?.toString();
+  }
+
+  void _buildAvailableDatesFromApi() {
+    final List<DateTime> dates = [];
+    for (var item in _apiAvailableDates) {
+      final dateStr = item['date']?.toString();
+      final isAvailable = item['isAvailable'] == true;
+      if (dateStr != null && isAvailable) {
+        final parsedDate = DateTime.tryParse(dateStr);
+        if (parsedDate != null) {
+          // Only show future/today dates
+          final now = DateTime.now();
+          final today = DateTime(now.year, now.month, now.day);
+          if (parsedDate.isAfter(today.subtract(const Duration(seconds: 1))) ) {
+            dates.add(parsedDate);
+          }
+        }
+      }
+    }
+    setState(() => _availableDates = dates);
+  }
+
+  void _buildAvailableDatesFallback() {
     final List<DateTime> dates = [];
     final now = DateTime.now();
     for (int i = 0; i < 30; i++) {
@@ -101,56 +134,47 @@ class _BookingConfirmationScreenState
     setState(() => _availableDates = dates);
   }
 
-  bool _isDayWorking(DateTime date) {
-    if (_availabilityData == null) return false;
-
-    if (_availabilityData!.customDates != null) {
-      for (var cd in _availabilityData!.customDates!) {
-        if (cd.date != null) {
-          final exDate = DateTime.tryParse(cd.date!);
-          if (exDate != null &&
-              exDate.year == date.year &&
-              exDate.month == date.month &&
-              exDate.day == date.day) {
-            return cd.type == 'available';
-          }
-        }
-      }
-    }
-
-    Monday? daySchedule;
-    switch (date.weekday) {
-      case DateTime.monday:
-        daySchedule = _availabilityData!.defaultSchedule?.monday;
-        break;
-      case DateTime.tuesday:
-        daySchedule = _availabilityData!.defaultSchedule?.tuesday;
-        break;
-      case DateTime.wednesday:
-        daySchedule = _availabilityData!.defaultSchedule?.wednesday;
-        break;
-      case DateTime.thursday:
-        daySchedule = _availabilityData!.defaultSchedule?.thursday;
-        break;
-      case DateTime.friday:
-        daySchedule = _availabilityData!.defaultSchedule?.friday;
-        break;
-      case DateTime.saturday:
-        daySchedule = _availabilityData!.defaultSchedule?.saturday;
-        break;
-      case DateTime.sunday:
-        daySchedule = _availabilityData!.defaultSchedule?.sunday;
-        break;
-    }
-    return daySchedule?.isActive ?? false;
-  }
 
   void _onDateSelected(DateTime date) {
     setState(() {
       _selectedDateTime = date;
       _selectedTime = '';
     });
-    _buildTimeSlotsForDate(date);
+    _fetchTimeSlotsFromApi(date);
+  }
+
+  Future<void> _fetchTimeSlotsFromApi(DateTime date) async {
+    setState(() => _isLoadingSlots = true);
+    
+    final providerId = _getProviderId();
+    if (providerId != null) {
+      final controller = context.read<CalenderAvailibilityController>();
+      final dateStr = DateFormat('yyyy-MM-dd').format(date);
+      
+      final slots = await controller.getTimeSlots(
+        providerId, 
+        dateStr, 
+        _packageDurationInMinutes
+      );
+
+      if (mounted) {
+        setState(() {
+          _timeSlots = slots;
+          _isLoadingSlots = false;
+        });
+      }
+    } else {
+      _buildTimeSlotsForDate(date); // Fallback to local logic
+      if (mounted) setState(() => _isLoadingSlots = false);
+    }
+  }
+
+  int get _packageDurationInMinutes {
+    final durationStr = widget.package?['duration']?.toString().toLowerCase() ?? '';
+    if (durationStr.contains('4 hour')) return 240;
+    if (durationStr.contains('8 hour')) return 480;
+    if (durationStr.contains('full day')) return 600; // Assume 10 hours for full day slots
+    return 60; // Default to 1 hour
   }
 
   void _buildTimeSlotsForDate(DateTime date) {
@@ -341,7 +365,9 @@ class _BookingConfirmationScreenState
                     fontSize: 14.sp.clamp(14, 16),
                     fontWeight: FontWeight.bold)),
             SizedBox(height: 15.h),
-            _buildTimeSlotGrid(),
+            _isLoadingSlots 
+              ? const Center(child: CircularProgressIndicator(color: Colors.black))
+              : _buildTimeSlotGrid(),
           ],
         ],
       ),
@@ -513,45 +539,41 @@ class _BookingConfirmationScreenState
       itemCount: _availableDates.length,
       itemBuilder: (context, index) {
         final date = _availableDates[index];
-        final isWorking = _isDayWorking(date);
         final isSelected = _selectedDateTime != null &&
             _selectedDateTime!.year == date.year &&
             _selectedDateTime!.month == date.month &&
             _selectedDateTime!.day == date.day;
 
         return GestureDetector(
-          onTap: isWorking ? () => _onDateSelected(date) : null,
+          onTap: () => _onDateSelected(date),
           child: Container(
             decoration: BoxDecoration(
-              color: isWorking ? Colors.white : Colors.grey.shade50,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10).r,
               border: Border.all(
-                color: isSelected ? Colors.black : (isWorking ? Colors.grey.shade200 : Colors.grey.shade100),
+                color: isSelected ? Colors.black : Colors.grey.shade200,
                 width: isSelected ? 1.5 : 1,
               ),
             ),
-            child: Opacity(
-              opacity: isWorking ? 1.0 : 0.4,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    DateFormat('EEE').format(date), // Mon, Tue...
-                    style: TextStyle(
-                      fontSize: 10.sp,
-                      color: Colors.grey,
-                    ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  DateFormat('EEE').format(date), // Mon, Tue...
+                  style: TextStyle(
+                    fontSize: 10.sp,
+                    color: Colors.grey,
                   ),
-                  Text(
-                    DateFormat('MMM dd').format(date), // Jun 17
-                    style: TextStyle(
-                      fontSize: 12.sp.clamp(12, 13),
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                ),
+                Text(
+                  DateFormat('MMM dd').format(date), // Jun 17
+                  style: TextStyle(
+                    fontSize: 12.sp.clamp(12, 13),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );

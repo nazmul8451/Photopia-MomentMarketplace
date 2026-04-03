@@ -1,9 +1,18 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:photopia/controller/auth_controller.dart';
+import 'package:photopia/controller/client/user_profile_controller.dart';
+import 'package:photopia/controller/client/notification_controller.dart';
 import 'package:photopia/core/network/Api_service/network_caller.dart';
 import 'package:photopia/core/network/urls.dart';
 import 'package:photopia/data/models/chat_message_model.dart';
 import 'package:photopia/data/models/chat_response_model.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 class ChatController extends ChangeNotifier {
   bool _isLoading = false;
@@ -11,16 +20,130 @@ class ChatController extends ChangeNotifier {
   ChatData? _chatData;
   List<ChatMessage> _messages = [];
 
+  IO.Socket? _socket;
+  String? _currentActiveChatId;
+
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
   ChatData? get chatData => _chatData;
   List<ChatRoom> get chats => _chatData?.chats ?? [];
   List<ChatMessage> get messages => _messages;
 
+  Future<void> _recoverUserId() async {
+    final String token = AuthController.accessToken ?? '';
+    if (token.isEmpty) return;
+
+    print('!!! [SOCKET_DEBUG] RECOVERY: Attempting to fetch profile to recover userId...');
+    try {
+      // We create a temporary instance to fetch the profile and trigger stay-sync logic 
+      // recently added to UserProfileController.
+      final profileController = UserProfileController();
+      await profileController.getUserProfile();
+      print('!!! [SOCKET_DEBUG] RECOVERY: Profile fetch complete. New UserId: ${AuthController.userId}');
+    } catch (e) {
+      print('!!! [SOCKET_DEBUG] RECOVERY: Failed to recover userId: $e');
+    }
+  }
+
+  /// Connects to the Socket.IO instance attached at Urls.baseUrl
+  Future<void> connectSocket() async {
+    if (_socket != null) {
+      if (_socket?.disconnected == true) {
+        _socket?.connect();
+      }
+      return;
+    }
+
+    String userId = AuthController.userId ?? '';
+    if (userId.isEmpty) {
+      final cachedProfile = GetStorage().read<Map<String, dynamic>>('cached_user_profile');
+      userId = cachedProfile?['id']?.toString() ?? cachedProfile?['_id']?.toString() ?? '';
+    }
+
+    // Try active recovery if still empty
+    if (userId.isEmpty && AuthController.accessToken != null) {
+      await _recoverUserId();
+      userId = AuthController.userId ?? '';
+    }
+    
+    final String token = AuthController.accessToken ?? '';
+
+    print('!!! [SOCKET_DEBUG] Attempting connection...');
+    print('!!! [SOCKET_DEBUG] URL: ${Urls.baseUrl}');
+    print('!!! [SOCKET_DEBUG] UserId: $userId');
+    print('!!! [SOCKET_DEBUG] Token exists: ${token.isNotEmpty}');
+
+    if (userId.isEmpty) {
+      print('!!! [SOCKET_DEBUG] ABORTING: UserId is empty!');
+      return; 
+    }
+
+    _socket = IO.io(Urls.baseUrl, <String, dynamic>{
+      'transports': ['websocket', 'polling'], // Added polling back as a fallback for Android Emulators
+      'autoConnect': false,
+      'forceNew': true,
+      'query': {'token': token},
+    });
+
+    _socket?.onConnect((_) {
+      print('!!! [SOCKET_DEBUG] SUCCESS: Realtime Socket Connected Successfully');
+    });
+
+    _socket?.onConnectError((data) {
+      print('!!! [SOCKET_DEBUG] ERROR (Connect): $data');
+    });
+
+    _socket?.onError((data) {
+      print('!!! [SOCKET_DEBUG] ERROR (General): $data');
+    });
+
+    _socket?.on('updateChatList::$userId', (data) {
+      debugPrint('Socket: updateChatList received');
+      getChats();
+    });
+
+    // Join Notification Room
+    print('!!! [SOCKET_DEBUG] Emitting join-notification for $userId');
+    _socket?.emit('join-notification', userId);
+
+    _socket?.on('notification', (data) {
+      debugPrint('!!! [SOCKET_DEBUG] Notification received: $data');
+      NotificationController.instance.onNewNotification(data);
+    });
+
+    // Catch-all for debug: Log ALL incoming events
+    _socket?.onAny((event, data) {
+      debugPrint('Socket: Global Listen -> $event, data: $data');
+    });
+
+    _socket?.onDisconnect((_) {
+      debugPrint('Realtime Socket Disconnected');
+    });
+
+    _socket?.connect();
+  }
+
+  /// Disconnect and release the Socket
+  void disconnectSocket() {
+    if (_socket != null) {
+      if (_currentActiveChatId != null) {
+        _socket?.off('getMessage::$_currentActiveChatId');
+      }
+      _socket?.off('updateChatList::${AuthController.userId}');
+      _socket?.disconnect();
+      _socket?.dispose();
+      _socket = null;
+      _currentActiveChatId = null;
+    }
+  }
+
   Future<bool> getChats() async {
     _isLoading = true;
     _errorMessage = '';
     notifyListeners();
+
+    // Ensure socket is alive every time we fetch chats
+    connectSocket();
 
     try {
       final response = await NetworkCaller.getRequest(url: Urls.chat);
@@ -34,8 +157,10 @@ class ChatController extends ChangeNotifier {
     } catch (e) {
       _errorMessage = 'An error occurred: $e';
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (_isLoading) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
     return false;
   }
@@ -43,7 +168,35 @@ class ChatController extends ChangeNotifier {
   Future<bool> getMessages(String chatId, {String? receiverId}) async {
     _isLoading = true;
     _errorMessage = '';
+
+    connectSocket(); // Ensure socket connection when navigating directly
+    
+    
+    if (chatId.isEmpty) {
+      _messages = [];
+      _currentActiveChatId = null;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    }
+    
     notifyListeners();
+
+    // Socket Room Switching Strategy
+    connectSocket(); // Move this up to ensure _socket is created
+
+    if (_socket != null) {
+      if (_currentActiveChatId != null && _currentActiveChatId != chatId) {
+        debugPrint('Socket: Removing listener for $_currentActiveChatId');
+        _socket?.off('getMessage::$_currentActiveChatId');
+        _messages = []; // Clear visual ghost messages during transition
+      }
+      if (_currentActiveChatId != chatId) {
+        _currentActiveChatId = chatId;
+        debugPrint('Socket: Attaching listener for getMessage::$chatId');
+        _socket?.on('getMessage::$chatId', _onNewMessageBase);
+      }
+    }
 
     try {
       final response = await NetworkCaller.getRequest(url: Urls.getMessages(chatId));
@@ -68,14 +221,68 @@ class ChatController extends ChangeNotifier {
     return false;
   }
 
+  void _onNewMessageBase(dynamic data) {
+    debugPrint('Socket: getMessage received -> $data');
+    if (data != null) {
+      try {
+        Map<String, dynamic> msgData = {};
+        
+        if (data is String) {
+          try {
+            msgData = jsonDecode(data);
+          } catch (_) {}
+        } else if (data is Map) {
+          msgData = Map<String, dynamic>.from(data);
+        }
+
+        // Unwrap standard API formatted payloads securely
+        if (msgData.containsKey('data') && msgData['data'] is Map) {
+          msgData = Map<String, dynamic>.from(msgData['data']);
+        }
+        
+        if (msgData.isEmpty) {
+          debugPrint('Socket message discarded: payload was not a valid Map.');
+          return;
+        }
+
+        final ChatMessage newMsg = ChatMessage.fromJson(msgData, AuthController.userId ?? '');
+        
+        if (newMsg.id.isEmpty) {
+          debugPrint('Socket message discarded: id was mysteriously empty.');
+          return;
+        }
+
+        if (!_messages.any((m) => m.id == newMsg.id)) {
+          _messages.insert(0, newMsg);
+          notifyListeners();
+        }
+      } catch (e) {
+        debugPrint('Socket format error: $e');
+      }
+    }
+  }
+
   Future<bool> sendMessage(String chatId, String text, {String? receiverId}) async {
+    final String tempId = "temp_${DateTime.now().millisecondsSinceEpoch}";
+    final ChatMessage tempMsg = ChatMessage(
+      id: tempId,
+      senderId: AuthController.userId ?? '',
+      text: text,
+      time: DateTime.now(),
+      type: ChatMessageType.text,
+      isMe: true,
+      status: MessageStatus.sending,
+      isLocal: true,
+    );
+
+    // 1. Optimistic Add
+    _messages.insert(0, tempMsg);
+    notifyListeners();
+
     try {
-      // Support multiple key names just in case the backend expects 'content' or 'text'
       final Map<String, dynamic> body = {
         'chatId': chatId,
-        'text': text,      // Matches Postman exactly
-        'message': text,   // Legacy fallback
-        'content': text,   // Legacy fallback
+        'text': text,
         'receiver': receiverId,
       };
 
@@ -85,15 +292,132 @@ class ChatController extends ChangeNotifier {
       );
 
       if (response.isSuccess) {
-        await getMessages(chatId, receiverId: receiverId);
-        await getChats(); // Update the sidebar/list with the new last message
+        // 2. Success Update (Replace temp with real data)
+        final int index = _messages.indexWhere((m) => m.id == tempId);
+        if (index != -1 && response.body?['data'] != null) {
+          final realMsg = ChatMessage.fromJson(response.body?['data'], AuthController.userId ?? '');
+          _messages[index] = realMsg;
+        }
+        notifyListeners();
+        await getChats();
         return true;
+      }
+      
+      // 3. Error Update
+      final int errIndex = _messages.indexWhere((m) => m.id == tempId);
+      if (errIndex != -1) {
+        _messages[errIndex] = _messages[errIndex].copyWith(status: MessageStatus.error);
       }
       _errorMessage = response.errorMessage ?? 'Failed to send message';
     } catch (e) {
+      final int errIndex = _messages.indexWhere((m) => m.id == tempId);
+      if (errIndex != -1) {
+        _messages[errIndex] = _messages[errIndex].copyWith(status: MessageStatus.error);
+      }
       _errorMessage = 'An error occurred: $e';
     }
     notifyListeners();
+    return false;
+  }
+
+  Future<bool> sendMediaMessage(String chatId, String filePath, {String? receiverId, String? text}) async {
+    _errorMessage = '';
+    final String tempId = "temp_${DateTime.now().millisecondsSinceEpoch}";
+    final extension = p.extension(filePath).toLowerCase();
+    
+    ChatMessageType msgType = ChatMessageType.image;
+    if (['.mp4', '.mov', '.avi'].contains(extension)) {
+      msgType = ChatMessageType.video;
+    }
+
+    final ChatMessage tempMsg = ChatMessage(
+      id: tempId,
+      senderId: AuthController.userId ?? '',
+      text: text ?? '',
+      fileUrl: filePath, // Use local path for immediate preview
+      time: DateTime.now(),
+      type: msgType,
+      isMe: true,
+      status: MessageStatus.sending,
+      isLocal: true,
+    );
+
+    // 1. Optimistic Add
+    _messages.insert(0, tempMsg);
+    notifyListeners();
+
+    String pathToSend = filePath;
+    File? tempFile;
+
+    try {
+      // Orientation & Compress for Images
+      if (['.jpg', '.jpeg', '.png', '.heic'].contains(extension)) {
+        final tempDir = await getTemporaryDirectory();
+        final targetPath = p.join(tempDir.path, "temp_${DateTime.now().millisecondsSinceEpoch}$extension");
+        
+        final result = await FlutterImageCompress.compressAndGetFile(
+          filePath,
+          targetPath,
+          quality: 80,
+          keepExif: false,
+          autoCorrectionAngle: true,
+        );
+
+        if (result != null) {
+          pathToSend = result.path;
+          tempFile = File(pathToSend);
+        }
+      }
+
+      final Map<String, String> fields = {
+        'chatId': chatId,
+      };
+      if (receiverId != null) {
+        fields['receiver'] = receiverId;
+      }
+      if (text != null && text.isNotEmpty) {
+        fields['text'] = text;
+      }
+
+      final response = await NetworkCaller.multipartRequest(
+        url: Urls.sendMessage,
+        method: 'POST',
+        fields: fields,
+        fileKey: 'images',
+        filePath: pathToSend,
+      );
+
+      if (response.isSuccess) {
+        // 2. Success Update
+        final int index = _messages.indexWhere((m) => m.id == tempId);
+        if (index != -1 && response.body?['data'] != null) {
+          final realMsg = ChatMessage.fromJson(response.body?['data'], AuthController.userId ?? '');
+          _messages[index] = realMsg;
+        }
+        notifyListeners();
+        await getChats();
+        return true;
+      }
+      
+      // 3. Error Update
+      final int errIndex = _messages.indexWhere((m) => m.id == tempId);
+      if (errIndex != -1) {
+        _messages[errIndex] = _messages[errIndex].copyWith(status: MessageStatus.error);
+      }
+      _errorMessage = response.errorMessage ?? 'Failed to send media';
+    } catch (e) {
+      final int errIndex = _messages.indexWhere((m) => m.id == tempId);
+      if (errIndex != -1) {
+        _messages[errIndex] = _messages[errIndex].copyWith(status: MessageStatus.error);
+      }
+      _errorMessage = 'An error occurred: $e';
+    } finally {
+      // Cleanup temp physical file
+      if (tempFile != null && await tempFile.exists()) {
+        try { await tempFile.delete(); } catch (_) {}
+      }
+      notifyListeners();
+    }
     return false;
   }
 
@@ -123,8 +447,10 @@ class ChatController extends ChangeNotifier {
     } catch (e) {
       _errorMessage = 'An error occurred: $e';
     } finally {
-      _isLoading = false;
-      notifyListeners();
+      if (_isLoading) {
+        _isLoading = false;
+        notifyListeners();
+      }
     }
     return null;
   }

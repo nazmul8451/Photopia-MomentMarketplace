@@ -1,5 +1,6 @@
 import 'package:photopia/data/models/professional_profile_model.dart';
 import 'package:photopia/data/models/conversation_model.dart';
+import 'package:photopia/data/models/chat_message_model.dart';
 
 class ChatResponse {
   int? statusCode;
@@ -119,13 +120,23 @@ class LatestMessage {
 
   LatestMessage.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
-    final msg = json['text'] ?? json['message'] ?? json['content'] ?? json['body'];
-    if (msg is Map) {
-      content = (msg['text'] ?? msg['message'] ?? msg['content'] ?? '').toString();
+    
+    final String text = (json['text'] ?? json['message'] ?? json['content'] ?? json['body'] ?? '').toString();
+    final String? image = json['image']?.toString();
+    final String? video = json['video']?.toString();
+    final String? file = json['file']?.toString() ?? json['fileUrl']?.toString();
+
+    if (image != null && image.isNotEmpty) {
+      content = text.isNotEmpty ? "📷 $text" : "📷 Photo";
+    } else if (video != null && video.isNotEmpty) {
+      content = text.isNotEmpty ? "🎥 $text" : "🎥 Video";
+    } else if (file != null && file.isNotEmpty) {
+      content = text.isNotEmpty ? "📁 $text" : "📁 Attachment";
     } else {
-      content = (msg ?? '').toString();
+      content = text;
     }
-    sender = json['senderId'];
+    
+    sender = json['senderId'] ?? json['sender']?.toString();
     createdAt = json['createdAt'];
   }
 }

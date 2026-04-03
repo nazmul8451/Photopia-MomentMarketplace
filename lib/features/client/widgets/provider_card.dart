@@ -8,6 +8,7 @@ import 'package:photopia/core/utils/guest_dialog_helper.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:photopia/features/client/chat_screen.dart';
 import 'package:photopia/data/models/conversation_model.dart';
+import 'package:photopia/data/models/chat_message_model.dart';
 
 class ProviderCard extends StatelessWidget {
   final Map<String, dynamic> provider;

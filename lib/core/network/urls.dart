@@ -1,6 +1,6 @@
 class Urls {
   //live url -http://195.35.6.13:4003
-  static const String baseUrl = 'http://10.10.7.50:4003';
+  static const String baseUrl = 'http://195.35.6.13:4003';
   //local url - http://10.10.7.50:4003
   //authentication API
   static const String signUp = '$baseUrl/api/v1/auth/signup';
@@ -32,6 +32,8 @@ class Urls {
   static const String calenderSettings = '$baseUrl/api/v1/availability';
   //get provider availibility
   static String getProviderAvailability(String providerId) => '$baseUrl/api/v1/availability/$providerId';
+  static String getMonthCalendar(String providerId, int month, int year) => '$baseUrl/api/v1/availability/calendar/$providerId?month=$month&year=$year';
+  static String getTimeSlots(String providerId, String date, int duration) => '$baseUrl/api/v1/availability/slots/$providerId?date=$date&duration=$duration';
 
   static const String myListingApi = '$baseUrl/api/v1/services/my/services';
   static String getSingleList(String id) => '$baseUrl/api/v1/services/$id';
@@ -43,6 +45,9 @@ class Urls {
   static const String userService = '';
 
   static const String getMyNotification = '$baseUrl/api/v1/notifications/my';
+  static const String getNotificationStats = '$baseUrl/api/v1/notifications/stats';
+  static const String markAllNotificationsAsRead = '$baseUrl/api/v1/notifications/read-all';
+  static String markSingleNotificationAsRead(String id) => '$baseUrl/api/v1/notifications/$id/read';
 
   //get all service from provider
   static const String getAllservice = '$baseUrl/api/v1/services';

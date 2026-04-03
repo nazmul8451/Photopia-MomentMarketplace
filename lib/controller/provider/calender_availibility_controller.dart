@@ -93,4 +93,66 @@ class CalenderAvailibilityController extends ChangeNotifier {
       return null;
     }
   }
+  Future<List<dynamic>> getMonthCalendar(
+      String providerId, int month, int year) async {
+    _inProgress = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final String url = Urls.getMonthCalendar(providerId, month, year);
+      final NetworkResponse response = await NetworkCaller.getRequest(
+        url: url,
+        requireAuth: true,
+      );
+
+      _inProgress = false;
+      if (response.isSuccess && response.body != null) {
+        notifyListeners();
+        // Assuming response.body['data']['calendar'] is the list
+        return response.body!['data']['calendar'] ?? [];
+      } else {
+        _errorMessage =
+            response.errorMessage ?? 'Failed to fetch month calendar';
+        notifyListeners();
+        return [];
+      }
+    } catch (e) {
+      _inProgress = false;
+      _errorMessage = 'An unexpected error occurred: $e';
+      notifyListeners();
+      return [];
+    }
+  }
+
+  Future<List<String>> getTimeSlots(
+      String providerId, String date, int duration) async {
+    _inProgress = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final String url = Urls.getTimeSlots(providerId, date, duration);
+      final NetworkResponse response = await NetworkCaller.getRequest(
+        url: url,
+        requireAuth: true,
+      );
+
+      _inProgress = false;
+      if (response.isSuccess && response.body != null) {
+        notifyListeners();
+        final List<dynamic> slots = response.body!['data']['slots'] ?? [];
+        return slots.map((s) => s.toString()).toList();
+      } else {
+        _errorMessage = response.errorMessage ?? 'Failed to fetch time slots';
+        notifyListeners();
+        return [];
+      }
+    } catch (e) {
+      _inProgress = false;
+      _errorMessage = 'An unexpected error occurred: $e';
+      notifyListeners();
+      return [];
+    }
+  }
 }

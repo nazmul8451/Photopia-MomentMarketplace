@@ -10,6 +10,7 @@ import 'package:photopia/controller/client/favorites_controller.dart';
 import 'package:photopia/controller/client/service_list_controller.dart';
 import 'package:photopia/core/widgets/video_player_screen.dart';
 import 'package:photopia/data/models/conversation_model.dart';
+import 'package:photopia/data/models/chat_message_model.dart';
 import 'package:photopia/features/client/chat_screen.dart';
 
 class ServiceDetailsScreen extends StatefulWidget {

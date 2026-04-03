@@ -30,7 +30,12 @@ class SignInController extends ChangeNotifier {
         final body = response.body!;
         final token = body['data']?['accessToken'];
         final role = body['data']?['user']?['activeRole'];
-        final userId = body['data']?['user']?['_id'];
+        final userId = body['data']?['user']?['_id'] ?? 
+                       body['data']?['user']?['id'] ?? 
+                       body['data']?['user']?['userId'] ??
+                       body['data']?['_id'] ?? 
+                       body['data']?['id'] ??
+                       body['data']?['userId'];
 
         if (token != null) {
           await AuthController.saveUserToken(token);

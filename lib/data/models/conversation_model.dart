@@ -1,3 +1,5 @@
+import 'package:photopia/data/models/chat_message_model.dart';
+
 class Conversation {
   final String id;
   final String name;
@@ -22,10 +24,4 @@ class Conversation {
     this.isTemporary = false,
     this.receiverId,
   });
-}
-
-enum MessageStatus {
-  sent,
-  delivered,
-  read,
 }
