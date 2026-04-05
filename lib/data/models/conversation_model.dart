@@ -11,6 +11,7 @@ class Conversation {
   final bool isTemporary;
   final MessageStatus status;
   final String? receiverId; // For temporary chats (provider's userId)
+  final bool isLastMessageFromMe;
 
   Conversation({
     required this.id,
@@ -23,5 +24,6 @@ class Conversation {
     this.status = MessageStatus.sent,
     this.isTemporary = false,
     this.receiverId,
+    this.isLastMessageFromMe = false,
   });
 }

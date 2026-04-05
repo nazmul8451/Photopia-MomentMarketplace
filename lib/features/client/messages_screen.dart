@@ -22,7 +22,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ChatController>().getChats();
+      if (AuthController.isLoggedIn) {
+        context.read<ChatController>().getChats();
+      }
     });
   }
 

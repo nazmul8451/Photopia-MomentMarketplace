@@ -11,12 +11,15 @@ class ProviderOrdersController extends ChangeNotifier {
   String get errorMessage => _errorMessage;
   List<dynamic> get orders => _orders;
 
-  Future<bool> getMyOrders() async {
+  Future<bool> getMyOrders({String? filterType, String? status}) async {
     _inProgress = true;
     _errorMessage = '';
+    _orders = []; // Clear previous data so shimmering feels clean and accurate for the new tab focus
     notifyListeners();
 
-    final response = await NetworkCaller.getRequest(url: Urls.getMyOrders);
+    final response = await NetworkCaller.getRequest(
+      url: Urls.getMyOrders(filterType: filterType, status: status)
+    );
 
     _inProgress = false;
 
@@ -25,7 +28,7 @@ class ProviderOrdersController extends ChangeNotifier {
         _orders = response.body!['data'];
         debugPrint("Fetched ${_orders.length} orders");
         if (_orders.isNotEmpty) {
-          debugPrint("First order status: ${_orders[0]['status']}, date: ${_orders[0]['bookingDate']}");
+          debugPrint("First order FULL JSON: $_orders");
         }
       }
       notifyListeners();

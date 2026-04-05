@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_orders_controller.dart';
+import 'package:photopia/core/network/Api_service/network_caller.dart';
+import 'package:photopia/core/network/urls.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
+import 'package:photopia/data/models/conversation_model.dart';
+import 'package:photopia/data/models/chat_message_model.dart';
+import 'package:photopia/features/client/chat_screen.dart';
 
 class BookingDetailsScreen extends StatelessWidget {
   static const String name = "/booking-details";
@@ -12,10 +17,6 @@ class BookingDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final client = booking['clientId'] is Map ? booking['clientId'] : {};
-    final service = booking['serviceId'] is Map ? booking['serviceId'] : {};
-    final location = booking['eventLocation'] is Map ? booking['eventLocation'] : {};
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -41,26 +42,51 @@ class BookingDetailsScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildClientInfo(client),
-            SizedBox(height: 20.h),
-            _buildServiceDetails(service, location),
-            SizedBox(height: 20.h),
-            _buildSpecialNotes(location['notes'] ?? 'No special notes provided'),
-            SizedBox(height: 30.h),
-            _buildActionButtons(context, booking['status'] ?? 'pending'),
-          ],
-        ),
+      body: FutureBuilder(
+        future: NetworkCaller.getRequest(url: Urls.getSingleBooking(booking['_id'] ?? booking['id'] ?? '')),
+        builder: (context, snapshot) {
+          Map<String, dynamic> currentBooking = booking;
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Colors.black));
+          }
+
+          if (snapshot.hasData) {
+            final response = snapshot.data!;
+            if (response.isSuccess && response.body != null) {
+              final rawData = response.body!['data'];
+              currentBooking = (rawData is Map && rawData.containsKey('booking')) 
+                  ? rawData['booking'] 
+                  : rawData ?? booking;
+            }
+          }
+
+          final client = currentBooking['clientId'] is Map ? currentBooking['clientId'] : <String, dynamic>{};
+          final service = currentBooking['serviceId'] is Map ? currentBooking['serviceId'] : <String, dynamic>{};
+          final location = currentBooking['eventLocation'] is Map ? currentBooking['eventLocation'] : <String, dynamic>{};
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildClientInfo(client, currentBooking),
+                SizedBox(height: 20.h),
+                _buildServiceDetails(service, location, currentBooking),
+                SizedBox(height: 20.h),
+                _buildSpecialNotes(location['notes']?.toString() ?? 'No special notes provided'),
+                SizedBox(height: 30.h),
+                _buildActionButtons(context, currentBooking['status']?.toString() ?? 'pending', currentBooking),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildClientInfo(Map<String, dynamic> client) {
-    final status = booking['status']?.toString() ?? 'pending';
+  Widget _buildClientInfo(Map<String, dynamic> client, Map<String, dynamic> currentBooking) {
+    final status = currentBooking['status']?.toString() ?? 'pending';
     return Container(
       padding: EdgeInsets.all(15.w),
       decoration: BoxDecoration(
@@ -116,7 +142,7 @@ class BookingDetailsScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      client['name'] ?? 'Unknown Client',
+                      client['name'] ?? currentBooking['clientName'] ?? 'Unknown Client',
                       style: TextStyle(
                         fontSize: 17.sp.clamp(16, 18),
                         fontWeight: FontWeight.bold,
@@ -129,7 +155,7 @@ class BookingDetailsScreen extends StatelessWidget {
                         SizedBox(width: 8.w),
                         Expanded(
                           child: Text(
-                            client['email'] ?? 'No email available',
+                            client['email'] ?? currentBooking['clientEmail'] ?? 'No email available',
                             style: TextStyle(
                               fontSize: 13.sp.clamp(12, 14),
                               color: Colors.grey[600],
@@ -149,7 +175,7 @@ class BookingDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildServiceDetails(Map<String, dynamic> service, Map<String, dynamic> location) {
+  Widget _buildServiceDetails(Map<String, dynamic> service, Map<String, dynamic> location, Map<String, dynamic> currentBooking) {
     return Container(
       padding: EdgeInsets.all(15.w),
       decoration: BoxDecoration(
@@ -170,8 +196,8 @@ class BookingDetailsScreen extends StatelessWidget {
           ),
           SizedBox(height: 20.h),
           _buildDetailRow('Service', service['title'] ?? 'Generic Service'),
-          _buildDetailRow('Date', booking['bookingDate']?.toString().split('T')[0] ?? 'N/A'),
-          _buildDetailRow('Time', '${booking['startTime'] ?? 'N/A'} - ${booking['endTime'] ?? ''}'),
+          _buildDetailRow('Date', currentBooking['bookingDate']?.toString().split('T')[0] ?? 'N/A'),
+          _buildDetailRow('Time', '${currentBooking['startTime'] ?? 'N/A'} - ${currentBooking['endTime'] ?? ''}'),
           _buildDetailRow('Location', location['address'] ?? 'Location N/A'),
           SizedBox(height: 10.h),
           const Divider(),
@@ -187,9 +213,9 @@ class BookingDetailsScreen extends StatelessWidget {
                 ),
               ),
               Text(
-                '€${booking['pricingDetails']?['subtotal'] ?? 
-                   booking['pricingDetails']?['clientTotal'] ?? 
-                   booking['totalAmount'] ?? '0'}',
+                '€${currentBooking['pricingDetails']?['subtotal'] ?? 
+                   currentBooking['pricingDetails']?['clientTotal'] ?? 
+                   currentBooking['totalAmount'] ?? '0'}',
                 style: TextStyle(
                   fontSize: 20.sp.clamp(18, 22),
                   fontWeight: FontWeight.bold,
@@ -268,7 +294,22 @@ class BookingDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, String status) {
+  Widget _buildActionButtons(BuildContext context, String status, Map<String, dynamic> currentBooking) {
+    final clientMap = currentBooking['clientId'] is Map ? currentBooking['clientId'] : <String, dynamic>{};
+    
+    // Support situations where clientId is populated or just a string reference
+    String clientId = '';
+    if (clientMap.isNotEmpty) {
+      clientId = clientMap['_id']?.toString() ?? clientMap['id']?.toString() ?? '';
+    } else if (currentBooking['clientId'] is String) {
+      clientId = currentBooking['clientId'].toString();
+    }
+    // Also fallback to root fields if backend gives them there
+    clientId = clientId.isEmpty ? (currentBooking['client'] ?? '') : clientId;
+
+    final clientName = clientMap['name']?.toString() ?? currentBooking['clientName']?.toString() ?? 'Client';
+    final clientAvatar = clientMap['profile'] ?? clientMap['profileImage'] ?? clientMap['image'] ?? clientMap['avatar'] ?? '';
+
     final isPending = status.toLowerCase() == 'pending';
     return Column(
       children: [
@@ -276,7 +317,31 @@ class BookingDetailsScreen extends StatelessWidget {
           width: double.infinity,
           height: 50.h,
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              if (clientId.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Client information not available')),
+                );
+                return;
+              }
+              final conversation = Conversation(
+                id: '',
+                name: clientName,
+                lastMessage: '',
+                avatarUrl: clientAvatar,
+                lastMessageTime: DateTime.now(),
+                unreadCount: 0,
+                isOnline: false,
+                status: MessageStatus.read,
+                isTemporary: true,
+                receiverId: clientId,
+              );
+              Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute(
+                  builder: (context) => ChatScreen(conversation: conversation),
+                ),
+              );
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,
               shape: RoundedRectangleBorder(
@@ -299,8 +364,8 @@ class BookingDetailsScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildTextActionButton(context, 'Decline', Icons.close, Colors.red, false),
-              _buildTextActionButton(context, 'Accept', Icons.check, Colors.black, true),
+              _buildTextActionButton(context, 'Decline', Icons.close, Colors.red, false, currentBooking),
+              _buildTextActionButton(context, 'Accept', Icons.check, Colors.black, true, currentBooking),
             ],
           ),
         ],
@@ -443,10 +508,10 @@ class BookingDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTextActionButton(BuildContext context, String text, IconData icon, Color color, bool isAccept) {
+  Widget _buildTextActionButton(BuildContext context, String text, IconData icon, Color color, bool isAccept, Map<String, dynamic> currentBooking) {
     return GestureDetector(
       onTap: () {
-        final bookingId = booking['_id'] ?? '';
+        final bookingId = currentBooking['_id'] ?? currentBooking['id'] ?? '';
         if (bookingId.isEmpty) return;
         _showConfirmationDialog(
           context: context,

@@ -16,6 +16,7 @@
         "flutter_screenutil",
         "flutter_secure_storage",
         "flutter_spinkit",
+        "flutter_stripe",
         "geocoding",
         "geolocator",
         "get_storage",
@@ -61,6 +62,17 @@
         "stream_channel",
         "test_api",
         "vector_math"
+      ]
+    },
+    {
+      "name": "flutter_stripe",
+      "version": "12.5.0",
+      "dependencies": [
+        "flutter",
+        "meta",
+        "stripe_android",
+        "stripe_ios",
+        "stripe_platform_interface"
       ]
     },
     {
@@ -399,6 +411,31 @@
         "stream_channel",
         "string_scanner",
         "term_glyph"
+      ]
+    },
+    {
+      "name": "stripe_platform_interface",
+      "version": "12.5.0",
+      "dependencies": [
+        "flutter",
+        "freezed_annotation",
+        "json_annotation",
+        "meta",
+        "plugin_platform_interface"
+      ]
+    },
+    {
+      "name": "stripe_ios",
+      "version": "12.5.0",
+      "dependencies": [
+        "flutter"
+      ]
+    },
+    {
+      "name": "stripe_android",
+      "version": "12.5.0",
+      "dependencies": [
+        "flutter"
       ]
     },
     {

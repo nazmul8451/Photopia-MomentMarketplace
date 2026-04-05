@@ -1,6 +1,6 @@
 class Urls {
-  //live url -http://195.35.6.13:4003
-  static const String baseUrl = 'http://195.35.6.13:4003';
+  //live url -https://mohosin5003.binarybards.online
+  static const String baseUrl = 'https://mohosin5003.binarybards.online';
   //local url - http://10.10.7.50:4003
   //authentication API
   static const String signUp = '$baseUrl/api/v1/auth/signup';
@@ -37,7 +37,17 @@ class Urls {
 
   static const String myListingApi = '$baseUrl/api/v1/services/my/services';
   static String getSingleList(String id) => '$baseUrl/api/v1/services/$id';
-  static String getMyOrders = '$baseUrl/api/v1/booking/my-bookings';
+  static String getMyOrders({String? filterType, String? status}) {
+    String url = '$baseUrl/api/v1/booking/my-bookings';
+    List<String> queries = [];
+    if (filterType != null) queries.add('filterType=$filterType');
+    if (status != null) queries.add('status=$status');
+    if (queries.isNotEmpty) {
+      url += '?${queries.join('&')}';
+    }
+    return url;
+  }
+  static String getSingleBooking(String id) => '$baseUrl/api/v1/booking/$id';
 
   //--------------------------------------User site api----------------------------------------------------------
 
@@ -71,6 +81,13 @@ class Urls {
 
   static const String statistics = '$baseUrl/api/v1/professional-profiles/statistics';
   static const String statisticsExport = '$baseUrl/api/v1/professional-profiles/statistics/export';
+  
+  //** payment api */
+  static const String createCheckoutSession = '$baseUrl/api/v1/payment/create-checkout-session';
+  static const String createPaymentIntent = '$baseUrl/api/v1/payment/create-payment-intent';
+  static const String myPayments = '$baseUrl/api/v1/payment/my-payments';
+
   static const String createBooking = '$baseUrl/api/v1/booking';
+
   static String updateBookingStatus(String id) => '$baseUrl/api/v1/booking/$id/status';
 }

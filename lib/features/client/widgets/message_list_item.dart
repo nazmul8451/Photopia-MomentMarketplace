@@ -84,10 +84,10 @@ class MessageListItem extends StatelessWidget {
                           conversation.lastMessage,
                           style: TextStyle(
                             fontSize: 13.sp.clamp(13,15),
-                            color: conversation.unreadCount > 0
+                            color: (!conversation.isLastMessageFromMe && conversation.unreadCount > 0)
                                 ? Colors.black87
                                 : Colors.grey,
-                            fontWeight: conversation.unreadCount > 0
+                            fontWeight: (!conversation.isLastMessageFromMe && conversation.unreadCount > 0)
                                 ? FontWeight.w600
                                 : FontWeight.normal,
                           ),
@@ -95,7 +95,7 @@ class MessageListItem extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (conversation.unreadCount > 0)
+                      if (!conversation.isLastMessageFromMe && conversation.unreadCount > 0)
                         Container(
                           margin: EdgeInsets.only(left: 8.w),
                           padding: EdgeInsets.all(6.r.clamp(4, 8)),
@@ -112,8 +112,11 @@ class MessageListItem extends StatelessWidget {
                             ),
                           ),
                         )
-                      else
-                        _buildStatusIcon(conversation.status),
+                      else if (conversation.isLastMessageFromMe)
+                        Padding(
+                          padding: EdgeInsets.only(left: 6.w),
+                          child: _buildStatusIcon(conversation.status),
+                        ),
                     ],
                   ),
                 ],

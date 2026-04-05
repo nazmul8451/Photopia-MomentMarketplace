@@ -4,6 +4,7 @@ import 'package:photopia/controller/client/favorites_controller.dart';
 import 'package:photopia/features/client/widgets/service_card.dart';
 import 'package:photopia/features/client/widgets/provider_card.dart';
 import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
+import 'package:photopia/controller/auth_controller.dart';
 import 'package:provider/provider.dart';
 
 class FavoritesScreen extends StatefulWidget {
@@ -22,9 +23,11 @@ class _FavoritesScreenState extends State<FavoritesScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    // Fetch favorites on init
+    // Fetch favorites only if logged in
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<FavoritesController>().fetchFavorites();
+      if (AuthController.isLoggedIn) {
+        context.read<FavoritesController>().fetchFavorites();
+      }
     });
   }
 

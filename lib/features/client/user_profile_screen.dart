@@ -24,7 +24,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<UserProfileController>().getUserProfile();
+      if (AuthController.isLoggedIn) {
+        context.read<UserProfileController>().getUserProfile();
+      }
     });
   }
 

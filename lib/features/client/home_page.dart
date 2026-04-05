@@ -166,7 +166,78 @@ class _MyHomePageState extends State<MyHomePage> {
                     );
                   }
 
+                  // ─── Error State ────────────────────────────────────────────
+                  if (serviceListController.errorMessage != null && serviceListController.services.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32.w),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.wifi_off_rounded, size: 60.sp, color: Colors.grey.shade300),
+                            SizedBox(height: 16.h),
+                            Text(
+                              'Unable to load services',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            SizedBox(height: 8.h),
+                            Text(
+                              'Please check your internet connection and try again.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 13.sp, color: Colors.grey),
+                            ),
+                            SizedBox(height: 24.h),
+                            GestureDetector(
+                              onTap: () => serviceListController.getAllServices(),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 28.w, vertical: 12.h),
+                                decoration: BoxDecoration(
+                                  color: Colors.black,
+                                  borderRadius: BorderRadius.circular(10.r),
+                                ),
+                                child: Text(
+                                  'Try Again',
+                                  style: TextStyle(color: Colors.white, fontSize: 14.sp, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
                   final services = serviceListController.services;
+
+                  // ─── Empty State ─────────────────────────────────────────────
+                  if (services.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(32.w),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.search_off_rounded, size: 60.sp, color: Colors.grey.shade300),
+                            SizedBox(height: 16.h),
+                            Text(
+                              'No services available',
+                              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 8.h),
+                            Text(
+                              'No services found at the moment. Pull down to refresh.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 13.sp, color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
                   
                   // Distribute data
                   final originalProjects = services.take(6).toList();

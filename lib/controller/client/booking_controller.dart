@@ -9,7 +9,10 @@ class BookingController extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  Future<bool> createBooking({
+  String? _lastBookingId;
+  String? get lastBookingId => _lastBookingId;
+
+  Future<String?> createBooking({
     required String providerId,
     required String serviceId,
     required String bookingDate,
@@ -52,6 +55,9 @@ class BookingController extends ChangeNotifier {
       "clientName": clientName ?? "",
       "clientEmail": clientEmail ?? "",
       "clientPhone": clientPhone ?? "",
+      "userEmail": clientEmail ?? "",
+      "userName": clientName ?? "",
+      "userPhone": clientPhone ?? "",
       "eventType": eventType ?? "General",
       "specialRequests": specialRequests ?? "",
     };
@@ -63,19 +69,43 @@ class BookingController extends ChangeNotifier {
       );
 
       if (response.isSuccess) {
+        final data = response.body?['data'];
+        // API returns: { "data": { "booking": { "_id": "..." } } }
+        _lastBookingId = data?['booking']?['_id']?.toString()
+            ?? data?['booking']?['id']?.toString()
+            ?? data?['_id']?.toString()
+            ?? data?['id']?.toString();
+
+        debugPrint('✅ BookingController: Booking ID parsed: $_lastBookingId');
+        
         _isLoading = false;
         notifyListeners();
-        return true;
+        return _lastBookingId;
       } else {
         _errorMessage = response.errorMessage ?? "Failed to create booking";
         _isLoading = false;
         notifyListeners();
-        return false;
+        return null;
       }
     } catch (e) {
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
+      return null;
+    }
+  }
+
+  Future<bool> updateBookingStatus(String bookingId, String status) async {
+    try {
+      final response = await NetworkCaller.patchRequest(
+        url: Urls.updateBookingStatus(bookingId),
+        body: {"status": status},
+        requireAuth: true,
+      );
+      debugPrint('📋 BookingController: Status update to "$status" → success: ${response.isSuccess}');
+      return response.isSuccess;
+    } catch (e) {
+      debugPrint('❌ BookingController: Status update failed: $e');
       return false;
     }
   }

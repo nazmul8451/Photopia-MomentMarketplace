@@ -109,6 +109,7 @@ class ChatController extends ChangeNotifier {
     _socket?.on('notification', (data) {
       debugPrint('!!! [SOCKET_DEBUG] Notification received: $data');
       NotificationController.instance.onNewNotification(data);
+      getChats(); // Ensure chat list updates in real-time when receiving generic pings
     });
 
     // Catch-all for debug: Log ALL incoming events
@@ -252,10 +253,35 @@ class ChatController extends ChangeNotifier {
           return;
         }
 
-        if (!_messages.any((m) => m.id == newMsg.id)) {
-          _messages.insert(0, newMsg);
-          notifyListeners();
+        // --- De-duplication Strategy ---
+        // 1. Check if ID already exists
+        final existingIndexById = _messages.indexWhere((m) => m.id == newMsg.id);
+        if (existingIndexById != -1) return;
+
+        // 2. If it's from me, check for a matching "sending" message (temp ID)
+        if (newMsg.isMe) {
+          final tempMsgIndex = _messages.indexWhere((m) => 
+            m.isLocal && 
+            m.text.trim() == newMsg.text.trim() && 
+            m.status == MessageStatus.sending
+          );
+          
+          if (tempMsgIndex != -1) {
+            debugPrint('Socket: Matching local message found. Replacing temp ID with server ID.');
+            _messages[tempMsgIndex] = newMsg;
+            notifyListeners();
+            return;
+          }
         }
+
+        // 3. Normal insert for new unique messages
+        _messages.insert(0, newMsg);
+        
+        if (_currentActiveChatId != null) {
+          _updateChatPreviewLocal(newMsg, _currentActiveChatId!);
+        }
+        
+        notifyListeners();
       } catch (e) {
         debugPrint('Socket format error: $e');
       }
@@ -277,6 +303,7 @@ class ChatController extends ChangeNotifier {
 
     // 1. Optimistic Add
     _messages.insert(0, tempMsg);
+    _updateChatPreviewLocal(tempMsg, chatId);
     notifyListeners();
 
     try {
@@ -292,14 +319,26 @@ class ChatController extends ChangeNotifier {
       );
 
       if (response.isSuccess) {
-        // 2. Success Update (Replace temp with real data)
-        final int index = _messages.indexWhere((m) => m.id == tempId);
-        if (index != -1 && response.body?['data'] != null) {
-          final realMsg = ChatMessage.fromJson(response.body?['data'], AuthController.userId ?? '');
-          _messages[index] = realMsg;
+        final realMsg = ChatMessage.fromJson(response.body?['data'], AuthController.userId ?? '');
+        
+        // --- DE-DUPLICATION CHECK ---
+        // If the socket message already arrived and added itself via real ID,
+        // we just need to remove the temporary message.
+        final int indexOfRealMsg = _messages.indexWhere((m) => m.id == realMsg.id);
+        final int indexOfTempMsg = _messages.indexWhere((m) => m.id == tempId);
+
+        if (indexOfRealMsg != -1 && indexOfTempMsg != -1) {
+          debugPrint('HTTP Success: Real message already present in list (likely via Socket). Removing temp message.');
+          _messages.removeAt(indexOfTempMsg);
+        } else if (indexOfTempMsg != -1) {
+          debugPrint('HTTP Success: Replacing temp message with confirmed server message.');
+          _messages[indexOfTempMsg] = realMsg;
         }
+
         notifyListeners();
-        await getChats();
+        _updateChatPreviewLocal(realMsg, chatId);
+        // Refresh preview entirely from server to ensure sync, but without blocking local preview
+        getChats();
         return true;
       }
       
@@ -318,6 +357,27 @@ class ChatController extends ChangeNotifier {
     }
     notifyListeners();
     return false;
+  }
+
+  void _updateChatPreviewLocal(ChatMessage msg, String chatId) {
+    if (_chatData?.chats == null) return;
+    
+    final int chatIndex = _chatData!.chats!.indexWhere((c) => c.sId == chatId);
+    if (chatIndex != -1) {
+      final chat = _chatData!.chats![chatIndex];
+      chat.latestMessage = LatestMessage(
+        sId: msg.id,
+        content: msg.text,
+        sender: msg.senderId,
+        createdAt: msg.time.toIso8601String(),
+        isSeen: msg.status == MessageStatus.read,
+        status: msg.status.name, // sent, delivered, read
+      );
+      
+      // Move this chat to the top of the list
+      _chatData!.chats!.removeAt(chatIndex);
+      _chatData!.chats!.insert(0, chat);
+    }
   }
 
   Future<bool> sendMediaMessage(String chatId, String filePath, {String? receiverId, String? text}) async {
@@ -344,6 +404,7 @@ class ChatController extends ChangeNotifier {
 
     // 1. Optimistic Add
     _messages.insert(0, tempMsg);
+    _updateChatPreviewLocal(tempMsg, chatId);
     notifyListeners();
 
     String pathToSend = filePath;
@@ -388,14 +449,24 @@ class ChatController extends ChangeNotifier {
       );
 
       if (response.isSuccess) {
-        // 2. Success Update
-        final int index = _messages.indexWhere((m) => m.id == tempId);
-        if (index != -1 && response.body?['data'] != null) {
-          final realMsg = ChatMessage.fromJson(response.body?['data'], AuthController.userId ?? '');
-          _messages[index] = realMsg;
+        final realMsg = ChatMessage.fromJson(response.body?['data'], AuthController.userId ?? '');
+
+        // --- DE-DUPLICATION CHECK ---
+        final int indexOfRealMsg = _messages.indexWhere((m) => m.id == realMsg.id);
+        final int indexOfTempMsg = _messages.indexWhere((m) => m.id == tempId);
+
+        if (indexOfRealMsg != -1 && indexOfTempMsg != -1) {
+          debugPrint('HTTP Success (Media): Real message already present in list (likely via Socket). Removing temp message.');
+          _messages.removeAt(indexOfTempMsg);
+        } else if (indexOfTempMsg != -1) {
+          debugPrint('HTTP Success (Media): Replacing temp message with confirmed server message.');
+          _messages[indexOfTempMsg] = realMsg;
         }
+
         notifyListeners();
-        await getChats();
+        _updateChatPreviewLocal(realMsg, chatId);
+        // Refresh preview entirely from server to ensure sync, but without blocking local preview
+        getChats();
         return true;
       }
       

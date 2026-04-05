@@ -5,7 +5,10 @@ import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/features/client/authentication/widgets/auth_widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/sign_in_controller.dart';
+import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/widgets/custom_snacbar.dart';
+import 'package:photopia/core/network/Api_service/network_caller.dart';
+import 'package:photopia/core/network/urls.dart';
 
 class LogInScreen extends StatefulWidget {
   static const String name = '/log_in';
@@ -148,14 +151,32 @@ class _LogInScreenState extends State<LogInScreen> {
                         debugPrint('🏁 Login result: $result');
                         if (result) {
                           if (mounted) {
-                            debugPrint('✅ Login successful, navigating...');
-                            // Navigate based on user role
-                            if (widget.userRole == 'provider') {
-                              CustomSnackBar.show(
-                                context: context,
-                                message: 'Login successful',
-                                isError: false,
-                              );
+                            debugPrint('✅ Login successful, traversing to active role app...');
+                            
+                            // Fetch profile explicitly if AuthController.activeRole isn't fully reliable via login payload (or it's cached)
+                            String? resolvedRole = AuthController.activeRole;
+                            try {
+                               final profileResp = await NetworkCaller.getRequest(url: Urls.userProfile);
+                               if (profileResp.isSuccess && profileResp.body != null) {
+                                  resolvedRole = profileResp.body!['data']?['activeRole']?.toString() 
+                                              ?? profileResp.body!['data']?['role']?.toString() 
+                                              ?? resolvedRole;
+                                  if (resolvedRole != null) {
+                                    await AuthController.saveUserRole(resolvedRole);
+                                  }
+                               }
+                            } catch (_) {}
+
+                            // Route explicitly based on the dynamic activeRole returned directly by the server API
+                            final activeRole = resolvedRole ?? (widget.userRole == 'provider' ? 'professional' : 'user');
+                            
+                            CustomSnackBar.show(
+                              context: context,
+                              message: 'Login successful',
+                              isError: false,
+                            );
+
+                            if (activeRole == 'professional') {
                               Navigator.pushNamedAndRemoveUntil(
                                 context,
                                 '/provider-bottom-navigation',

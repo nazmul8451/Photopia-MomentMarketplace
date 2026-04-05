@@ -23,13 +23,32 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_handleTabSelection);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProviderOrdersController>().getMyOrders();
+      _fetchCurrentTab();
     });
+  }
+
+  void _handleTabSelection() {
+    if (!_tabController.indexIsChanging) {
+      _fetchCurrentTab();
+    }
+  }
+
+  void _fetchCurrentTab() {
+    final controller = context.read<ProviderOrdersController>();
+    if (_tabController.index == 0) {
+      controller.getMyOrders(filterType: 'today');
+    } else if (_tabController.index == 1) {
+      controller.getMyOrders(filterType: 'upcoming');
+    } else if (_tabController.index == 2) {
+      controller.getMyOrders(status: 'pending');
+    }
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabSelection);
     _tabController.dispose();
     super.dispose();
   }
@@ -171,15 +190,12 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
   }
 
   Widget _buildTodayTab(ProviderOrdersController controller) {
-    final todayStr = DateTime.now().toIso8601String().substring(0, 10);
-    final todayOrders = controller.orders.where((o) => 
-      o['bookingDate']?.toString().startsWith(todayStr) == true
-    ).toList();
+    final todayOrders = controller.orders;
     
     return RefreshIndicator(
       color: Colors.black,
       backgroundColor: Colors.white,
-      onRefresh: () => controller.getMyOrders(),
+      onRefresh: () => controller.getMyOrders(filterType: 'today'),
       child: ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       itemCount: todayOrders.isEmpty ? 1 : todayOrders.length + 1,
@@ -243,16 +259,12 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
 }
 
   Widget _buildUpcomingTab(ProviderOrdersController controller) {
-    final todayStr = DateTime.now().toIso8601String().substring(0, 10);
-    final upcomingOrders = controller.orders.where((o) => 
-      o['bookingDate']?.toString().compareTo(todayStr) == 1 && 
-      o['status']?.toString().toLowerCase() == 'confirmed'
-    ).toList();
+    final upcomingOrders = controller.orders;
     
     return RefreshIndicator(
       color: Colors.black,
       backgroundColor: Colors.white,
-      onRefresh: () => controller.getMyOrders(),
+      onRefresh: () => controller.getMyOrders(filterType: 'upcoming'),
       child: ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       itemCount: upcomingOrders.isEmpty ? 1 : upcomingOrders.length + 1,
@@ -314,11 +326,12 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
 }
 
   Widget _buildPendingTab(ProviderOrdersController controller) {
-    final pendingOrders = controller.orders.where((o) => o['status']?.toString().toLowerCase() == 'pending').toList();
+    final pendingOrders = controller.orders;
+    
     return RefreshIndicator(
       color: Colors.black,
       backgroundColor: Colors.white,
-      onRefresh: () => controller.getMyOrders(),
+      onRefresh: () => controller.getMyOrders(status: 'pending'),
       child: ListView.builder(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       itemCount: pendingOrders.isEmpty ? 1 : pendingOrders.length + 1,

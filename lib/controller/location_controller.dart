@@ -30,7 +30,7 @@ class LocationController extends ChangeNotifier {
       // Test if location services are enabled.
       serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        _currentAddress = "Location services disabled";
+        _currentAddress = "Location Services Off (Turn on GPS)";
         _isLoading = false;
         notifyListeners();
         return;

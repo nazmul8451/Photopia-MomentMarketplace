@@ -5,6 +5,7 @@ import 'package:photopia/controller/provider/calender_availibility_controller.da
 import 'package:photopia/controller/location_controller.dart';
 import 'package:photopia/controller/client/booking_controller.dart';
 import 'package:photopia/controller/client/user_profile_controller.dart';
+import 'package:photopia/controller/client/payment_controller.dart';
 import 'package:photopia/data/models/calender_availibility_model.dart';
 import 'package:provider/provider.dart';
 
@@ -38,6 +39,7 @@ class _BookingConfirmationScreenState
   String? _country;
   String _specialRequests = '';
   String _paymentMethod = 'Credit/Debit Card';
+  String? _createdBookingId; // Track if booking was already created
 
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _specialRequestsController = TextEditingController();
@@ -693,7 +695,7 @@ class _BookingConfirmationScreenState
                             height: 20.sp,
                             child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
                           )
-                        : Icon(Icons.my_location, color: Colors.black, size: 24.sp),
+                        : Icon(Icons.my_location_outlined, color: Colors.black, size: 28.sp),
                   );
                 },
               ),
@@ -703,7 +705,7 @@ class _BookingConfirmationScreenState
           _buildInputLabel('Location Address'),
           _buildTextField(
             controller: _locationController,
-            hint: 'Enter location address',
+            hint: 'Enter or detect your location',
             icon: Icons.location_on_outlined,
             onChanged: (val) {
               setState(() {
@@ -715,6 +717,26 @@ class _BookingConfirmationScreenState
                 _country = null;
               });
             },
+          ),
+          SizedBox(height: 10.h),
+          Consumer<LocationController>(
+             builder: (context, locationCtrl, _) {
+               if (locationCtrl.currentAddress.contains("Off") || locationCtrl.currentAddress.contains("denied")) {
+                 return Row(
+                   children: [
+                     Icon(Icons.info_outline, size: 14.sp, color: Colors.orange),
+                     SizedBox(width: 5.w),
+                     Expanded(
+                       child: Text(
+                         "Tip: ${locationCtrl.currentAddress}. You can also type manually.",
+                         style: TextStyle(color: Colors.grey, fontSize: 11.sp),
+                       ),
+                     ),
+                   ],
+                 );
+               }
+               return const SizedBox.shrink();
+             },
           ),
           SizedBox(height: 25.h),
           _buildInputLabel('Special Requests (Optional)'),
@@ -787,7 +809,20 @@ class _BookingConfirmationScreenState
     );
   }
 
+  double get _packagePrice {
+    return double.tryParse((widget.package?['price']?.toString() ?? '0').replaceAll(',', '')) ?? 0;
+  }
+
+  double get _serviceFeeAmount {
+    return _packagePrice * 0.03; // 3% fee
+  }
+
+  double get _totalBookingAmount {
+    return _packagePrice + _serviceFeeAmount;
+  }
+
   Widget _buildStep4() {
+    final currency = widget.package?['currency'] ?? '€';
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -812,14 +847,10 @@ class _BookingConfirmationScreenState
             ),
             child: Column(
               children: [
-                _buildPriceRow('Package Total', 
-                    '${widget.package?['currency'] ?? '€'}${widget.package?['price'] ?? '0'}'),
-                _buildPriceRow('Service Fee (3%)', 
-                    '${widget.package?['currency'] ?? '€'}${((double.tryParse((widget.package?['price']?.toString() ?? '0').replaceAll(',', '')) ?? 0) * 0.03).toStringAsFixed(2)}'),
+                _buildPriceRow('Package Total', '$currency${_packagePrice.toStringAsFixed(2)}'),
+                _buildPriceRow('Service Fee (3%)', '$currency${_serviceFeeAmount.toStringAsFixed(2)}'),
                 const Divider(),
-                _buildPriceRow('Total', 
-                    '${widget.package?['currency'] ?? '€'}${((double.tryParse((widget.package?['price']?.toString() ?? '0').replaceAll(',', '')) ?? 0) * 1.03).toStringAsFixed(2)}', 
-                    isBold: true),
+                _buildPriceRow('Total', '$currency${_totalBookingAmount.toStringAsFixed(2)}', isBold: true),
               ],
             ),
           ),
@@ -959,32 +990,68 @@ class _BookingConfirmationScreenState
       }
     }
 
-    final success = await context.read<BookingController>().createBooking(
-          providerId: providerId,
-          serviceId: serviceId.toString(),
-          bookingDate: formattedDate,
-          startTime: _selectedTime,
-          endTime: endTime,
-          address: _location,
-          city: _city ?? "Dhaka",
-          country: _country ?? "Bangladesh",
-          // Use auto-detected lat/lng if available, otherwise use static fallback
-          lat: _lat ?? 23.8103,
-          lng: _lng ?? 90.4125,
-          clientName: userProfile.fullName,
-          clientEmail: userProfile.email,
-          clientPhone: userProfile.phone,
-          eventType: "Photography Session",
-          specialRequests: _specialRequests,
-          notes: _specialRequests,
-        );
+    // 1. Create Booking only if not already created
+    String? bookingId = _createdBookingId;
+    
+    if (bookingId == null) {
+      bookingId = await context.read<BookingController>().createBooking(
+            providerId: providerId,
+            serviceId: serviceId.toString(),
+            bookingDate: formattedDate,
+            startTime: _selectedTime,
+            endTime: endTime,
+            address: _location,
+            city: _city ?? "Dhaka",
+            country: _country ?? "Bangladesh",
+            lat: _lat ?? 23.8103,
+            lng: _lng ?? 90.4125,
+            clientName: userProfile.fullName,
+            clientEmail: userProfile.email,
+            clientPhone: userProfile.phone,
+            eventType: "Photography Session",
+            specialRequests: _specialRequests,
+            notes: _specialRequests,
+          );
+      
+      if (bookingId != null) {
+        _createdBookingId = bookingId;
+      }
+    }
 
-    if (success && mounted) {
-      _pageController.animateToPage(
-        6,
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeInOut,
+    if (bookingId != null && mounted) {
+      // ─── Payment Step ─────────────────────────────────────────────────────
+      final paymentCtrl = context.read<PaymentController>();
+      
+      final bool initialized = await paymentCtrl.initPaymentSheet(
+        bookingId: bookingId, 
+        amount: _totalBookingAmount, 
+        currency: widget.package?['currency'] ?? 'EUR',
       );
+
+      if (initialized && mounted) {
+        final bool paymentSuccess = await paymentCtrl.presentPaymentSheet();
+        
+        if (paymentSuccess && mounted) {
+          // ✅ Payment successful — move to success screen
+          debugPrint('🎉 Booking payment successful, order is now pending provider approval!');
+
+          if (mounted) {
+            _pageController.animateToPage(
+              6,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeInOut,
+            );
+          }
+        } else if (mounted && paymentCtrl.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(paymentCtrl.errorMessage!)),
+          );
+        }
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(paymentCtrl.errorMessage ?? 'Payment initialization failed')),
+        );
+      }
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -1033,7 +1100,7 @@ class _BookingConfirmationScreenState
               child: bookingCtrl.isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
                   : Text(
-                      _pageIndex == 5 ? 'Finish Booking' : 'Continue',
+                      _pageIndex == 5 ? 'Pay & Confirm' : 'Continue',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16.sp.clamp(16, 18),

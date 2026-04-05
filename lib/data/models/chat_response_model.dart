@@ -80,6 +80,18 @@ class ChatRoom {
       orElse: () => participants?.first ?? ChatParticipant(),
     );
 
+    final bool isLastMessageFromMe = latestMessage?.sender == currentUserId;
+    
+    MessageStatus resolveStatus() {
+      if (latestMessage?.isSeen == true || latestMessage?.status == 'read') {
+        return MessageStatus.read;
+      }
+      if (latestMessage?.status == 'delivered') {
+        return MessageStatus.delivered;
+      }
+      return MessageStatus.sent;
+    }
+
     return Conversation(
       id: sId ?? '',
       name: otherParticipant?.name ?? 'Unknown',
@@ -88,8 +100,9 @@ class ChatRoom {
       lastMessageTime: (DateTime.tryParse(latestMessage?.createdAt ?? '') ?? DateTime.now()).toLocal(),
       unreadCount: unreadCount ?? 0,
       isOnline: false,
-      status: MessageStatus.read, // UI fallback
+      status: resolveStatus(),
       receiverId: otherParticipant?.sId,
+      isLastMessageFromMe: isLastMessageFromMe,
     );
   }
 }
@@ -115,8 +128,10 @@ class LatestMessage {
   String? content;
   String? sender;
   String? createdAt;
+  bool isSeen = false;
+  String? status;
 
-  LatestMessage({this.sId, this.content, this.sender, this.createdAt});
+  LatestMessage({this.sId, this.content, this.sender, this.createdAt, this.isSeen = false, this.status});
 
   LatestMessage.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -136,7 +151,15 @@ class LatestMessage {
       content = text;
     }
     
-    sender = json['senderId'] ?? json['sender']?.toString();
+    if (json['senderId'] is Map) {
+      sender = json['senderId']['_id']?.toString() ?? json['senderId']['id']?.toString() ?? '';
+    } else if (json['sender'] is Map) {
+      sender = json['sender']['_id']?.toString() ?? json['sender']['id']?.toString() ?? '';
+    } else {
+      sender = json['senderId']?.toString() ?? json['sender']?.toString();
+    }
     createdAt = json['createdAt'];
+    isSeen = json['isSeen'] ?? json['read'] ?? false;
+    status = json['status']?.toString().toLowerCase();
   }
 }
