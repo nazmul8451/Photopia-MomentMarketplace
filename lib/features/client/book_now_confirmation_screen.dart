@@ -435,30 +435,30 @@ class _BookingConfirmationScreenState
                   fontSize: 13.sp.clamp(13, 14), color: Colors.grey)),
           SizedBox(height: 25.h),
           if (!_isLoadingAvailability && _availabilityData == null)
-            Padding(
-              padding: EdgeInsets.only(bottom: 15.h),
-              child: Container(
-                padding: EdgeInsets.all(12.w),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(8.r),
-                  border: Border.all(color: Colors.red.shade100),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.red, size: 20.sp),
-                    SizedBox(width: 10.w),
-                    Expanded(
-                      child: Text(
-                        "This provider hasn't set their availability schedule yet.",
-                        style: TextStyle(
-                            color: Colors.red.shade800, fontSize: 13.sp),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            // Padding(
+            //   padding: EdgeInsets.only(bottom: 15.h),
+            //   child: Container(
+            //     padding: EdgeInsets.all(12.w),
+            //     decoration: BoxDecoration(
+            //       color: Colors.red.shade50,
+            //       borderRadius: BorderRadius.circular(8.r),
+            //       border: Border.all(color: Colors.red.shade100),
+            //     ),
+            //     child: Row(
+            //       children: [
+            //         Icon(Icons.info_outline, color: Colors.red, size: 20.sp),
+            //         // SizedBox(width: 10.w),
+            //         // Expanded(
+            //         //   child: Text(
+            //         //     "This provider hasn't set their availability schedule yet.",
+            //         //     style: TextStyle(
+            //         //         color: Colors.red.shade800, fontSize: 13.sp),
+            //         //   ),
+            //         // ),
+            //       ],
+            //     ),
+            //   ),
+            // ),
           content,
           SizedBox(height: 30.h),
           _buildBottomButton(),
