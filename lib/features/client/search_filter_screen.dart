@@ -14,6 +14,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
   double _radius = 200;
   final TextEditingController _minBudgetController = TextEditingController(text: '0');
   final TextEditingController _maxBudgetController = TextEditingController(text: '5000');
+  bool _showFavoritesOnly = false;
 
   final List<String> _serviceTypes = [
     'Photography', 'Videography', 'Wedding', 'Corporate', 
@@ -116,6 +117,43 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
             ),
             SizedBox(height: 25.h),
 
+            _buildSectionTitle('Other Filters'),
+            SizedBox(height: 10.h),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.favorite, color: Colors.red, size: 20.sp),
+                      SizedBox(width: 10.w),
+                      Text(
+                        'Show Favorites Only',
+                        style: TextStyle(
+                          fontSize: 14.sp.clamp(14, 16),
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Switch(
+                    value: _showFavoritesOnly,
+                    onChanged: (val) => setState(() => _showFavoritesOnly = val),
+                    activeColor: Colors.black,
+                    activeTrackColor: Colors.black12,
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 25.h),
+
             _buildSectionTitle('Type of Service'),
             SizedBox(height: 10.h),
             Wrap(
@@ -167,6 +205,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                         _selectedServices.clear();
                         _selectedEquipments.clear();
                         _radius = 200;
+                        _showFavoritesOnly = false;
                         _locationController.text = '';
                         _minBudgetController.text = '0';
                         _maxBudgetController.text = '5000';
@@ -199,6 +238,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                         'maxBudget': _maxBudgetController.text,
                         'services': _selectedServices.toList(),
                         'equipments': _selectedEquipments.toList(),
+                        'favoritesOnly': _showFavoritesOnly,
                       });
                     },
                     style: ElevatedButton.styleFrom(

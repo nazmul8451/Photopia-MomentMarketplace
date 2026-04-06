@@ -268,9 +268,7 @@ class _BookingConfirmationScreenState
                   });
                 },
                 children: [
-                  _buildStep1TimeSlots(),
-                  _buildStep1FromTo(),
-                  _buildStep1FullDay(),
+                  _buildStep1(), // Combines Time Slots & Full Day logic
                   _buildStep2(),
                   _buildStep3(),
                   _buildStep4(),
@@ -285,10 +283,10 @@ class _BookingConfirmationScreenState
   }
 
   int get _currentStep {
-    if (_pageIndex < 3) return 0;
-    if (_pageIndex == 3) return 1;
-    if (_pageIndex == 4) return 2;
-    if (_pageIndex == 5) return 3;
+    if (_pageIndex == 0) return 0;
+    if (_pageIndex == 1) return 1;
+    if (_pageIndex == 2) return 2;
+    if (_pageIndex == 3) return 3;
     return 4;
   }
 
@@ -306,11 +304,8 @@ class _BookingConfirmationScreenState
                 icon: Icon(Icons.arrow_back, size: 24.sp, color: Colors.black),
                 onPressed: () {
                   if (_pageIndex > 0) {
-                    int prevIndex = _pageIndex - 1;
-                    if (_pageIndex == 3) prevIndex = 0;
-                    _pageController.animateToPage(
-                      prevIndex,
-                      duration: const Duration(milliseconds: 400),
+                    _pageController.previousPage(
+                      duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
                     );
                   } else {
@@ -359,8 +354,10 @@ class _BookingConfirmationScreenState
 
   // ─── Step 1 Variants ──────────────────────────────────────────────────────
 
-  Widget _buildStep1TimeSlots() {
-    return _buildStep1Scaffold(
+  int _selectedStep1Tab = 0; // 0 for Time Slots, 1 for Full Day
+
+  Widget _buildStep1() {
+    return _buildStepScaffold(
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -371,89 +368,69 @@ class _BookingConfirmationScreenState
                   fontSize: 14.sp.clamp(14, 16),
                   fontWeight: FontWeight.bold)),
           SizedBox(height: 15.h),
-          (_isLoadingAvailability && _availableDates.isEmpty)
-              ? SizedBox(
-                  height: 180.h,
-                  child: const Center(
-                    child: CircularProgressIndicator(color: Colors.black),
-                  ),
-                )
-              : _buildDateGrid(),
-          SizedBox(height: 30.h),
-          // Only show time slots when a date has been selected
-          if (_selectedDateTime != null) ...[
-            Text('Time Slot',
-                style: TextStyle(
-                    fontSize: 14.sp.clamp(14, 16),
-                    fontWeight: FontWeight.bold)),
-            SizedBox(height: 15.h),
-            _isLoadingSlots 
-              ? SizedBox(
-                  height: 100.h,
-                  child: const Center(
-                    child: CircularProgressIndicator(color: Colors.black),
-                  ),
-                )
-              : _buildTimeSlotGrid(),
-          ],
+          
+          // Dates Grid - Animates on height change but stays in place
+          AnimatedSize(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            child: Container(
+              constraints: BoxConstraints(minHeight: 180.h),
+              child: (_isLoadingAvailability && _availableDates.isEmpty)
+                  ? SizedBox(
+                      height: 180.h,
+                      child: const Center(
+                        child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2),
+                      ),
+                    )
+                  : _buildDateGrid(),
+            ),
+          ),
+          
+          // Conditional Time Slots
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 400),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return FadeTransition(
+                opacity: animation,
+                child: SizeTransition(
+                  sizeFactor: animation,
+                  axisAlignment: -1.0,
+                  child: child,
+                ),
+              );
+            },
+            child: (_selectedStep1Tab == 0 && _selectedDateTime != null)
+                ? Column(
+                    key: const ValueKey('time_slots_section'),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 15.h), // Reduced from 30.h
+                      Text('Time Slot',
+                          style: TextStyle(
+                              fontSize: 14.sp.clamp(14, 16),
+                              fontWeight: FontWeight.bold)),
+                      SizedBox(height: 12.h), // Adjusted spacing
+                      Container(
+                        constraints: BoxConstraints(minHeight: 100.h),
+                        child: _isLoadingSlots 
+                          ? SizedBox(
+                              height: 100.h,
+                              child: const Center(
+                                child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2),
+                              ),
+                            )
+                          : _buildTimeSlotGrid(),
+                      ),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildStep1FromTo() {
-    return _buildStep1Scaffold(
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildStep1Tabs(),
-          SizedBox(height: 25.h),
-          Text('Available Dates',
-              style: TextStyle(
-                  fontSize: 14.sp.clamp(14, 16),
-                  fontWeight: FontWeight.bold)),
-          SizedBox(height: 15.h),
-          (_isLoadingAvailability && _availableDates.isEmpty)
-              ? SizedBox(
-                  height: 180.h,
-                  child: const Center(
-                    child: CircularProgressIndicator(color: Colors.black),
-                  ),
-                )
-              : _buildDateGrid(),
-          SizedBox(height: 30.h),
-          if (_selectedDateTime != null) _buildTimeRangeInputs(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStep1FullDay() {
-    return _buildStep1Scaffold(
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildStep1Tabs(),
-          SizedBox(height: 25.h),
-          Text('Available Dates',
-              style: TextStyle(
-                  fontSize: 14.sp.clamp(14, 16),
-                  fontWeight: FontWeight.bold)),
-          SizedBox(height: 15.h),
-          (_isLoadingAvailability && _availableDates.isEmpty)
-              ? SizedBox(
-                  height: 180.h,
-                  child: const Center(
-                    child: CircularProgressIndicator(color: Colors.black),
-                  ),
-                )
-              : _buildDateGrid(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStep1Scaffold(Widget content) {
+  Widget _buildStepScaffold(Widget content) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -469,31 +446,6 @@ class _BookingConfirmationScreenState
               style: TextStyle(
                   fontSize: 13.sp.clamp(13, 14), color: Colors.grey)),
           SizedBox(height: 25.h),
-          if (!_isLoadingAvailability && _availabilityData == null)
-            // Padding(
-            //   padding: EdgeInsets.only(bottom: 15.h),
-            //   child: Container(
-            //     padding: EdgeInsets.all(12.w),
-            //     decoration: BoxDecoration(
-            //       color: Colors.red.shade50,
-            //       borderRadius: BorderRadius.circular(8.r),
-            //       border: Border.all(color: Colors.red.shade100),
-            //     ),
-            //     child: Row(
-            //       children: [
-            //         Icon(Icons.info_outline, color: Colors.red, size: 20.sp),
-            //         // SizedBox(width: 10.w),
-            //         // Expanded(
-            //         //   child: Text(
-            //         //     "This provider hasn't set their availability schedule yet.",
-            //         //     style: TextStyle(
-            //         //         color: Colors.red.shade800, fontSize: 13.sp),
-            //         //   ),
-            //         // ),
-            //       ],
-            //     ),
-            //   ),
-            // ),
           content,
           SizedBox(height: 30.h),
           _buildBottomButton(),
@@ -504,7 +456,7 @@ class _BookingConfirmationScreenState
   }
 
   Widget _buildStep1Tabs() {
-    final tabs = ['Time Slots', 'From To', 'Full Day'];
+    final tabs = ['Time Slots', 'Full Day'];
     return Container(
       padding: EdgeInsets.all(4.w),
       decoration: BoxDecoration(
@@ -515,15 +467,18 @@ class _BookingConfirmationScreenState
         children: tabs.asMap().entries.map((entry) {
           final index = entry.key;
           final tab = entry.value;
-          final isSelected = _pageIndex == index;
+          final isSelected = _selectedStep1Tab == index;
           return Expanded(
             child: GestureDetector(
               onTap: () {
-                _pageController.animateToPage(index,
-                    duration: const Duration(milliseconds: 400),
-                    curve: Curves.easeInOut);
+                setState(() {
+                  _selectedStep1Tab = index;
+                  // If we switch to Full Day, we might need different logic
+                  // but we keep the selected date if possible.
+                });
               },
-              child: Container(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
                 padding: EdgeInsets.symmetric(vertical: 10.h),
                 decoration: BoxDecoration(
                   color: isSelected ? Colors.black : Colors.transparent,
@@ -571,7 +526,7 @@ class _BookingConfirmationScreenState
         crossAxisCount: 3,
         mainAxisSpacing: 10.h,
         crossAxisSpacing: 10.w,
-        childAspectRatio: 1.5,
+        childAspectRatio: 2.1, // Increased to make containers shorter
       ),
       itemCount: _availableDates.length,
       itemBuilder: (context, index) {
@@ -664,23 +619,6 @@ class _BookingConfirmationScreenState
     );
   }
 
-  Widget _buildTimeRangeInputs() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Select Time Range',
-            style: TextStyle(
-                fontSize: 14.sp.clamp(14, 16),
-                fontWeight: FontWeight.bold)),
-        SizedBox(height: 15.h),
-        _buildInputLabel('From'),
-        _buildTimeTextField('10:00'),
-        SizedBox(height: 15.h),
-        _buildInputLabel('To'),
-        _buildTimeTextField('18:00'),
-      ],
-    );
-  }
 
   // ─── Steps 2-4 ────────────────────────────────────────────────────────────
 
@@ -1225,19 +1163,6 @@ class _BookingConfirmationScreenState
     );
   }
 
-  Widget _buildTimeTextField(String time) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10).r,
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Text(time,
-          style: TextStyle(fontSize: 14.sp.clamp(14, 15))),
-    );
-  }
 
   Widget _buildReviewItem(String label, String value, {bool isBold = false}) {
     return Padding(

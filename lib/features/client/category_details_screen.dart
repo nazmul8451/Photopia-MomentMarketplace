@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:photopia/controller/client/service_list_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/data/models/service_list_model.dart';
+import 'package:photopia/controller/client/favorites_controller.dart';
 
 class CategoryDetailsScreen extends StatefulWidget {
   const CategoryDetailsScreen({super.key});
@@ -60,8 +61,24 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                 children: [
                   SearchHeader(
                     onFilterApplied: (filters) {
-                      // Handle filtering logic here
-                      context.read<ServiceListController>().getAllServices();
+                      final serviceCtrl = context.read<ServiceListController>();
+                      final favCtrl = context.read<FavoritesController>();
+                      
+                      final bool favoritesOnly = filters['favoritesOnly'] == true;
+                      
+                      if (favoritesOnly) {
+                        // Get IDs of all favorite posts
+                        final List<String> favoriteIds = favCtrl.favoritePosts
+                            .map((p) => (p['_id'] ?? p['id'] ?? '').toString())
+                            .where((id) => id.isNotEmpty)
+                            .toList();
+                        
+                        serviceCtrl.applyFavoritesFilter(true, favoriteIds);
+                      } else {
+                        serviceCtrl.resetFilters();
+                        // You can still call getAllServices if needed for sync
+                        // serviceCtrl.getAllServices(); 
+                      }
                     },
                   ),
 

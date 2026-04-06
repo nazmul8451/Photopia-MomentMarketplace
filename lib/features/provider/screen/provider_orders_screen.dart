@@ -7,6 +7,9 @@ import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_orders_controller.dart';
+import 'package:photopia/data/models/conversation_model.dart';
+import 'package:photopia/data/models/chat_message_model.dart';
+import 'package:photopia/features/client/chat_screen.dart';
 
 class ProviderOrdersScreen extends StatefulWidget {
   const ProviderOrdersScreen({super.key});
@@ -527,7 +530,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                   children: [
                     _buildButton(
                       text: 'Contact',
-                      onTap: () {},
+                      onTap: () => _navigateToChat(context, booking),
                       isPrimary: false,
                     ),
                     SizedBox(width: 10.w),
@@ -827,43 +830,49 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
             ],
           ),
           SizedBox(height: 15.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '€$price',
-                style: TextStyle(
-                  fontSize: AppTypography.h2,
-                  fontWeight: FontWeight.bold,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '€$price',
+                  style: TextStyle(
+                    fontSize: AppTypography.h2,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              Row(
-                children: [
-                  _buildTextButton(
-                    text: 'Decline',
-                    onTap: () => _showConfirmationDialog(
-                      context: context,
-                      isAccept: false,
-                      bookingId: booking['_id'] ?? '',
+                Row(
+                  children: [
+                    _buildButton(
+                      text: 'Contact',
+                      onTap: () => _navigateToChat(context, booking),
+                      isPrimary: false,
                     ),
-                    icon: Icons.close,
-                    color: Colors.red,
-                  ),
-                  SizedBox(width: 15.w),
-                  _buildTextButton(
-                    text: 'Accept',
-                    onTap: () => _showConfirmationDialog(
-                      context: context,
-                      isAccept: true,
-                      bookingId: booking['_id'] ?? '',
+                    SizedBox(width: 10.w),
+                    _buildTextButton(
+                      text: 'Decline',
+                      onTap: () => _showConfirmationDialog(
+                        context: context,
+                        isAccept: false,
+                        bookingId: booking['_id'] ?? '',
+                      ),
+                      icon: Icons.close,
+                      color: Colors.red,
                     ),
-                    icon: Icons.check,
-                    color: Colors.black,
-                  ),
-                ],
-              ),
-            ],
-          ),
+                    SizedBox(width: 15.w),
+                    _buildTextButton(
+                      text: 'Accept',
+                      onTap: () => _showConfirmationDialog(
+                        context: context,
+                        isAccept: true,
+                        bookingId: booking['_id'] ?? '',
+                      ),
+                      icon: Icons.check,
+                      color: Colors.black,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           SizedBox(height: 10.h),
           Center(
             child: TextButton(
@@ -894,6 +903,47 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _navigateToChat(BuildContext context, Map<String, dynamic> booking) {
+    final clientMap = booking['clientId'] is Map ? booking['clientId'] : <String, dynamic>{};
+    
+    String clientId = '';
+    if (clientMap.isNotEmpty) {
+      clientId = clientMap['_id']?.toString() ?? clientMap['id']?.toString() ?? '';
+    } else if (booking['clientId'] is String) {
+      clientId = booking['clientId'].toString();
+    }
+    clientId = clientId.isEmpty ? (booking['client']?.toString() ?? '') : clientId;
+
+    if (clientId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Client information not available')),
+      );
+      return;
+    }
+
+    final clientName = clientMap['name']?.toString() ?? booking['clientName']?.toString() ?? 'Client';
+    final clientAvatar = clientMap['profile'] ?? clientMap['profileImage'] ?? clientMap['image'] ?? clientMap['avatar'] ?? '';
+
+    final conversation = Conversation(
+      id: '',
+      name: clientName,
+      lastMessage: '',
+      avatarUrl: clientAvatar,
+      lastMessageTime: DateTime.now(),
+      unreadCount: 0,
+      isOnline: false,
+      status: MessageStatus.read,
+      isTemporary: true,
+      receiverId: clientId,
+    );
+
+    Navigator.of(context, rootNavigator: true).push(
+      MaterialPageRoute(
+        builder: (context) => ChatScreen(conversation: conversation),
       ),
     );
   }

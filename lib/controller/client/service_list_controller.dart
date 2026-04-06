@@ -13,6 +13,12 @@ class ServiceListController extends ChangeNotifier {
   List<ServiceItem> _services = [];
   List<ServiceItem> get services => _services;
 
+  List<ServiceItem> _filteredServices = [];
+  bool _isFiltered = false;
+  bool get isFiltered => _isFiltered;
+
+  List<ServiceItem> get displayServices => _isFiltered ? _filteredServices : _services;
+
   ServiceItem? _serviceDetail;
   ServiceItem? get serviceDetail => _serviceDetail;
 
@@ -124,5 +130,24 @@ class ServiceListController extends ChangeNotifier {
   List<ServiceItem> getServicesByCategory(String? categoryName) {
     if (categoryName == null || categoryName.isEmpty) return _services;
     return _services.where((s) => s.category?.name == categoryName).toList();
+  }
+
+  void applyFavoritesFilter(bool showOnlyFavorites, List<String> favoriteIds) {
+    _isFiltered = showOnlyFavorites;
+    if (showOnlyFavorites) {
+      _filteredServices = _services.where((service) {
+        final id = service.sId;
+        return favoriteIds.contains(id);
+      }).toList();
+    } else {
+      _filteredServices = [];
+    }
+    notifyListeners();
+  }
+
+  void resetFilters() {
+    _isFiltered = false;
+    _filteredServices = [];
+    notifyListeners();
   }
 }
