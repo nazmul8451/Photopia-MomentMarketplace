@@ -109,6 +109,9 @@ class ServiceItem {
   List<dynamic>? gallery;
   String? responseTime;
   int? completedProjects;
+  // Pricing
+  String? pricingType; // "HOURLY", "DAILY", "PACKAGE"
+  ServicePricingModel? pricingModel;
 
   ServiceItem({
     this.sId,
@@ -130,7 +133,16 @@ class ServiceItem {
     this.gallery,
     this.responseTime,
     this.completedProjects,
+    this.pricingType,
+    this.pricingModel,
   });
+
+  /// Returns true if this service has at least one package defined
+  bool get hasPackages {
+    return pricingType == 'PACKAGE' &&
+        pricingModel != null &&
+        (pricingModel!.packages?.isNotEmpty ?? false);
+  }
 
   static String? _formatUrl(dynamic url) {
     if (url == null) return null;
@@ -191,6 +203,10 @@ class ServiceItem {
           : null,
       responseTime: json['responseTime']?.toString(),
       completedProjects: int.tryParse(json['completedProjects']?.toString() ?? ''),
+      pricingType: json['pricingType']?.toString(),
+      pricingModel: json['pricingModel'] != null
+          ? ServicePricingModel.fromJson(json['pricingModel'])
+          : null,
     );
   }
 
@@ -221,8 +237,63 @@ class ServiceItem {
     data['gallery'] = gallery;
     data['responseTime'] = responseTime;
     data['completedProjects'] = completedProjects;
+    data['pricingType'] = pricingType;
+    if (pricingModel != null) {
+      data['pricingModel'] = pricingModel!.toJson();
+    }
     return data;
   }
+}
+
+class ServicePricingModel {
+  String? type;
+  List<ServicePackage>? packages;
+
+  ServicePricingModel({this.type, this.packages});
+
+  factory ServicePricingModel.fromJson(Map<String, dynamic> json) {
+    return ServicePricingModel(
+      type: json['type'],
+      packages: json['packages'] != null
+          ? (json['packages'] as List)
+              .map((p) => ServicePackage.fromJson(p))
+              .toList()
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'type': type,
+    if (packages != null) 'packages': packages!.map((p) => p.toJson()).toList(),
+  };
+}
+
+class ServicePackage {
+  String? name;
+  int? price;
+  int? duration;
+  String? description;
+  List<String>? includes;
+
+  ServicePackage({this.name, this.price, this.duration, this.description, this.includes});
+
+  factory ServicePackage.fromJson(Map<String, dynamic> json) {
+    return ServicePackage(
+      name: json['name'],
+      price: json['price'],
+      duration: json['duration'],
+      description: json['description'],
+      includes: json['includes'] != null ? List<String>.from(json['includes']) : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'name': name,
+    'price': price,
+    'duration': duration,
+    'description': description,
+    'includes': includes,
+  };
 }
 
 class ProviderInfo {

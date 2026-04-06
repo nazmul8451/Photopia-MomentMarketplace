@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:photopia/features/client/book_now_SelectPackage_screen.dart';
+import 'package:photopia/features/client/book_now_confirmation_screen.dart';
 import 'package:photopia/features/client/provider_profile_screen.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:photopia/controller/auth_controller.dart';
@@ -369,7 +369,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                   GuestDialogHelper.showGuestDialog(context);
                   return;
                 }
-                Navigator.push(context, MaterialPageRoute(builder: (context) => SelectPackageScreen(service: widget.service)));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => BookingConfirmationScreen(service: widget.service)));
               },
               child: Container(height: 50.h, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12).r), child: Center(child: Text('Book Now', style: TextStyle(color: Colors.white, fontSize: 14.sp.clamp(14, 16), fontWeight: FontWeight.bold)))),
             ),

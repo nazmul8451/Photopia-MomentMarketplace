@@ -24,7 +24,7 @@ class _BookingConfirmationScreenState
   final PageController _pageController = PageController();
   int _pageIndex = 0;
   bool _isSuccess = false;
-  bool _isLoadingAvailability = false;
+  bool _isLoadingAvailability = true;
 
   // Booking Data
   // Booking Data
@@ -60,6 +60,7 @@ class _BookingConfirmationScreenState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _buildAvailableDatesFallback(); // Load fallback dates immediately
       _fetchAvailability();
     });
   }
@@ -73,22 +74,24 @@ class _BookingConfirmationScreenState
     if (providerId != null) {
       final controller = context.read<CalenderAvailibilityController>();
       
-      // Fetch general settings for legacy logic safety
-      await controller.getAvailabilitySettings(providerId: providerId);
-      
-      // Fetch dynamic calendar for current month
-      final now = DateTime.now();
-      final calendarData = await controller.getMonthCalendar(
-        providerId, 
-        now.month, 
-        now.year
-      );
+      try {
+        // Run both calls in parallel for speed
+        final results = await Future.wait([
+          controller.getAvailabilitySettings(providerId: providerId),
+          controller.getMonthCalendar(providerId, DateTime.now().month, DateTime.now().year),
+        ]);
 
-      if (mounted) {
-        setState(() {
-          _apiAvailableDates = calendarData;
-          _buildAvailableDatesFromApi();
-        });
+        final calendarData = results[1] as List<dynamic>;
+
+        if (mounted) {
+          setState(() {
+            _apiAvailableDates = calendarData;
+            _buildAvailableDatesFromApi();
+          });
+        }
+      } catch (e) {
+        debugPrint('❌ Error fetching availability: $e');
+        _buildAvailableDatesFallback();
       }
     } else {
       _buildAvailableDatesFallback();
@@ -172,10 +175,17 @@ class _BookingConfirmationScreenState
   }
 
   int get _packageDurationInMinutes {
-    final durationStr = widget.package?['duration']?.toString().toLowerCase() ?? '';
+    final durationStr = (widget.package?['duration'] ?? widget.service?['duration'] ?? '')
+        .toString()
+        .toLowerCase();
     if (durationStr.contains('4 hour')) return 240;
     if (durationStr.contains('8 hour')) return 480;
-    if (durationStr.contains('full day')) return 600; // Assume 10 hours for full day slots
+    if (durationStr.contains('full day')) return 600;
+    
+    // Check if it's just a number of hours
+    final int? hours = int.tryParse(durationStr.split(' ')[0]);
+    if (hours != null) return hours * 60;
+    
     return 60; // Default to 1 hour
   }
 
@@ -335,8 +345,13 @@ class _BookingConfirmationScreenState
               );
             }),
           ),
-          SizedBox(height: 10.h),
           Divider(color: Colors.grey.withOpacity(0.1)),
+          if (_isLoadingAvailability)
+            LinearProgressIndicator(
+              backgroundColor: Colors.grey.shade100,
+              color: Colors.black,
+              minHeight: 2,
+            ),
         ],
       ),
     );
@@ -356,8 +371,13 @@ class _BookingConfirmationScreenState
                   fontSize: 14.sp.clamp(14, 16),
                   fontWeight: FontWeight.bold)),
           SizedBox(height: 15.h),
-          _isLoadingAvailability
-              ? const Center(child: CircularProgressIndicator(color: Colors.black))
+          (_isLoadingAvailability && _availableDates.isEmpty)
+              ? SizedBox(
+                  height: 180.h,
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Colors.black),
+                  ),
+                )
               : _buildDateGrid(),
           SizedBox(height: 30.h),
           // Only show time slots when a date has been selected
@@ -368,7 +388,12 @@ class _BookingConfirmationScreenState
                     fontWeight: FontWeight.bold)),
             SizedBox(height: 15.h),
             _isLoadingSlots 
-              ? const Center(child: CircularProgressIndicator(color: Colors.black))
+              ? SizedBox(
+                  height: 100.h,
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Colors.black),
+                  ),
+                )
               : _buildTimeSlotGrid(),
           ],
         ],
@@ -388,8 +413,13 @@ class _BookingConfirmationScreenState
                   fontSize: 14.sp.clamp(14, 16),
                   fontWeight: FontWeight.bold)),
           SizedBox(height: 15.h),
-          _isLoadingAvailability
-              ? const Center(child: CircularProgressIndicator(color: Colors.black))
+          (_isLoadingAvailability && _availableDates.isEmpty)
+              ? SizedBox(
+                  height: 180.h,
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Colors.black),
+                  ),
+                )
               : _buildDateGrid(),
           SizedBox(height: 30.h),
           if (_selectedDateTime != null) _buildTimeRangeInputs(),
@@ -410,8 +440,13 @@ class _BookingConfirmationScreenState
                   fontSize: 14.sp.clamp(14, 16),
                   fontWeight: FontWeight.bold)),
           SizedBox(height: 15.h),
-          _isLoadingAvailability
-              ? const Center(child: CircularProgressIndicator(color: Colors.black))
+          (_isLoadingAvailability && _availableDates.isEmpty)
+              ? SizedBox(
+                  height: 180.h,
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Colors.black),
+                  ),
+                )
               : _buildDateGrid(),
         ],
       ),
@@ -786,7 +821,11 @@ class _BookingConfirmationScreenState
               children: [
                 _buildReviewItem('Service',
                     widget.service?['title'] ?? 'Photography Session'),
+                if (widget.package != null)
+                  _buildReviewItem('Package', widget.package!['name'] ?? 'Custom'),
                 _buildReviewItem('Provider',
+                    widget.service?['providerId']?['name']?.toString() ?? 
+                    widget.service?['provider']?['name']?.toString() ??
                     widget.service?['subtitle'] ?? 'Professional'),
                 const Divider(),
                 _buildReviewIconItem(Icons.calendar_today_outlined, dateStr),
@@ -798,6 +837,10 @@ class _BookingConfirmationScreenState
                   const Divider(),
                   _buildReviewItem('Special Requests', _specialRequests),
                 ],
+                const Divider(),
+                _buildReviewItem('Price', 
+                    '${widget.package?['currency'] ?? widget.service?['currency'] ?? '€'}${_packagePrice.toStringAsFixed(2)}',
+                    isBold: true),
               ],
             ),
           ),
@@ -810,7 +853,10 @@ class _BookingConfirmationScreenState
   }
 
   double get _packagePrice {
-    return double.tryParse((widget.package?['price']?.toString() ?? '0').replaceAll(',', '')) ?? 0;
+    final priceStr = (widget.package?['price'] ?? widget.service?['price'] ?? '0')
+        .toString()
+        .replaceAll(',', '');
+    return double.tryParse(priceStr) ?? 0;
   }
 
   double get _serviceFeeAmount {
@@ -822,7 +868,7 @@ class _BookingConfirmationScreenState
   }
 
   Widget _buildStep4() {
-    final currency = widget.package?['currency'] ?? '€';
+    final currency = widget.package?['currency'] ?? widget.service?['currency'] ?? '€';
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -977,11 +1023,13 @@ class _BookingConfirmationScreenState
     final String formattedDate =
         "${DateFormat('yyyy-MM-dd').format(_selectedDateTime!)}T00:00:00.000Z";
 
-    // Calculate endTime based on package duration
+    // Calculate endTime based on package or service duration
     String endTime = "18:00";
-    if (_selectedTime.isNotEmpty && widget.package != null) {
+    if (_selectedTime.isNotEmpty) {
       try {
-        final durationStr = widget.package!['duration']?.toString() ?? "1";
+        final durationStr = (widget.package?['duration'] ?? widget.service?['duration'] ?? "1 hour")
+            .toString()
+            .toLowerCase();
         final int durationHours = int.tryParse(durationStr.split(' ')[0]) ?? 1;
         final int startHour = int.tryParse(_selectedTime.split(':')[0]) ?? 9;
         endTime = "${(startHour + durationHours).toString().padLeft(2, '0')}:00";
@@ -1025,7 +1073,7 @@ class _BookingConfirmationScreenState
       final bool initialized = await paymentCtrl.initPaymentSheet(
         bookingId: bookingId, 
         amount: _totalBookingAmount, 
-        currency: widget.package?['currency'] ?? 'EUR',
+        currency: widget.package?['currency'] ?? widget.service?['currency'] ?? 'EUR',
       );
 
       if (initialized && mounted) {
@@ -1069,7 +1117,24 @@ class _BookingConfirmationScreenState
             if (bookingCtrl.isLoading) return;
 
             if (_pageIndex < 5) {
-              // Validate location before moving from Step 2 to Review
+              // 1. Validation for Step 1 (Date & Time)
+              if (_pageIndex < 3) {
+                if (_selectedDateTime == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please select a date first')),
+                  );
+                  return;
+                }
+                // If in "Time Slots" tab, must select a time
+                if (_pageIndex == 0 && _selectedTime.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please select a time slot')),
+                  );
+                  return;
+                }
+              }
+
+              // 2. Validation for Step 2 (Location)
               if (_pageIndex == 3 && _location.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Please provide a location address')),
@@ -1174,7 +1239,7 @@ class _BookingConfirmationScreenState
     );
   }
 
-  Widget _buildReviewItem(String label, String value) {
+  Widget _buildReviewItem(String label, String value, {bool isBold = false}) {
     return Padding(
       padding: EdgeInsets.only(bottom: 15.h),
       child: Column(
@@ -1187,7 +1252,8 @@ class _BookingConfirmationScreenState
           Text(value,
               style: TextStyle(
                   fontSize: 14.sp.clamp(14, 16),
-                  fontWeight: FontWeight.w600)),
+                  fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+                  color: Colors.black)),
         ],
       ),
     );

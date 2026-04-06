@@ -17,6 +17,8 @@ class ServiceCard extends StatelessWidget {
   final double rating;
   final int reviews;
   final String priceRange;
+  final num? price;
+  final String? currency;
   final List<String> tags;
   final bool isPremium;
   final bool isLoading;
@@ -31,6 +33,8 @@ class ServiceCard extends StatelessWidget {
     this.rating = 0.0,
     this.reviews = 0,
     this.priceRange = '',
+    this.price,
+    this.currency,
     this.tags = const [],
     this.isPremium = false,
     this.isLoading = false,
@@ -56,6 +60,8 @@ class ServiceCard extends StatelessWidget {
                 'rating': rating,
                 'reviews': reviews,
                 'priceRange': priceRange,
+                'price': price,
+                'currency': currency,
                 'tags': tags,
                 'isPremium': isPremium,
                 'id': id,

@@ -114,6 +114,8 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                                 priceRange: (service is ServiceItem) 
                                     ? "€${service.price ?? 0}"
                                     : "€${service['price'] ?? 0}",
+                                price: (service is ServiceItem) ? service.price : (num.tryParse(service['price']?.toString() ?? '')),
+                                currency: (service is ServiceItem) ? service.currency : service['currency']?.toString(),
                                 providerId: (service is ServiceItem) 
                                     ? service.providerId?.sId
                                     : service['providerId']?['_id']?.toString(),
