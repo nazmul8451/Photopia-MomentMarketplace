@@ -10,6 +10,7 @@ class UserProfileModel {
   final String? specialty;
   final List<String>? languages;
   final String? createdAt;
+  final bool isSubscribed;
 
   UserProfileModel({
     this.id,
@@ -23,6 +24,7 @@ class UserProfileModel {
     this.specialty,
     this.languages,
     this.createdAt,
+    this.isSubscribed = false,
   });
 
   static String? _formatUrl(dynamic url) {
@@ -65,6 +67,7 @@ class UserProfileModel {
       specialty: json['specialty']?.toString(),
       languages: json['languages'] != null ? List<String>.from(json['languages']) : null,
       createdAt: json['createdAt']?.toString(),
+      isSubscribed: json['subscription'] != null || json['isSubscribed'] == true,
     );
   }
 

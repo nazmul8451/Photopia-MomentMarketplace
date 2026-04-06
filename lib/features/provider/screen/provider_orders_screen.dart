@@ -242,9 +242,10 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
         final service = order['serviceId'] is Map ? order['serviceId'] : {};
         final location = order['eventLocation'] is Map ? order['eventLocation'] : {};
 
+        // Prioritize subtotal (base price) over totalAmount (which contains fees)
         final price = order['pricingDetails']?['subtotal']?.toString() ?? 
-                      order['pricingDetails']?['clientTotal']?.toString() ?? 
-                      order['totalAmount']?.toString() ?? '0';
+                      order['totalAmount']?.toString() ?? 
+                      order['pricingDetails']?['clientTotal']?.toString() ?? '0';
 
         return _buildTodayBookingCard(
           name: client['name'] ?? 'Unknown Client',
@@ -310,9 +311,10 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
         final client = order['clientId'] is Map ? order['clientId'] : {};
         final service = order['serviceId'] is Map ? order['serviceId'] : {};
 
+        // Prioritize subtotal (base price) over totalAmount (which contains fees)
         final price = order['pricingDetails']?['subtotal']?.toString() ?? 
-                      order['pricingDetails']?['clientTotal']?.toString() ?? 
-                      order['totalAmount']?.toString() ?? '0';
+                      order['totalAmount']?.toString() ?? 
+                      order['pricingDetails']?['clientTotal']?.toString() ?? '0';
 
         return _buildUpcomingBookingCard(
           name: client['name'] ?? 'Unknown Client',
@@ -378,9 +380,10 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
         final service = order['serviceId'] is Map ? order['serviceId'] : {};
         final location = order['eventLocation'] is Map ? order['eventLocation'] : {};
 
+        // Prioritize subtotal (base price) over totalAmount (which contains fees)
         final price = order['pricingDetails']?['subtotal']?.toString() ?? 
-                      order['pricingDetails']?['clientTotal']?.toString() ?? 
-                      order['totalAmount']?.toString() ?? '0';
+                      order['totalAmount']?.toString() ?? 
+                      order['pricingDetails']?['clientTotal']?.toString() ?? '0';
 
         return _buildPendingBookingCard(
           name: client['name'] ?? 'Unknown Client',

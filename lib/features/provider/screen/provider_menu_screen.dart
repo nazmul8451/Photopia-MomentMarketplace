@@ -49,9 +49,11 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                     _buildStatsGrid(controller),
                     SizedBox(height: 16.h.clamp(12, 20)),
 
-                    // Premium Member Card
-                    _buildPremiumCard(context),
-                    SizedBox(height: 16.h.clamp(12, 20)),
+                    // Premium Member Card (Show only if NOT subscribed)
+                    if (!(controller.userProfile?.isSubscribed ?? false)) ...[
+                      _buildPremiumCard(context),
+                      SizedBox(height: 16.h.clamp(12, 20)),
+                    ],
 
                     // Menu Items
                     _buildMenuItem(
@@ -183,31 +185,51 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                       ),
                     ),
                     SizedBox(height: 6.h),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10.w,
-                        vertical: 4.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(14.r),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('👑', style: TextStyle(fontSize: 10.sp)),
-                          SizedBox(width: 4.w),
-                          Text(
-                            'Premium',
-                            style: TextStyle(
-                              fontSize: 11.sp.clamp(10, 12),
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
+                    if (controller.userProfile?.isSubscribed ?? false)
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.w,
+                          vertical: 4.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(14.r),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('👑', style: TextStyle(fontSize: 10.sp)),
+                            SizedBox(width: 4.w),
+                            Text(
+                              'Premium',
+                              style: TextStyle(
+                                fontSize: 11.sp.clamp(10, 12),
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
+                          ],
+                        ),
+                      )
+                    else
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.w,
+                          vertical: 4.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(14.r),
+                        ),
+                        child: Text(
+                          'Free Member',
+                          style: TextStyle(
+                            fontSize: 11.sp.clamp(10, 12),
+                            color: Colors.black54,
+                            fontWeight: FontWeight.w600,
                           ),
-                        ],
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),

@@ -503,35 +503,55 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                           ],
                         ],
                         SizedBox(height: 10.h),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 14.w,
-                            vertical: 5.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(30).r,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.stars,
-                                color: Colors.white,
-                                size: 12.sp,
-                              ),
-                              SizedBox(width: 6.w),
-                              Text(
-                                'Premium',
-                                style: TextStyle(
+                        if (controller.userProfile?.isSubscribed ?? false)
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 14.w,
+                              vertical: 5.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(30).r,
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.stars,
                                   color: Colors.white,
-                                  fontSize: 10.5.sp,
-                                  fontWeight: FontWeight.bold,
+                                  size: 12.sp,
                                 ),
+                                SizedBox(width: 6.w),
+                                Text(
+                                  'Premium',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10.5.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 14.w,
+                              vertical: 5.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[700],
+                              borderRadius: BorderRadius.circular(30).r,
+                            ),
+                            child: Text(
+                              'Free Member',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10.5.sp,
+                                fontWeight: FontWeight.bold,
                               ),
-                            ],
+                            ),
                           ),
-                        ),
                         SizedBox(height: 5.h),
                       ],
                     ),

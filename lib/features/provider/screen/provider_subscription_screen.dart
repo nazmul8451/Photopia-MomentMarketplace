@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:photopia/core/network/Api_service/network_caller.dart';
-import 'package:photopia/core/network/urls.dart';
+import 'package:provider/provider.dart';
+import 'package:photopia/controller/provider/subscription_controller.dart';
 import 'package:photopia/data/models/subscription_plan_model.dart';
 import 'package:photopia/features/provider/widgets/provider_custom_bottom_nav_bar.dart';
 import 'package:photopia/features/provider/screen/BottomNavigationBar/bottom_navigation_screen.dart';
@@ -16,20 +16,37 @@ class ProviderSubscriptionScreen extends StatefulWidget {
 }
 
 class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen> {
-  late Future<SubscriptionPlanModel?> _plansFuture;
-
   @override
   void initState() {
     super.initState();
-    _plansFuture = _fetchPlans();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<SubscriptionController>(context, listen: false).fetchPlans();
+    });
   }
 
-  Future<SubscriptionPlanModel?> _fetchPlans() async {
-    final response = await NetworkCaller.getRequest(url: Urls.subscriptionPlans);
-    if (response.isSuccess && response.body != null) {
-      return SubscriptionPlanModel.fromJson(response.body!);
+  Future<void> _handleSubscription(SubscriptionPlanData plan) async {
+    final controller = Provider.of<SubscriptionController>(context, listen: false);
+    
+    final success = await controller.createSubscription(context, plan.sId!);
+    
+    if (success) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Subscription successful! You are now a Pro member.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Optionally navigate or refresh profile
+      }
+    } else if (controller.errorMessage != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(controller.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
-    return null;
   }
 
   @override
@@ -54,14 +71,13 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
         ),
         centerTitle: false,
       ),
-      body: FutureBuilder<SubscriptionPlanModel?>(
-        future: _plansFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: Consumer<SubscriptionController>(
+        builder: (context, controller, child) {
+          if (controller.isLoading && (controller.planModel == null)) {
             return const Center(child: CircularProgressIndicator(color: Colors.black));
           }
 
-          if (snapshot.hasError || snapshot.data == null || snapshot.data?.data == null || snapshot.data!.data!.isEmpty) {
+          if (controller.errorMessage != null && controller.planModel == null) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -69,11 +85,11 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                   Icon(Icons.error_outline, size: 48.sp, color: Colors.grey),
                   SizedBox(height: 16.h),
                   Text(
-                    'No subscription plans available',
+                    controller.errorMessage ?? 'Something went wrong',
                     style: TextStyle(fontSize: 16.sp, color: Colors.grey[600]),
                   ),
                   TextButton(
-                    onPressed: () => setState(() => _plansFuture = _fetchPlans()),
+                    onPressed: () => controller.fetchPlans(),
                     child: const Text('Retry', style: TextStyle(color: Colors.black)),
                   ),
                 ],
@@ -81,8 +97,18 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
             );
           }
 
-          // Use the first plan for the featured card (as in the screenshot)
-          final plan = snapshot.data!.data!.first;
+          final plans = controller.planModel?.data ?? [];
+          if (plans.isEmpty) {
+            return Center(
+              child: Text(
+                'No subscription plans available',
+                style: TextStyle(fontSize: 16.sp, color: Colors.grey[600]),
+              ),
+            );
+          }
+
+          // Use the first plan for the featured card
+          final plan = plans.first;
 
           return SingleChildScrollView(
             padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -124,13 +150,71 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                         ),
                       ),
                       SizedBox(height: 16.h),
-                      Text(
-                        '${plan.formattedPrice}${plan.formattedInterval}',
-                        style: TextStyle(
-                          fontSize: 24.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                '${plan.formattedPrice}${plan.formattedInterval}',
+                                style: TextStyle(
+                                  fontSize: 24.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 8.w),
+                          // Conditional Button or Status
+                          if (controller.isAlreadySubscribed)
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8.r),
+                                border: Border.all(color: Colors.green),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.check_circle, color: Colors.green, size: 16.sp),
+                                  SizedBox(width: 4.w),
+                                  Text(
+                                    'Active',
+                                    style: TextStyle(
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12.sp,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            ElevatedButton(
+                              onPressed: controller.isLoading 
+                                  ? null 
+                                  : () => _handleSubscription(plan),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.black,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.r),
+                                ),
+                              ),
+                              child: controller.isLoading 
+                                ? SizedBox(
+                                    width: 16.sp,
+                                    height: 16.sp,
+                                    child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                  )
+                                : const Text('Subscribe Now'),
+                            ),
+                        ],
                       ),
                     ],
                   ),
@@ -154,19 +238,14 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                 
                 SizedBox(height: 40.h),
                 
-                // Cancel Subscription (or action button)
+                // Bottom link/info
                 Center(
-                  child: TextButton(
-                    onPressed: () {
-                      // TODO: Implement cancel subscription logic
-                    },
-                    child: Text(
-                      'Cancel Subscription',
-                      style: TextStyle(
-                        color: Colors.red,
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  child: Text(
+                    'View Terms & Conditions',
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 13.sp,
+                      decoration: TextDecoration.underline,
                     ),
                   ),
                 ),

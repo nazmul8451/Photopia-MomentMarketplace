@@ -15,6 +15,7 @@ class Urls {
   static String getUserById(String id) => '$baseUrl/api/v1/users/$id';
   static const String updateUserProfile = '$baseUrl/api/v1/users/profile'; // PATCH FOR UPDATE PROFILE
   static const String subscriptionPlans = '$baseUrl/api/v1/subscription/plans';
+  static const String createSubscription = '$baseUrl/api/v1/subscription/create';
 
   //Role api
   static const String role = '$baseUrl/api/v1/users/switch-role';
