@@ -10,8 +10,13 @@ import 'package:photopia/core/widgets/custom_snacbar.dart';
 class OtpVerificationScreen extends StatefulWidget {
   static const String name = '/otp_verification';
   final String email;
+  final bool isForgotPassword;
 
-  const OtpVerificationScreen({super.key, required this.email});
+  const OtpVerificationScreen({
+    super.key,
+    required this.email,
+    this.isForgotPassword = false,
+  });
 
   @override
   State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
@@ -56,14 +61,18 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
             message: 'Verification successful! Please log in.',
             isError: false,
           );
-          Navigator.pushNamed(
-            context,
-            '/new_password',
-            arguments: {
-              'email': widget.email,
-              'token': verifyOtpController.resetToken,
-            },
-          );
+          if (widget.isForgotPassword) {
+            Navigator.pushNamed(
+              context,
+              '/new_password',
+              arguments: {
+                'email': widget.email,
+                'token': verifyOtpController.resetToken,
+              },
+            );
+          } else {
+            Navigator.pushReplacementNamed(context, '/log_in');
+          }
         }
       } else {
         if (mounted) {

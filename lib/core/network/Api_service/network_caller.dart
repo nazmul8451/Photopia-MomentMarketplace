@@ -83,39 +83,49 @@ class NetworkCaller {
     _logResponse(method, url, response);
 
     final int statusCode = response.statusCode;
-    Map<String, dynamic>? decodedBody;
+    dynamic decodedData;
 
     // For errors, always try to decode the body to get the message, even if isRaw is true
     if (!isRaw || statusCode >= 400) {
       try {
         if (response.body.isNotEmpty) {
-          decodedBody = jsonDecode(response.body);
+          decodedData = jsonDecode(response.body);
         }
       } catch (e) {
         debugPrint("Error decoding response body: $e");
       }
     }
 
+    // Safely extract message and convert body to Map<String, dynamic> if possible
+    String? serverMessage;
+    Map<String, dynamic>? finalBody;
+
+    if (decodedData is Map) {
+      // Safely convert Map<dynamic, dynamic> to Map<String, dynamic>
+      finalBody = decodedData.map((key, value) => MapEntry(key.toString(), value));
+      serverMessage = finalBody['message']?.toString();
+    }
+
     if (statusCode >= 200 && statusCode < 300) {
       return NetworkResponse(
         isSuccess: true,
         statusCode: statusCode,
-        body: decodedBody,
+        body: finalBody,
         bodyBytes: isRaw ? response.bodyBytes : null,
       );
     } else if (statusCode == 401) {
       return NetworkResponse(
         isSuccess: false,
         statusCode: statusCode,
-        errorMessage: _unAuthorizedErrorMessage,
-        body: decodedBody,
+        errorMessage: serverMessage ?? _unAuthorizedErrorMessage,
+        body: finalBody,
       );
     } else {
       return NetworkResponse(
         isSuccess: false,
         statusCode: statusCode,
-        errorMessage: decodedBody?['message'] ?? _defaultErrorMessage,
-        body: decodedBody,
+        errorMessage: serverMessage ?? _defaultErrorMessage,
+        body: finalBody,
       );
     }
   }
@@ -138,32 +148,32 @@ class NetworkCaller {
       }).timeout(const Duration(seconds: 15));
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        final body = jsonDecode(response.body) as Map<String, dynamic>;
-        final newToken = body['data']?['accessToken'];
-        if (newToken != null) {
-          await AuthController.saveUserToken(newToken);
-          debugPrint('✅ Token refreshed successfully.');
+        final decodedBody = jsonDecode(response.body);
+        if (decodedBody is Map<String, dynamic>) {
+          final newToken = decodedBody['data']?['accessToken'];
+          if (newToken != null) {
+            await AuthController.saveUserToken(newToken);
+            debugPrint('✅ Token refreshed successfully.');
 
-          // If user was in professional mode, re-switch role
-          // because the refreshed token may default to client role
-          final storedRole = AuthController.activeRole;
-          if (storedRole == 'professional') {
-            debugPrint('🔄 Re-applying professional role after token refresh...');
-            try {
-              final roleUri = Uri.parse(Urls.role);
-              final roleHeaders = await _getHeaders(requireAuth: true);
-              await patch(
-                roleUri,
-                headers: roleHeaders,
-                body: jsonEncode({'role': 'professional'}),
-              ).timeout(const Duration(seconds: 10));
-              debugPrint('✅ Role re-applied: professional');
-            } catch (e) {
-              debugPrint('⚠️ Role re-apply failed: $e');
+            // If user was in professional mode, re-switch role
+            final storedRole = AuthController.activeRole;
+            if (storedRole == 'professional') {
+              debugPrint('🔄 Re-applying professional role after token refresh...');
+              try {
+                final roleUri = Uri.parse(Urls.role);
+                final roleHeaders = await _getHeaders(requireAuth: true);
+                await patch(
+                  roleUri,
+                  headers: roleHeaders,
+                  body: jsonEncode({'role': 'professional'}),
+                ).timeout(const Duration(seconds: 10));
+                debugPrint('✅ Role re-applied: professional');
+              } catch (e) {
+                debugPrint('⚠️ Role re-apply failed: $e');
+              }
             }
+            return true;
           }
-
-          return true;
         }
       }
     } catch (e) {
@@ -601,11 +611,14 @@ class NetworkCaller {
         ).timeout(const Duration(seconds: 10));
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
-          final body = jsonDecode(response.body) as Map<String, dynamic>;
-          final newToken = body['data']?['accessToken'];
-          if (newToken != null) {
-            await AuthController.saveUserToken(newToken);
-            debugPrint('✅ New token captured and saved after role re-apply');
+          final decodedBody = jsonDecode(response.body);
+          if (decodedBody is Map) {
+            final body = decodedBody.map((key, value) => MapEntry(key.toString(), value));
+            final newToken = body['data']?['accessToken'];
+            if (newToken != null) {
+              await AuthController.saveUserToken(newToken);
+              debugPrint('✅ New token captured and saved after role re-apply');
+            }
           }
           debugPrint('✅ Professional role re-applied successfully after 403');
           return true;

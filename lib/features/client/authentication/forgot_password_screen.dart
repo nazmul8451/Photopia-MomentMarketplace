@@ -43,7 +43,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Navigator.pushNamed(
           context,
           '/otp_verification',
-          arguments: _emailController.text,
+          arguments: {
+            'email': _emailController.text,
+            'isForgotPassword': true,
+          },
         );
       } else if (mounted) {
         CustomSnackBar.show(

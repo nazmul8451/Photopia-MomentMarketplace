@@ -140,7 +140,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             Navigator.pushNamed(
                               context,
                               '/otp_verification',
-                              arguments: _emailController.text.trim(),
+                              arguments: {
+                                'email': _emailController.text.trim(),
+                                'isForgotPassword': false,
+                              },
                             );
                           }
                         } else {

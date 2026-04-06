@@ -43,9 +43,15 @@ class AppRoutes {
   static Map<String, WidgetBuilder> get routes => {    sign_up: (context) => const SignUpScreen(),
     forgot_password: (context) => const ForgotPasswordScreen(),
     otp_verification: (context) {
-      final email = ModalRoute.of(context)?.settings.arguments as String? ?? '';
-      return OtpVerificationScreen(email: email);
-    }, 
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map<String, dynamic>) {
+        return OtpVerificationScreen(
+          email: args['email'] ?? '',
+          isForgotPassword: args['isForgotPassword'] ?? false,
+        );
+      }
+      return OtpVerificationScreen(email: args as String? ?? '');
+    },
     new_password: (context) {
       final args =
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
