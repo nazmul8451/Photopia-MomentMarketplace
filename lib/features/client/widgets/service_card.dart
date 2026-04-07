@@ -10,6 +10,7 @@ import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
 import 'package:photopia/core/network/Api_service/network_caller.dart';
 import 'package:photopia/core/network/urls.dart';
+import 'package:photopia/core/widgets/subscription_badge.dart';
 class ServiceCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -144,35 +145,16 @@ class ServiceCard extends StatelessWidget {
                           ),
                   ),
                 ),
-                if (isPremium)
-                  Positioned(
-                    top: 8.h,
-                    left: 8.w,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 6.w,
-                        vertical: 3.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(20).r,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.stars, color: Colors.orange, size: 10.sp),
-                          SizedBox(width: 2.w),
-                          Text(
-                            'Premium',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 9.sp.clamp(9, 10),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                Positioned(
+                  top: 8.h,
+                  left: 8.w,
+                  child: SubscriptionBadge(
+                    isSubscribed: isPremium,
+                    fontSize: 9.sp.clamp(9, 10),
+                    iconSize: 10.sp,
+                    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
                   ),
+                ),
                 Positioned(
                   top: 8.h,
                   right: 8.w,

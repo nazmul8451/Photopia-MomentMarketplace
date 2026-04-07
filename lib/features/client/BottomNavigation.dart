@@ -13,6 +13,8 @@ import 'package:photopia/controller/client/service_list_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
 import 'package:provider/provider.dart';
 
+import 'package:photopia/core/notification/notification_service.dart';
+
 class BottomNavigationScreen extends StatefulWidget {
   const BottomNavigationScreen({super.key});
   static const String name = "/bottom-navigation";
@@ -22,6 +24,15 @@ class BottomNavigationScreen extends StatefulWidget {
 }
 
 class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize notification service
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationService.instance.init(context);
+    });
+  }
+
   int _selectedIndex = 0;
 
   // Use keys for each navigator to maintain state and allow internal navigation
@@ -45,7 +56,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
     if (_selectedIndex == index) {
       // If tapping the already selected tab, pop to the first route
       _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
-      
+
       // Refresh Home data if already on Home
       if (index == 0) {
         context.read<ServiceListController>().getAllServices();
@@ -54,7 +65,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
       setState(() {
         _selectedIndex = index;
       });
-      
+
       // Refresh Home data when switching to Home
       if (index == 0) {
         context.read<ServiceListController>().getAllServices();

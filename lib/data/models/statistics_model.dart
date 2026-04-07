@@ -26,18 +26,24 @@ class StatisticsResponse {
 }
 
 class StatisticsData {
+  bool? isPremium;
   ProfileViews? profileViews;
   RatingStats? rating;
   List<RegionStats>? viewsByRegion;
   RevenueAnalytics? revenueAnalytics;
+  PremiumMetrics? premiumMetrics;
 
-  StatisticsData(
-      {this.profileViews,
-      this.rating,
-      this.viewsByRegion,
-      this.revenueAnalytics});
+  StatisticsData({
+    this.isPremium,
+    this.profileViews,
+    this.rating,
+    this.viewsByRegion,
+    this.revenueAnalytics,
+    this.premiumMetrics,
+  });
 
   StatisticsData.fromJson(Map<String, dynamic> json) {
+    isPremium = json['isPremium'];
     profileViews = json['profileViews'] != null
         ? ProfileViews.fromJson(json['profileViews'])
         : null;
@@ -51,10 +57,14 @@ class StatisticsData {
     revenueAnalytics = json['revenueAnalytics'] != null
         ? RevenueAnalytics.fromJson(json['revenueAnalytics'])
         : null;
+    premiumMetrics = json['premiumMetrics'] != null
+        ? PremiumMetrics.fromJson(json['premiumMetrics'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
+    data['isPremium'] = isPremium;
     if (profileViews != null) {
       data['profileViews'] = profileViews!.toJson();
     }
@@ -67,6 +77,103 @@ class StatisticsData {
     if (revenueAnalytics != null) {
       data['revenueAnalytics'] = revenueAnalytics!.toJson();
     }
+    if (premiumMetrics != null) {
+      data['premiumMetrics'] = premiumMetrics!.toJson();
+    }
+    return data;
+  }
+}
+
+class PremiumMetrics {
+  MostViewedProject? mostViewedProject;
+  num? conversionRate;
+  num? bounceRate;
+  AvgRevenueVsCategory? avgRevenueVsCategory;
+  num? averageOrderValue;
+  num? repeatRate;
+  num? avgConversionTime;
+
+  PremiumMetrics({
+    this.mostViewedProject,
+    this.conversionRate,
+    this.bounceRate,
+    this.avgRevenueVsCategory,
+    this.averageOrderValue,
+    this.repeatRate,
+    this.avgConversionTime,
+  });
+
+  PremiumMetrics.fromJson(Map<String, dynamic> json) {
+    mostViewedProject = json['mostViewedProject'] != null
+        ? MostViewedProject.fromJson(json['mostViewedProject'])
+        : null;
+    conversionRate = json['conversionRate'];
+    bounceRate = json['bounceRate'];
+    avgRevenueVsCategory = json['avgRevenueVsCategory'] != null
+        ? AvgRevenueVsCategory.fromJson(json['avgRevenueVsCategory'])
+        : null;
+    averageOrderValue = json['averageOrderValue'];
+    repeatRate = json['repeatRate'];
+    avgConversionTime = json['avgConversionTime'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (mostViewedProject != null) {
+      data['mostViewedProject'] = mostViewedProject!.toJson();
+    }
+    data['conversionRate'] = conversionRate;
+    data['bounceRate'] = bounceRate;
+    if (avgRevenueVsCategory != null) {
+      data['avgRevenueVsCategory'] = avgRevenueVsCategory!.toJson();
+    }
+    data['averageOrderValue'] = averageOrderValue;
+    data['repeatRate'] = repeatRate;
+    data['avgConversionTime'] = avgConversionTime;
+    return data;
+  }
+}
+
+class MostViewedProject {
+  String? serviceId;
+  String? title;
+  int? views;
+
+  MostViewedProject({this.serviceId, this.title, this.views});
+
+  MostViewedProject.fromJson(Map<String, dynamic> json) {
+    serviceId = json['serviceId'];
+    title = json['title'];
+    views = json['views'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['serviceId'] = serviceId;
+    data['title'] = title;
+    data['views'] = views;
+    return data;
+  }
+}
+
+class AvgRevenueVsCategory {
+  num? userAvg;
+  num? categoryAvg;
+  String? categoryName;
+
+  AvgRevenueVsCategory({this.userAvg, this.categoryAvg, this.categoryName});
+
+  AvgRevenueVsCategory.fromJson(Map<String, dynamic> json) {
+    userAvg = json['userAvg'];
+    categoryAvg = json['categoryAvg'];
+    categoryName = json['categoryName'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['userAvg'] = userAvg;
+    data['categoryAvg'] = categoryAvg;
+    data['categoryName'] = categoryName;
     return data;
   }
 }

@@ -1,0 +1,189 @@
+﻿Launching lib\main.dart on RMX3910 in debug mode...
+Running Gradle task 'assembleDebug'...                             15.7s
+ΓêÜ Built build\app\outputs\flutter-apk\app-debug.apk
+Installing build\app\outputs\flutter-apk\app-debug.apk...           5.3s
+D/FlutterJNI(10460): Beginning load of flutter...
+D/FlutterJNI(10460): flutter (null) was loaded normally!
+I/flutter (10460): [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+D/FlutterGeolocator(10460): Attaching Geolocator to activity
+D/FlutterGeolocator(10460): Creating service.
+D/FlutterGeolocator(10460): Binding to location service.
+D/FlutterGeolocator(10460): Geolocator foreground service connected
+D/FlutterGeolocator(10460): Initializing Geolocator services
+D/FlutterGeolocator(10460): Flutter engine connected. Connected engine count 1
+I/FLTFireBGExecutor(10460): Creating background FlutterEngine instance, with args: [--enable-dart-profiling]
+D/vulkan  (10460): searching for layers in '/data/app/~~hvYCtlEJ6lt9GE-dMdpiMA==/com.example.photopia-friFlTfPcpuNfYvVE3H5yQ==/lib/arm64'
+D/vulkan  (10460): searching for layers in '/data/app/~~hvYCtlEJ6lt9GE-dMdpiMA==/com.example.photopia-friFlTfPcpuNfYvVE3H5yQ==/base.apk!/lib/arm64-v8a'
+D/colorx  (10460): I can't find colorx layer , let's enumerate colorx layers first.
+D/FLTFireContextHolder(10460): received application context.
+D/MMUD    (10460): mtk_memory_debug_init com.example.photopia 0xb4000076dd2415c0
+Syncing files to device RMX3910...                              
+I/flutter (10460): [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+Syncing files to device RMX3910...                                 110ms
+
+Flutter run key commands.
+r Hot reload. 
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
+A Dart VM Service on RMX3910 is available at: http://127.0.0.1:63658/vEwXT5VNIwg=/
+The Flutter DevTools debugger and profiler on RMX3910 is available at: http://127.0.0.1:63658/vEwXT5VNIwg=/devtools/?uri=ws://127.0.0.1:63658/vEwXT5VNIwg=/ws
+I/GrallocExtra(10460): gralloc_extra_query:is_SW3D 0
+I/GrallocExtra(10460): gralloc_extra_query:is_SW3D 0
+D/BLASTBufferQueue(10460): [SurfaceView[com.example.photopia/com.example.photopia.MainActivity]#1](f:0,a:1) acquireNextBufferLocked size=720x1604 mFrameNumber=1 applyTransaction=true mTimestamp=43049570256334(auto) mPendingTransactions.size=0 graphicBufferId=44925357916170 transform=0
+W/libc    (10460): Access denied finding property "ro.vendor.mbrain.mode"
+D/xample.photopia(10460): Can't load libmbrainSDK
+I/flutter (10460): !!! [SOCKET_DEBUG] Attempting connection...
+I/flutter (10460): !!! [SOCKET_DEBUG] URL: https://mohosin5003.binarybards.online
+I/flutter (10460): !!! [SOCKET_DEBUG] UserId: 69d420e5c484df5db9ce0e94
+I/flutter (10460): !!! [SOCKET_DEBUG] Token exists: true
+I/flutter (10460): !!! [SOCKET_DEBUG] Emitting join-notification for 69d420e5c484df5db9ce0e94
+I/flutter (10460): ≡ƒöÉ Auth token added to headers: eyJhb...
+I/flutter (10460): ≡ƒöÉ Auth token added to headers: eyJhb...
+I/flutter (10460): ≡ƒöÉ Auth token added to headers: eyJhb...
+I/Choreographer(10460): Skipped 434 frames!  The application may be doing too much work on its main thread.
+W/VRI[MainActivity](10460): performTraversals: cancelAndRedraw, mLastPerformTraversalsSkipDrawReasonpredraw_io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2
+D/SurfaceView(10460): 142126124 finishedDrawing
+D/SurfaceView(10460): 142126124 performDrawFinished mAttachedToWindow true
+D/FlutterGeolocator(10460): Geolocator foreground service connected
+D/FlutterGeolocator(10460): Initializing Geolocator services
+D/FlutterGeolocator(10460): Flutter engine connected. Connected engine count 2
+W/xample.photopia(10460): userfaultfd: MOVE ioctl seems unsupported: Try again
+I/xample.photopia(10460): NativeAlloc concurrent mark compact GC freed 5621KB AllocSpace bytes, 10(316KB) LOS objects, 59% free, 4122KB/10MB, paused 901us,3.043ms total 216.652ms
+W/xample.photopia(10460): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~Rlps3ueGVQpSG4ZBmKA1jA==/com.google.android.marvin.talkback-Zfepw6Arl-krIz4QKZNyZA==/base.apk' with 1 weak references
+W/xample.photopia(10460): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/~~Rlps3ueGVQpSG4ZBmKA1jA==/com.google.android.marvin.talkback-Zfepw6Arl-krIz4QKZNyZA==/split_config.arm64_v8a.apk' with 1 weak references
+W/xample.photopia(10460): ApkAssets: Deleting an ApkAssets object '<empty> and /data/app/OppoNote2/OppoNote2.apk' with 1 weak references
+I/FLTFireMsgService(10460): FlutterFirebaseMessagingBackgroundService started!
+I/Choreographer(10460): Skipped 133 frames!  The application may be doing too much work on its main thread.
+D/ViewRootImplExtImpl(10460): wrapConfigInfoIntoFlags rotation=0, smallestScreenWidthDp=360, relayoutAsync=false, flags=0, newFlags=23592960, residentWS=false, title=com.example.photopia/com.example.photopia.MainActivity
+D/VRI[MainActivity](10460): relayoutWindow result, sizeChanged:false, surfaceControlChanged:false, transformHintChanged:false, mSurfaceSize:Point(720, 1604), mLastSurfaceSize:Point(720, 1604), mWidth:720, mHeight:1604, requestedWidth:720, requestedHeight:1604, transformHint:0, installOrientation:0, displayRotation:0, isSurfaceValid:true, attr.flag:-2122252032, tmpFrames:ClientWindowFrames{frame=[0,0][720,1604] display=[0,0][720,1604] parentFrame=[0,0][0,0]}, relayoutAsync:false, mSyncSeqId:0
+W/VRI[MainActivity](10460): updateBlastSurfaceIfNeeded, surfaceSize:Point(720, 1604), lastSurfaceSize:Point(720, 1604), format:-3, blastBufferQueue:android.graphics.BLASTBufferQueue@84c64ec
+I/SurfaceControl(10460):  setExtendedRangeBrightness sc=Surface(name=com.example.photopia/com.example.photopia.MainActivity)/@0x53f734a,currentBufferRatio=1.0,desiredRatio=1.0
+D/SurfaceView(10460): 142126124 dispatchDraw mDrawFinished true isAboveParent false (mPrivateFlags & PFLAG_SKIP_DRAW) 128
+D/SurfaceView(10460): 142126124 clearSurfaceViewPort mCornerRadius 0.0
+D/BLASTBufferQueue(10460): [VRI[MainActivity]#0](f:0,a:1) acquireNextBufferLocked size=720x1604 mFrameNumber=1 applyTransaction=true mTimestamp=43051542049488(auto) mPendingTransactions.size=0 graphicBufferId=44925357916177 transform=0
+D/VRI[MainActivity](10460): Received frameCommittedCallback lastAttemptedDrawFrameNum=1 didProduceBuffer=true syncBuffer=false
+D/VRI[MainActivity](10460): draw finished. seqId=0
+I/HWUI    (10460): Davey! duration=1529ms; Flags=1, FrameTimelineVsyncId=3075647, IntendedVsync=43050013509514, Vsync=43051484592057, InputEventId=0, HandleInputStart=43051495673488, AnimationStart=43051495676335, PerformTraversalsStart=43051495746181, DrawStart=43051514937181, FrameDeadline=43050033509514, FrameInterval=43051494919950, FrameStartTime=11060771, SyncQueued=43051517234181, SyncStart=43051517361796, IssueDrawCommandsStart=43051520378181, SwapBuffers=43051541196873, FrameCompleted=43051543087335, DequeueBufferDuration=2541231, QueueBufferDuration=782153, GpuCompleted=43051541388642, SwapBuffersCompleted=43051543087335, DisplayPresentTime=0, CommandSubmissionCompleted=43051541196873, 
+D/VRI[MainActivity](10460): onFocusEvent true
+D/ProfileInstaller(10460): Installing profile for com.example.photopia
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/chat
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Chat Retrieve Successfully","data":{"chats":[{"_id":"69d435d4cb7bd98e09c531d7","participants":[{"_id":"69a874fb3dddb8394cbc4293","name":"Rimon islam","profile":"/images/1772659199120-3ww3kx.png","updatedAt":"2026-04-06T23:15:20.648Z"}],"status":true,"updatedAt":"2026-04-06T22:52:56.604Z","lastMessage":{"_id":"69d43948acf38340b4ddf39f","sender":{"_id":"69d420e5c484df5db9ce0e94","name":"Mijanog"},"text":"hi","image":null,"seen":true,"createdAt":"2026-04-06T22:52:56.540Z"},"unreadCount":0}],"totalUnreadChats":0}}
+I/flutter (10460): ====================================
+I/flutter (10460): Android Notification Channel Created: high_importance_channel
+I/flutter (10460): !!! [SOCKET_DEBUG] SUCCESS: Realtime Socket Connected Successfully
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/users/profile
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"User profile retrieved successfully","data":{"location":{"type":"Point","coordinates":[0,0]},"settings":{"pushNotification":true,"emailNotification":true,"locationService":true,"profileStatus":"public"},"_id":"69d420e5c484df5db9ce0e94","name":"Mijanog","email":"mijanog162@fpxnet.com","profile":"/images/1775515956434-zy5rk7.jpg","interest":[],"status":"active","verified":true,"subscribe":false,"isStripeConnected":false,"trialUsed":false,"roles":["user","professional"],"activeRole":"user","timezone":"UTC","isOnboardingComplete":false,"createdAt":"2026-04-06T21:08:53.040Z","updatedAt":"2026-04-06T23:46:52.951Z","deviceToken":"fYPR6nakRuuHWlHOLcXskt:APA91bHEtsqGAuXg1GdVai5mEpdKnxE2fQstZvzHBwqf3nK_KEpqSQZyvS6owcGP7ZVdOGJ6Hcfdz4Hpk9BKKvLavZV9FMgukZF3k6dDY-AoLoMQMEZNz8k","description":"","phone":"","id":"69d420e5c484df5db9ce0e94"}}
+I/flutter (10460): ====================================
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/favourite/my-favourites
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Favourites retrieved successfully","data":{"meta":{"page":1,"limit":10,"total":0},"data":[]}}
+I/flutter (10460): ====================================
+I/flutter (10460): fetchFavorites error: type '_Map<String, dynamic>' is not a subtype of type 'List<dynamic>'
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/services
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Services retrieved successfully","data":{"meta":{"page":1,"limit":10,"total":8,"totalPages":1},"data":[{"_id":"69caa41216abd186049eb0c1","providerId":{"_id":"69a874fb3dddb8394cbc4293","name":"Rimon islam","email":"cijosi7843@him6.com","profile":"/images/1772659199120-3ww3kx.png"},"title":"Photo Editor","category":{"_id":"6967f8313c7a3a49e02c1fde","name":"Home & Kitchen","image":"/images/1768421424987-akbri9.png"},"serviceType":"photography","subCategory":"fasf","price":15,"currency":"EUR","duration":"5","location":{"type":"ONSITE","country":"Bangladesh","city":"Mohakhali","address":"TB gate","serviceRadiusKm":25,"_id":null},"status":"ACTIVE","isActive":true},{"_id":"69c81e21a05ac7da98dc649a","providerId":{"_id":"69a874fb3dddb8394cbc4293","name":"Rimon islam","email":"cijosi7843@him6.com","profile":"/images/1772659199120-3ww3kx.png"},"title":"Videographer","category":{"_id":"6967f8313c7a3a49e02c1fde","name":"Home & Kitchen","image":"/images/17684
+I/flutter (10460): ====================================
+I/flutter (10460):  [ServiceCard] coverMedia=null | title=Photo Editor
+I/flutter (10460):  [ServiceCard] coverMedia=null | title=Videographer
+I/flutter (10460):  [ServiceCard] coverMedia=null | title=DaVinci Resolve
+I/flutter (10460): Notification Service Initialized Successfully
+I/flutter (10460): 
+I/flutter (10460): 
+I/flutter (10460): **************************************************************
+I/flutter (10460): FCM TOKEN START
+I/flutter (10460): fYPR6nakRuuHWlHOLcXskt:APA91bHEtsqGAuXg1GdVai5mEpdKnxE2fQstZvzHBwqf3nK_KEpqSQZyvS6owcGP7ZVdOGJ6Hcfdz4Hpk9BKKvLavZV9FMgukZF3k6dDY-AoLoMQMEZNz8k
+I/flutter (10460): FCM TOKEN END
+I/flutter (10460): **************************************************************
+I/flutter (10460): 
+I/flutter (10460): 
+I/flutter (10460): Syncing token to backend...
+I/flutter (10460): UserProfileController: Updating WITHOUT image (JSON PATCH).
+I/flutter (10460): ≡ƒöÉ Auth token added to headers: eyJhb...
+I/flutter (10460): ≡ƒÜÇ ===== PATCH API Request ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/users/profile
+I/flutter (10460):  Headers: {Accept: application/json, Content-Type: application/json, Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWQ0MjBlNWM0ODRkZjVkYjljZTBlOTQiLCJhdXRoSWQiOiI2OWQ0MjBlNWM0ODRkZjVkYjljZTBlOTQiLCJhY3RpdmVSb2xlIjoidXNlciIsIm5hbWUiOiJNaWphbm9nIiwiZW1haWwiOiJtaWphbm9nMTYyQGZweG5ldC5jb20iLCJpYXQiOjE3NzU1MTUwNjQsImV4cCI6MTc3NjM3OTA2NH0.v07BkJqhGwaTZtvJN2Ne8CilBZ_fLiRV5WGZJ6QVI_I}
+I/flutter (10460):  Body: {deviceToken: fYPR6nakRuuHWlHOLcXskt:APA91bHEtsqGAuXg1GdVai5mEpdKnxE2fQstZvzHBwqf3nK_KEpqSQZyvS6owcGP7ZVdOGJ6Hcfdz4Hpk9BKKvLavZV9FMgukZF3k6dDY-AoLoMQMEZNz8k}
+I/flutter (10460): ====================================
+D/OplusScrollToTopManager(10460): com.example.photopia/com.example.photopia.MainActivity,This com.android.internal.policy.DecorView{83992e7 V.E...... R....... 0,0-720,1604 aid=0 alpha=1.0 viewInfo = }[MainActivity] change focus to true
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/services/69caa41216abd186049eb0c1
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Service retrieved successfully","data":{"cancellationPolicy":{"freeCancellationHours":24,"partialRefundHours":12,"noRefundHours":2},"_id":"69caa41216abd186049eb0c1","providerId":{"_id":"69a874fb3dddb8394cbc4293","name":"Rimon islam","email":"cijosi7843@him6.com","profile":"/images/1772659199120-3ww3kx.png","id":"69a874fb3dddb8394cbc4293"},"title":"Photo Editor","description":"fasdklfjalksdfjlaksd","category":{"_id":"6967f8313c7a3a49e02c1fde","name":"Home & Kitchen","image":"/images/1768421424987-akbri9.png","id":"6967f8313c7a3a49e02c1fde"},"serviceType":"photography","subCategory":"fasf","tags":["photography"],"equipment":[],"price":15,"currency":"EUR","pricingType":"HOURLY","pricingRules":[],"travelFeePerKm":null,"allowOutsideRadius":false,"maxTravelFee":null,"depositPercentage":null,"duration":"5","location":{"type":"ONSITE","country":"Bangladesh","city":"Mohakhali","address":"TB gate","serviceRadiusKm":25,"_id":null},"gallery":["/images/17748
+I/flutter (10460): ====================================
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/services/69c6d10ba05ac7da98dc54c3
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Service retrieved successfully","data":{"cancellationPolicy":{"freeCancellationHours":24,"partialRefundHours":12,"noRefundHours":2},"_id":"69c6d10ba05ac7da98dc54c3","providerId":{"_id":"696534d5a1724d40f85fc5b4","name":"Ummmm","email":"user3@gmail.com","profile":"/images/1774637472915-2e9rs1.jpg","id":"696534d5a1724d40f85fc5b4"},"title":"DaVinci Resolve","description":"CapCut: The most popular tool for viral social media content and quick mobile edits.\n\nAdobe Premiere Rush: A simplified version of Premiere for creators on the go.\n\nInShot: A widely used mobile editor for simple social media layouts.","category":{"_id":"6967f8313c7a3a49e02c1fde","name":"Home & Kitchen","image":"/images/1768421424987-akbri9.png","id":"6967f8313c7a3a49e02c1fde"},"serviceType":"photography","subCategory":"Famous for Hollywood-grade color correction and high-end visual effects","tags":["photography"],"equipment":["Dual-Band Wi-Fi 6 Router","Ethernet Adapter","High
+I/flutter (10460): ====================================
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/services/69caa41216abd186049eb0c1
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Service retrieved successfully","data":{"cancellationPolicy":{"freeCancellationHours":24,"partialRefundHours":12,"noRefundHours":2},"_id":"69caa41216abd186049eb0c1","providerId":{"_id":"69a874fb3dddb8394cbc4293","name":"Rimon islam","email":"cijosi7843@him6.com","profile":"/images/1772659199120-3ww3kx.png","id":"69a874fb3dddb8394cbc4293"},"title":"Photo Editor","description":"fasdklfjalksdfjlaksd","category":{"_id":"6967f8313c7a3a49e02c1fde","name":"Home & Kitchen","image":"/images/1768421424987-akbri9.png","id":"6967f8313c7a3a49e02c1fde"},"serviceType":"photography","subCategory":"fasf","tags":["photography"],"equipment":[],"price":15,"currency":"EUR","pricingType":"HOURLY","pricingRules":[],"travelFeePerKm":null,"allowOutsideRadius":false,"maxTravelFee":null,"depositPercentage":null,"duration":"5","location":{"type":"ONSITE","country":"Bangladesh","city":"Mohakhali","address":"TB gate","serviceRadiusKm":25,"_id":null},"gallery":["/images/17748
+I/flutter (10460): ====================================
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/services/69c6d10ba05ac7da98dc54c3
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Service retrieved successfully","data":{"cancellationPolicy":{"freeCancellationHours":24,"partialRefundHours":12,"noRefundHours":2},"_id":"69c6d10ba05ac7da98dc54c3","providerId":{"_id":"696534d5a1724d40f85fc5b4","name":"Ummmm","email":"user3@gmail.com","profile":"/images/1774637472915-2e9rs1.jpg","id":"696534d5a1724d40f85fc5b4"},"title":"DaVinci Resolve","description":"CapCut: The most popular tool for viral social media content and quick mobile edits.\n\nAdobe Premiere Rush: A simplified version of Premiere for creators on the go.\n\nInShot: A widely used mobile editor for simple social media layouts.","category":{"_id":"6967f8313c7a3a49e02c1fde","name":"Home & Kitchen","image":"/images/1768421424987-akbri9.png","id":"6967f8313c7a3a49e02c1fde"},"serviceType":"photography","subCategory":"Famous for Hollywood-grade color correction and high-end visual effects","tags":["photography"],"equipment":["Dual-Band Wi-Fi 6 Router","Ethernet Adapter","High
+I/flutter (10460): ====================================
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/services/69c57cb1878d718b667e8aa8
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Service retrieved successfully","data":{"cancellationPolicy":{"freeCancellationHours":24,"partialRefundHours":12,"noRefundHours":2},"_id":"69c57cb1878d718b667e8aa8","providerId":{"_id":"69c57cb1878d718b667e8aa0","name":"Test Provider","email":"provider_1774550193668@test.com","profile":"/images/1767048629458-l94gk7.jpg","id":"69c57cb1878d718b667e8aa0"},"title":"Test Photography Service","description":"A test service","category":null,"serviceType":"photography","tags":[],"equipment":[],"price":100,"currency":"EUR","pricingType":"HOURLY","travelFeePerKm":1.5,"allowOutsideRadius":true,"maxTravelFee":100,"depositPercentage":0.5,"duration":"1 hour","location":{"coordinates":{"lat":48.8566,"lng":2.3522},"type":"ONSITE","country":"France","city":"Paris","address":"10 Rue de Rivoli","serviceRadiusKm":50,"_id":"69c57cb1878d718b667e8aa9"},"gallery":[],"status":"ACTIVE","isVerified":false,"isActive":true,"pricingRules":[],"createdAt":"2026-03-26T18:36:33.9
+I/flutter (10460): ====================================
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/services/69c57cb1878d718b667e8aa8
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Service retrieved successfully","data":{"cancellationPolicy":{"freeCancellationHours":24,"partialRefundHours":12,"noRefundHours":2},"_id":"69c57cb1878d718b667e8aa8","providerId":{"_id":"69c57cb1878d718b667e8aa0","name":"Test Provider","email":"provider_1774550193668@test.com","profile":"/images/1767048629458-l94gk7.jpg","id":"69c57cb1878d718b667e8aa0"},"title":"Test Photography Service","description":"A test service","category":null,"serviceType":"photography","tags":[],"equipment":[],"price":100,"currency":"EUR","pricingType":"HOURLY","travelFeePerKm":1.5,"allowOutsideRadius":true,"maxTravelFee":100,"depositPercentage":0.5,"duration":"1 hour","location":{"coordinates":{"lat":48.8566,"lng":2.3522},"type":"ONSITE","country":"France","city":"Paris","address":"10 Rue de Rivoli","serviceRadiusKm":50,"_id":"69c57cb1878d718b667e8aa9"},"gallery":[],"status":"ACTIVE","isVerified":false,"isActive":true,"pricingRules":[],"createdAt":"2026-03-26T18:36:33.9
+I/flutter (10460): ====================================
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/services/69c57cb1878d718b667e8aa8
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Service retrieved successfully","data":{"cancellationPolicy":{"freeCancellationHours":24,"partialRefundHours":12,"noRefundHours":2},"_id":"69c57cb1878d718b667e8aa8","providerId":{"_id":"69c57cb1878d718b667e8aa0","name":"Test Provider","email":"provider_1774550193668@test.com","profile":"/images/1767048629458-l94gk7.jpg","id":"69c57cb1878d718b667e8aa0"},"title":"Test Photography Service","description":"A test service","category":null,"serviceType":"photography","tags":[],"equipment":[],"price":100,"currency":"EUR","pricingType":"HOURLY","travelFeePerKm":1.5,"allowOutsideRadius":true,"maxTravelFee":100,"depositPercentage":0.5,"duration":"1 hour","location":{"coordinates":{"lat":48.8566,"lng":2.3522},"type":"ONSITE","country":"France","city":"Paris","address":"10 Rue de Rivoli","serviceRadiusKm":50,"_id":"69c57cb1878d718b667e8aa9"},"gallery":[],"status":"ACTIVE","isVerified":false,"isActive":true,"pricingRules":[],"createdAt":"2026-03-26T18:36:33.9
+I/flutter (10460): ====================================
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/services/69c6d10ba05ac7da98dc54c3
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Service retrieved successfully","data":{"cancellationPolicy":{"freeCancellationHours":24,"partialRefundHours":12,"noRefundHours":2},"_id":"69c6d10ba05ac7da98dc54c3","providerId":{"_id":"696534d5a1724d40f85fc5b4","name":"Ummmm","email":"user3@gmail.com","profile":"/images/1774637472915-2e9rs1.jpg","id":"696534d5a1724d40f85fc5b4"},"title":"DaVinci Resolve","description":"CapCut: The most popular tool for viral social media content and quick mobile edits.\n\nAdobe Premiere Rush: A simplified version of Premiere for creators on the go.\n\nInShot: A widely used mobile editor for simple social media layouts.","category":{"_id":"6967f8313c7a3a49e02c1fde","name":"Home & Kitchen","image":"/images/1768421424987-akbri9.png","id":"6967f8313c7a3a49e02c1fde"},"serviceType":"photography","subCategory":"Famous for Hollywood-grade color correction and high-end visual effects","tags":["photography"],"equipment":["Dual-Band Wi-Fi 6 Router","Ethernet Adapter","High
+I/flutter (10460): ====================================
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/services/69c81e21a05ac7da98dc649a
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Service retrieved successfully","data":{"cancellationPolicy":{"freeCancellationHours":24,"partialRefundHours":12,"noRefundHours":2},"_id":"69c81e21a05ac7da98dc649a","providerId":{"_id":"69a874fb3dddb8394cbc4293","name":"Rimon islam","email":"cijosi7843@him6.com","profile":"/images/1772659199120-3ww3kx.png","id":"69a874fb3dddb8394cbc4293"},"title":"Videographer","description":"Capturing moments with creativity and precision ΓÇö professional photography and videography that tells your story beautifully.","category":{"_id":"6967f8313c7a3a49e02c1fde","name":"Home & Kitchen","image":"/images/1768421424987-akbri9.png","id":"6967f8313c7a3a49e02c1fde"},"serviceType":"photography","subCategory":"Video","tags":["photography"],"equipment":["Canon EOS R5","Sony A7 IV","Panasonic Lumix GH6","Canon RF 24-70mm f/2.8L IS USM"],"price":5,"currency":"EUR","pricingType":"HOURLY","pricingRules":[],"travelFeePerKm":null,"allowOutsideRadius":false,"maxTravelFee":null
+I/flutter (10460): ====================================
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/services/69caa41216abd186049eb0c1
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Service retrieved successfully","data":{"cancellationPolicy":{"freeCancellationHours":24,"partialRefundHours":12,"noRefundHours":2},"_id":"69caa41216abd186049eb0c1","providerId":{"_id":"69a874fb3dddb8394cbc4293","name":"Rimon islam","email":"cijosi7843@him6.com","profile":"/images/1772659199120-3ww3kx.png","id":"69a874fb3dddb8394cbc4293"},"title":"Photo Editor","description":"fasdklfjalksdfjlaksd","category":{"_id":"6967f8313c7a3a49e02c1fde","name":"Home & Kitchen","image":"/images/1768421424987-akbri9.png","id":"6967f8313c7a3a49e02c1fde"},"serviceType":"photography","subCategory":"fasf","tags":["photography"],"equipment":[],"price":15,"currency":"EUR","pricingType":"HOURLY","pricingRules":[],"travelFeePerKm":null,"allowOutsideRadius":false,"maxTravelFee":null,"depositPercentage":null,"duration":"5","location":{"type":"ONSITE","country":"Bangladesh","city":"Mohakhali","address":"TB gate","serviceRadiusKm":25,"_id":null},"gallery":["/images/17748
+I/flutter (10460): ====================================
+I/flutter (10460): ≡ƒÜÇ ===== PATCH API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/users/profile
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Profile updated successfully","data":"Profile updated successfully."}
+I/flutter (10460): ====================================
+I/flutter (10460): ≡ƒöÉ Auth token added to headers: eyJhb...
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/services/69c81e21a05ac7da98dc649a
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Service retrieved successfully","data":{"cancellationPolicy":{"freeCancellationHours":24,"partialRefundHours":12,"noRefundHours":2},"_id":"69c81e21a05ac7da98dc649a","providerId":{"_id":"69a874fb3dddb8394cbc4293","name":"Rimon islam","email":"cijosi7843@him6.com","profile":"/images/1772659199120-3ww3kx.png","id":"69a874fb3dddb8394cbc4293"},"title":"Videographer","description":"Capturing moments with creativity and precision ΓÇö professional photography and videography that tells your story beautifully.","category":{"_id":"6967f8313c7a3a49e02c1fde","name":"Home & Kitchen","image":"/images/1768421424987-akbri9.png","id":"6967f8313c7a3a49e02c1fde"},"serviceType":"photography","subCategory":"Video","tags":["photography"],"equipment":["Canon EOS R5","Sony A7 IV","Panasonic Lumix GH6","Canon RF 24-70mm f/2.8L IS USM"],"price":5,"currency":"EUR","pricingType":"HOURLY","pricingRules":[],"travelFeePerKm":null,"allowOutsideRadius":false,"maxTravelFee":null
+I/flutter (10460): ====================================
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/services/69c81e21a05ac7da98dc649a
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"Service retrieved successfully","data":{"cancellationPolicy":{"freeCancellationHours":24,"partialRefundHours":12,"noRefundHours":2},"_id":"69c81e21a05ac7da98dc649a","providerId":{"_id":"69a874fb3dddb8394cbc4293","name":"Rimon islam","email":"cijosi7843@him6.com","profile":"/images/1772659199120-3ww3kx.png","id":"69a874fb3dddb8394cbc4293"},"title":"Videographer","description":"Capturing moments with creativity and precision ΓÇö professional photography and videography that tells your story beautifully.","category":{"_id":"6967f8313c7a3a49e02c1fde","name":"Home & Kitchen","image":"/images/1768421424987-akbri9.png","id":"6967f8313c7a3a49e02c1fde"},"serviceType":"photography","subCategory":"Video","tags":["photography"],"equipment":["Canon EOS R5","Sony A7 IV","Panasonic Lumix GH6","Canon RF 24-70mm f/2.8L IS USM"],"price":5,"currency":"EUR","pricingType":"HOURLY","pricingRules":[],"travelFeePerKm":null,"allowOutsideRadius":false,"maxTravelFee":null
+I/flutter (10460): ====================================
+I/flutter (10460): ≡ƒÜÇ ===== GET API Response ===== ≡ƒÜÇ
+I/flutter (10460): ≡ƒîÉ URL: https://mohosin5003.binarybards.online/api/v1/users/profile
+I/flutter (10460): ≡ƒôè Status Code: 200
+I/flutter (10460): ≡ƒôª Response Body: {"statusCode":200,"success":true,"message":"User profile retrieved successfully","data":{"location":{"type":"Point","coordinates":[0,0]},"settings":{"pushNotification":true,"emailNotification":true,"locationService":true,"profileStatus":"public"},"_id":"69d420e5c484df5db9ce0e94","name":"Mijanog","email":"mijanog162@fpxnet.com","profile":"/images/1775515956434-zy5rk7.jpg","interest":[],"status":"active","verified":true,"subscribe":false,"isStripeConnected":false,"trialUsed":false,"roles":["user","professional"],"activeRole":"user","timezone":"UTC","isOnboardingComplete":false,"createdAt":"2026-04-06T21:08:53.040Z","updatedAt":"2026-04-06T23:50:09.194Z","deviceToken":"fYPR6nakRuuHWlHOLcXskt:APA91bHEtsqGAuXg1GdVai5mEpdKnxE2fQstZvzHBwqf3nK_KEpqSQZyvS6owcGP7ZVdOGJ6Hcfdz4Hpk9BKKvLavZV9FMgukZF3k6dDY-AoLoMQMEZNz8k","description":"","phone":"","id":"69d420e5c484df5db9ce0e94"}}
+I/flutter (10460): ====================================
+I/flutter (10460): Token successfully synced with backend

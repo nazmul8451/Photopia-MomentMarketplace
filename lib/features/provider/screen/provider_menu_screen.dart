@@ -12,6 +12,7 @@ import 'package:photopia/features/client/widgets/auth_profile_image.dart';
 import 'package:photopia/features/provider/screen/provider_statistics_screen.dart';
 import 'package:photopia/features/provider/screen/provider_notification_screen.dart';
 import 'package:photopia/features/provider/screen/provider_profile_screen.dart';
+import 'package:photopia/core/widgets/subscription_badge.dart';
 
 class ProviderMenuScreen extends StatefulWidget {
   const ProviderMenuScreen({super.key});
@@ -73,7 +74,8 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                     _buildMenuItem(
                       icon: Icons.bar_chart,
                       title: 'Detailed Statistics',
-                      isPremium: true,
+                      showBadge: true,
+                      isSubscribed: controller.userProfile?.isSubscribed ?? false,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -185,51 +187,9 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                       ),
                     ),
                     SizedBox(height: 6.h),
-                    if (controller.userProfile?.isSubscribed ?? false)
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 10.w,
-                          vertical: 4.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.circular(14.r),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('👑', style: TextStyle(fontSize: 10.sp)),
-                            SizedBox(width: 4.w),
-                            Text(
-                              'Premium',
-                              style: TextStyle(
-                                fontSize: 11.sp.clamp(10, 12),
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    else
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 10.w,
-                          vertical: 4.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(14.r),
-                        ),
-                        child: Text(
-                          'Free Member',
-                          style: TextStyle(
-                            fontSize: 11.sp.clamp(10, 12),
-                            color: Colors.black54,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
+                    SubscriptionBadge(
+                      isSubscribed: controller.userProfile?.isSubscribed ?? false,
+                    ),
                   ],
                 ),
               ),
@@ -463,7 +423,8 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
   Widget _buildMenuItem({
     required IconData icon,
     required String title,
-    bool isPremium = false,
+    bool showBadge = false,
+    bool isSubscribed = false,
     bool hasNotification = false,
     required VoidCallback onTap,
   }) {
@@ -496,21 +457,11 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                 ),
               ),
             ),
-            if (isPremium)
-              Container(
+            if (showBadge)
+              SubscriptionBadge(
+                isSubscribed: isSubscribed,
+                fontSize: 10.sp.clamp(9, 11),
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: Text(
-                  '👑 Premium',
-                  style: TextStyle(
-                    fontSize: 10.sp.clamp(9, 11),
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
               ),
             if (hasNotification)
               Container(
@@ -609,7 +560,7 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                     height: 18.sp,
                     width: 18.sp,
                     child: const CircularProgressIndicator(
-                      color: Colors.red,
+                      color: Colors.black,
                       strokeWidth: 2,
                     ),
                   )

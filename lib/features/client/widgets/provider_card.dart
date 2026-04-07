@@ -9,6 +9,7 @@ import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:photopia/features/client/chat_screen.dart';
 import 'package:photopia/data/models/conversation_model.dart';
 import 'package:photopia/data/models/chat_message_model.dart';
+import 'package:photopia/core/widgets/subscription_badge.dart';
 
 class ProviderCard extends StatelessWidget {
   final Map<String, dynamic> provider;
@@ -64,35 +65,12 @@ class ProviderCard extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        if (provider['isPremium'] ?? false)
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 8.w,
-                              vertical: 2.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(20).r,
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.stars,
-                                  color: Colors.orange,
-                                  size: 10.sp,
-                                ),
-                                SizedBox(width: 2.w),
-                                Text(
-                                  'Premium',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 8.sp,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                        SubscriptionBadge(
+                          isSubscribed: provider['isSubscribed'] == true || provider['isPremium'] == true,
+                          fontSize: 8.sp,
+                          iconSize: 10.sp,
+                          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                        ),
                       ],
                     ),
                     Text(

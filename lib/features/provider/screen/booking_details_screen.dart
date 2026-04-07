@@ -48,7 +48,7 @@ class BookingDetailsScreen extends StatelessWidget {
           Map<String, dynamic> currentBooking = booking;
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Colors.black));
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasData) {

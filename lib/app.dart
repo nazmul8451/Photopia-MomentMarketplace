@@ -83,6 +83,9 @@ class Photopia extends StatelessWidget {
             theme: ThemeData(
               primaryColor: Colors.blue,
               useMaterial3: true,
+              progressIndicatorTheme: const ProgressIndicatorThemeData(
+                color: Colors.black,
+              ),
               textSelectionTheme: const TextSelectionThemeData(
                 cursorColor: Colors.black54,
               ),

@@ -84,7 +84,7 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
                         aspectRatio: _videoController!.value.aspectRatio,
                         child: VideoPlayer(_videoController!),
                       )
-                    : const Center(child: CircularProgressIndicator(color: Colors.white))
+                    : const Center(child: CircularProgressIndicator())
                 : Image.file(
                     File(widget.filePath),
                     fit: BoxFit.cover,
@@ -182,7 +182,7 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
               child: _isSending
                   ? const Padding(
                       padding: EdgeInsets.all(16),
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                      child: const CircularProgressIndicator(strokeWidth: 3),
                     )
                   : const Icon(Icons.send, color: Colors.white, size: 28),
             ),

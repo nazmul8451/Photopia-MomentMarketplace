@@ -9,6 +9,8 @@ import 'package:photopia/features/provider/widgets/provider_custom_bottom_nav_ba
 import 'package:photopia/controller/common/bottom_nav_controller.dart';
 import 'package:provider/provider.dart';
 
+import 'package:photopia/core/notification/notification_service.dart';
+
 class ProviderBottomNavigationScreen extends StatefulWidget {
   final int initialIndex;
   const ProviderBottomNavigationScreen({super.key, this.initialIndex = 0});
@@ -35,6 +37,8 @@ class _ProviderBottomNavigationScreenState
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<BottomNavController>().setIndex(widget.initialIndex);
+      // Initialize notification service
+      NotificationService.instance.init(context);
     });
   }
 

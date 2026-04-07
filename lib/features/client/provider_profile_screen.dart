@@ -12,6 +12,7 @@ import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
+import 'package:photopia/core/widgets/subscription_badge.dart';
 
 class ProviderProfileScreen extends StatefulWidget {
   final Map<String, dynamic> provider;
@@ -135,15 +136,11 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                   child: Consumer<ProviderDetailsController>(
                     builder: (context, controller, child) {
                       final cover = controller.profProfileDetails?.coverPhoto;
-                      return Container(
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: cover != null
-                                ? NetworkImage(cover) as ImageProvider
-                                : const AssetImage('assets/images/img5.png'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
+                      return CustomNetworkImage(
+                        imageUrl: cover ?? 'assets/images/img5.png',
+                        height: 220.h,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
                       );
                     },
                   ),
@@ -276,21 +273,15 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                         ),
                         SizedBox(height: 2.h),
                         if (isLoading)
-                          SizedBox(height: 14.h, width: 100.w, child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white54))
+                          const ShimmerSkeleton(width: 100, height: 14)
                         else
                           Text(categoryDisplay, style: TextStyle(fontSize: 13.sp, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w400)),
                         SizedBox(height: 6.h),
-                        Container(
+                        SubscriptionBadge(
+                          isSubscribed: controller.profProfileDetails?.isSubscribed ?? false,
+                          iconSize: 12.sp,
+                          fontSize: 10.5.sp,
                           padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
-                          decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(30).r),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.stars, color: Colors.white, size: 12.sp),
-                              SizedBox(width: 6.w),
-                              Text('Premium', style: TextStyle(color: Colors.white, fontSize: 10.5.sp, fontWeight: FontWeight.bold)),
-                            ],
-                          ),
                         ),
                         SizedBox(height: 15.h),
                       ],
@@ -307,7 +298,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
 
   Widget _buildStatsRow(ProviderDetailsController controller) {
     if (controller.isLoading) {
-      return SizedBox(height: 90.h, child: const Center(child: CircularProgressIndicator(color: Colors.black54)));
+      return const StatsRowSkeleton();
     }
     
     // Pull data from professional profile first, then fallback to user details or widget map
@@ -416,7 +407,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                     reviews: service.reviews ?? 0,
                     priceRange: '€${service.price ?? 0}',
                     tags: const [],
-                    isPremium: false,
+                    isPremium: detailsController.profProfileDetails?.isSubscribed ?? false,
                     providerId: widget.provider['_id'] ?? widget.provider['id'],
                   );
                 },
@@ -457,7 +448,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
   Widget _buildReviewsContent() {
     return Consumer<ReviewController>(
       builder: (context, controller, child) {
-        if (controller.isLoading) return const Center(child: CircularProgressIndicator());
+        if (controller.isLoading) return const ReviewListSkeleton();
         final reviews = controller.reviews;
         if (reviews.isEmpty) return const Center(child: Text('No reviews yet'));
         return Column(

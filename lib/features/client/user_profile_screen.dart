@@ -140,7 +140,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       SizedBox(
                         width: 12.w,
                         height: 12.w,
-                        child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.blue),
+                        child: const CircularProgressIndicator(strokeWidth: 2),
                       )
                     else 
                       Icon(

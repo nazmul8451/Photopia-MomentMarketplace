@@ -16,6 +16,7 @@ class ProfessionalProfileModel {
   final String? specialty;
   final String? coverPhoto;
   final Statistics? statistics;
+  final bool isSubscribed;
 
   ProfessionalProfileModel({
     this.profileViews,
@@ -33,6 +34,7 @@ class ProfessionalProfileModel {
     this.specialty,
     this.coverPhoto,
     this.statistics,
+    this.isSubscribed = false,
   });
 
   factory ProfessionalProfileModel.fromJson(Map<String, dynamic> json) {
@@ -45,7 +47,7 @@ class ProfessionalProfileModel {
       specialties: json['specialties'],
       portfolio: (json['portfolio'] as List?)?.map((e) => formatUrl(e)).toList(),
       language: json['language'],
-      isVerified: json['isVerified'],
+      isVerified: json['isVerified'] == true,
       rating: (json['rating'] ?? 0).toDouble(),
       reviewCount: json['reviewCount'],
       bio: json['bio'],
@@ -54,6 +56,7 @@ class ProfessionalProfileModel {
       statistics: json['statistics'] != null
           ? Statistics.fromJson(json['statistics'])
           : null,
+      isSubscribed: json['subscription'] != null || json['isSubscribed'] == true,
     );
   }
 
@@ -72,6 +75,7 @@ class User {
   final String? profile;
   final String? description;
   final bool? verified;
+  final bool isSubscribed;
 
   User({
     this.id,
@@ -80,6 +84,7 @@ class User {
     this.profile,
     this.description,
     this.verified,
+    this.isSubscribed = false,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -89,7 +94,8 @@ class User {
       email: json['email'],
       profile: ProfessionalProfileModel.formatUrl(json['profile']),
       description: json['description'],
-      verified: json['verified'],
+      verified: json['verified'] == true,
+      isSubscribed: json['subscription'] != null || json['isSubscribed'] == true,
     );
   }
 }

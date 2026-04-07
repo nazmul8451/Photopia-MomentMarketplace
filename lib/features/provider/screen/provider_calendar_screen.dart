@@ -153,7 +153,7 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
         children: [
           Expanded(
             child: _isLoading 
-              ? const Center(child: CircularProgressIndicator(color: Colors.black))
+              ? const Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
                   padding: EdgeInsets.symmetric(horizontal: 20.w),
                   child: _buildCalendarView(),

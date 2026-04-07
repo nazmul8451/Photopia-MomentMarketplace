@@ -11,6 +11,7 @@ import 'package:photopia/controller/client/service_list_controller.dart';
 import 'package:photopia/core/widgets/video_player_screen.dart';
 import 'package:photopia/data/models/conversation_model.dart';
 import 'package:photopia/data/models/chat_message_model.dart';
+import 'package:photopia/core/widgets/subscription_badge.dart';
 import 'package:photopia/features/client/chat_screen.dart';
 
 class ServiceDetailsScreen extends StatefulWidget {
@@ -242,7 +243,12 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                   children: [
                     Text(name, style: TextStyle(fontSize: 15.sp.clamp(15, 16), fontWeight: FontWeight.bold, color: Colors.black)),
                     SizedBox(width: 8.w),
-                    Container(padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h), decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(20).r), child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.stars, color: Colors.orange, size: 10.sp), SizedBox(width: 4.w), Text('Premium', style: TextStyle(color: Colors.white, fontSize: 10.sp.clamp(10, 11), fontWeight: FontWeight.bold))])),
+                    SubscriptionBadge(
+                      isSubscribed: widget.service['isPremium'] == true,
+                      iconSize: 10.sp,
+                      fontSize: 10.sp.clamp(10, 11),
+                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                    ),
                   ],
                 ),
                 Row(children: [Icon(Icons.star, color: Colors.orange, size: 14.sp), SizedBox(width: 4.w), Text('${rating} (${reviews} reviews)', style: TextStyle(fontSize: 12.sp.clamp(12, 13), color: Colors.grey))]),

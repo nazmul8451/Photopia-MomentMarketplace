@@ -1,9 +1,13 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:photopia/controller/provider/wallet_controller.dart';
+import 'package:photopia/controller/provider/provider_profile_controller.dart';
 import 'package:photopia/controller/provider/statistics_controller.dart';
+import 'package:photopia/core/widgets/subscription_badge.dart';
 import 'package:photopia/data/models/statistics_model.dart';
+import 'package:photopia/features/provider/screen/provider_subscription_screen.dart';
 import 'package:provider/provider.dart';
 
 class ProviderStatisticsScreen extends StatefulWidget {
@@ -56,26 +60,12 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
               ),
             ),
             SizedBox(width: 8.w),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.workspace_premium, color: Colors.amber, size: 14.sp),
-                  SizedBox(width: 4.w),
-                  Text(
-                    'Premium',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
+            Consumer<ProviderProfileController>(
+              builder: (context, profileController, child) {
+                return SubscriptionBadge(
+                  isSubscribed: profileController.userProfile?.isSubscribed ?? false,
+                );
+              },
             ),
           ],
         ),
@@ -89,7 +79,7 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
             final stats = controller.statisticsData;
             
             if (controller.isLoading && stats == null) {
-              return const Center(child: CircularProgressIndicator(color: Colors.black));
+              return const Center(child: CircularProgressIndicator());
             }
 
             return SingleChildScrollView(
@@ -185,7 +175,7 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
                         ? SizedBox(
                             width: 16.w, 
                             height: 16.w, 
-                            child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.black)
+                            child: const CircularProgressIndicator(strokeWidth: 2)
                           )
                         : Icon(Icons.download_outlined, size: 20.sp),
                       label: Text(

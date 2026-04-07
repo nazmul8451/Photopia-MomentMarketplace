@@ -10,6 +10,7 @@ import 'package:photopia/features/client/widgets/horizontal_project_card.dart';
 import 'package:photopia/features/client/category_details_screen.dart';
 import 'package:photopia/features/client/service_details_screen.dart';
 import 'package:flutter/services.dart';
+import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:provider/provider.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -161,9 +162,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Consumer<ServiceListController>(
                 builder: (context, serviceListController, child) {
                   if (serviceListController.isLoading && serviceListController.services.isEmpty) {
-                    return const Center(
-                      child: CircularProgressIndicator(color: Colors.black),
-                    );
+                    return const HomeShimmer();
                   }
 
                   // ─── Error State ────────────────────────────────────────────

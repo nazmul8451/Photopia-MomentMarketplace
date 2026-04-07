@@ -175,7 +175,7 @@ class _ChatScreenState extends State<ChatScreen> {
       body: Consumer<ChatController>(
         builder: (context, controller, child) {
           if (controller.isLoading && controller.messages.isEmpty) {
-            return const Center(child: CircularProgressIndicator(color: Colors.black));
+            return const Center(child: CircularProgressIndicator());
           }
 
           return Column(
@@ -305,7 +305,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _buildStatusIcon(MessageStatus status) {
     switch (status) {
       case MessageStatus.sending:
-        return SizedBox(width: 10.r, height: 10.r, child: const CircularProgressIndicator(strokeWidth: 1.5, color: Colors.blue));
+        return SizedBox(width: 10.r, height: 10.r, child: const CircularProgressIndicator(strokeWidth: 1.5));
       case MessageStatus.sent:
       case MessageStatus.delivered:
       case MessageStatus.read:

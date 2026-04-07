@@ -55,6 +55,7 @@ class UserProfileController extends ChangeNotifier {
     String? description,
     String? specialty,
     String? imagePath,
+    String? deviceToken,
   }) async {
     _isUpdateInProgress = true;
     _errorMessage = null;
@@ -73,6 +74,7 @@ class UserProfileController extends ChangeNotifier {
       if (email != null) fields['email'] = email;
       if (description != null) fields['description'] = description;
       if (specialty != null) fields['specialty'] = specialty;
+      if (deviceToken != null) fields['deviceToken'] = deviceToken;
 
       response = await NetworkCaller.multipartRequest(
         url: Urls.updateUserProfile,
@@ -91,6 +93,7 @@ class UserProfileController extends ChangeNotifier {
       if (email != null) body['email'] = email;
       if (description != null) body['description'] = description;
       if (specialty != null) body['specialty'] = specialty;
+      if (deviceToken != null) body['deviceToken'] = deviceToken;
 
       response = await NetworkCaller.patchRequest(
         url: Urls.updateUserProfile,

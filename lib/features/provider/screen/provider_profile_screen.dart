@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_profile_controller.dart';
+import 'package:photopia/core/widgets/subscription_badge.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:photopia/features/client/widgets/auth_profile_image.dart';
 import 'package:photopia/core/widgets/custom_snacbar.dart';
@@ -503,55 +504,12 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                           ],
                         ],
                         SizedBox(height: 10.h),
-                        if (controller.userProfile?.isSubscribed ?? false)
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 14.w,
-                              vertical: 5.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(30).r,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.stars,
-                                  color: Colors.white,
-                                  size: 12.sp,
-                                ),
-                                SizedBox(width: 6.w),
-                                Text(
-                                  'Premium',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10.5.sp,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        else
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 14.w,
-                              vertical: 5.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[700],
-                              borderRadius: BorderRadius.circular(30).r,
-                            ),
-                            child: Text(
-                              'Free Member',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 10.5.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
+                        SubscriptionBadge(
+                          isSubscribed: controller.userProfile?.isSubscribed ?? false,
+                          fontSize: 10.5.sp,
+                          iconSize: 12.sp,
+                          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
+                        ),
                         SizedBox(height: 5.h),
                       ],
                     ),
@@ -819,7 +777,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
 
   Widget _buildReviewsSection(ProviderProfileController controller) {
     if (controller.inProgress && controller.reviews.isEmpty) {
-      return const Center(child: CircularProgressIndicator(color: Colors.black));
+      return const Center(child: CircularProgressIndicator());
     }
     
     final reviews = controller.reviews;

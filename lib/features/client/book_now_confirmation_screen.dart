@@ -378,9 +378,7 @@ class _BookingConfirmationScreenState
               child: (_isLoadingAvailability && _availableDates.isEmpty)
                   ? SizedBox(
                       height: 180.h,
-                      child: const Center(
-                        child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2),
-                      ),
+                        child: const CircularProgressIndicator(strokeWidth: 2),
                     )
                   : _buildDateGrid(),
             ),
@@ -416,7 +414,7 @@ class _BookingConfirmationScreenState
                           ? SizedBox(
                               height: 100.h,
                               child: const Center(
-                                child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2),
+                                child: const CircularProgressIndicator(strokeWidth: 2),
                               ),
                             )
                           : _buildTimeSlotGrid(),
@@ -666,7 +664,7 @@ class _BookingConfirmationScreenState
                         ? SizedBox(
                             width: 20.sp,
                             height: 20.sp,
-                            child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                            child: const CircularProgressIndicator(strokeWidth: 2),
                           )
                         : Icon(Icons.my_location_outlined, color: Colors.black, size: 28.sp),
                   );

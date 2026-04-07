@@ -134,7 +134,7 @@ class MessageListItem extends StatelessWidget {
         return SizedBox(
           width: 12.r,
           height: 12.r,
-          child: const CircularProgressIndicator(strokeWidth: 1.5, color: Colors.blue),
+          child: const CircularProgressIndicator(strokeWidth: 1.5),
         );
       case MessageStatus.sent:
         return Icon(Icons.check, size: 16.sp.clamp(14, 20), color: Colors.grey);

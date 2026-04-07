@@ -74,7 +74,7 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
       body: Consumer<SubscriptionController>(
         builder: (context, controller, child) {
           if (controller.isLoading && (controller.planModel == null)) {
-            return const Center(child: CircularProgressIndicator(color: Colors.black));
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (controller.errorMessage != null && controller.planModel == null) {

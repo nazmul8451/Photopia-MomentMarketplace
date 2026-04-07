@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_profile_controller.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:photopia/core/widgets/custom_snacbar.dart';
+import 'package:photopia/core/widgets/subscription_badge.dart';
 import 'package:photopia/features/client/widgets/auth_profile_image.dart';
 
 class ProviderEditProfileScreen extends StatefulWidget {
@@ -293,34 +294,11 @@ class _ProviderEditProfileScreenState extends State<ProviderEditProfileScreen> {
                           ),
                         ),
                         SizedBox(height: 6.h),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 14.w,
-                            vertical: 5.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(30).r,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.stars,
-                                color: Colors.white,
-                                size: 12.sp,
-                              ),
-                              SizedBox(width: 6.w),
-                              Text(
-                                'Premium',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10.5.sp,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
+                        SubscriptionBadge(
+                          isSubscribed: controller.userProfile?.isSubscribed ?? false,
+                          fontSize: 10.5.sp,
+                          iconSize: 12.sp,
+                          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
                         ),
                       ],
                     ),
