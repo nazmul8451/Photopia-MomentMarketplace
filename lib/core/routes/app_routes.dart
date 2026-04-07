@@ -17,6 +17,7 @@ import 'package:photopia/features/onboarding/onboarding_screen.dart';
 import 'package:photopia/features/onboarding/get_started.dart';
 import 'package:photopia/features/onboarding/role_selection_screen.dart';
 import 'package:photopia/features/provider/screen/BottomNavigationBar/bottom_navigation_screen.dart';
+import 'package:photopia/features/provider/screen/provider_subscription_screen.dart';
 
 class AppRoutes {
   static const String sign_up = SignUpScreen.name;
@@ -39,6 +40,7 @@ class AppRoutes {
   static const String provider_bottom_navigation =
       ProviderBottomNavigationScreen.name;
   static const String splash = "/";
+  static const String provider_subscription = ProviderSubscriptionScreen.name;
 
   static Map<String, WidgetBuilder> get routes => {    sign_up: (context) => const SignUpScreen(),
     forgot_password: (context) => const ForgotPasswordScreen(),
@@ -81,5 +83,6 @@ class AppRoutes {
     log_in: (context) => const LogInScreen(),
     provider_bottom_navigation: (context) =>
         const ProviderBottomNavigationScreen(),
+    provider_subscription: (context) => const ProviderSubscriptionScreen(),
   };
 }

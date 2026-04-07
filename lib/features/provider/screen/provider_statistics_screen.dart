@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -144,12 +143,28 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
                   ),
                   SizedBox(height: 24.h),
 
-                  // Regional Views
-                  _buildRegionCard(stats?.viewsByRegion ?? []),
-                  SizedBox(height: 24.h),
+                  // Premium/Free Conditional Section
+                  if (stats?.isPremium == true) ...[
+                    // Regional Views
+                    _buildRegionCard(stats?.viewsByRegion ?? []),
+                    SizedBox(height: 24.h),
 
-                  // Revenue Analytics
-                  _buildRevenueCard(stats?.revenueAnalytics),
+                    // Complete Revenue Analytics
+                    _buildRevenueCard(stats?.revenueAnalytics, true),
+                    SizedBox(height: 24.h),
+
+                    // Premium Insights
+                    _buildPremiumInsightsGrid(stats?.premiumMetrics),
+                    SizedBox(height: 24.h),
+                  ] else ...[
+                    // Basic Revenue Analytics
+                    _buildRevenueCard(stats?.revenueAnalytics, false),
+                    SizedBox(height: 24.h),
+
+                    // Premium Promo
+                    _buildPremiumPromoCard(),
+                    SizedBox(height: 24.h),
+                  ],
                   SizedBox(height: 24.h),
 
                   // Export Data Button
@@ -492,7 +507,7 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
     );
   }
 
-  Widget _buildRevenueCard(RevenueAnalytics? revenue) {
+  Widget _buildRevenueCard(RevenueAnalytics? revenue, bool isPremium) {
     final filters = ['Week', 'Month', 'Quarter', 'Year'];
     // JSON shown by user currently has empty weeklyBreakdown, but we model for potential use
     final weeks = (revenue?.weeklyBreakdown ?? []).isNotEmpty 
@@ -619,64 +634,268 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
               ],
             ),
           ),
-          SizedBox(height: 20.h),
-
-          ...weeks.map((w) {
-            // Support both Map and potentially dynamic objects if model changes
-            final name = w is Map ? w['name'] : 'N/A';
-            final amount = w is Map ? w['amount'] : 0;
-            final max = w is Map ? (w['max'] ?? 100) : 100;
-            return Column(
+          if (isPremium) ...[
+            SizedBox(height: 20.h),
+            ...weeks.map((w) {
+              // Support both Map and potentially dynamic objects if model changes
+              final name = w is Map ? w['name'] : 'N/A';
+              final amount = w is Map ? w['amount'] : 0;
+              final max = w is Map ? (w['max'] ?? 100) : 100;
+              return Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('$name', style: TextStyle(color: Colors.grey, fontSize: 13.sp)),
+                      Text(
+                        '€$amount',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13.sp,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 6.h),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10.r),
+                    child: LinearProgressIndicator(
+                      value: (amount as num) / (max as num),
+                      minHeight: 10.h,
+                      backgroundColor: const Color(0xFFF1F3F5),
+                      color: Colors.black,
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                ],
+              );
+            }),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Average per period', style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
+                    SizedBox(height: 4.h),
+                    Text('€${revenue?.averagePerPeriod ?? 0}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp)),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text('Best performing', style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
+                    SizedBox(height: 4.h),
+                    Text('€${revenue?.bestPerforming ?? 0}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp)),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumInsightsGrid(PremiumMetrics? metrics) {
+    PremiumMetrics displayMetrics = metrics ?? PremiumMetrics(
+      conversionRate: 5.2,
+      bounceRate: 30.5,
+      averageOrderValue: 450,
+      repeatRate: 12.5,
+      avgConversionTime: 48.5,
+      mostViewedProject: MostViewedProject(title: "Wedding Photography", views: 450),
+    );
+
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.diamond_outlined, size: 18.sp, color: Colors.blueAccent),
+              SizedBox(width: 8.w),
+              Text(
+                'Deep Business Insights',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 16.h),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Conversion Rate', style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
+                      SizedBox(height: 4.h),
+                      Text('${displayMetrics.conversionRate ?? 0}%', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp, color: Colors.black)),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Container(
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9FAFB),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Repeat Rate', style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
+                      SizedBox(height: 4.h),
+                      Text('${displayMetrics.repeatRate ?? 0}%', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp, color: Colors.black)),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9FAFB),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Most Viewed Project', style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
+                SizedBox(height: 4.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('$name', style: TextStyle(color: Colors.grey, fontSize: 13.sp)),
-                    Text(
-                      '€$amount',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13.sp,
-                        color: Colors.black,
+                    Expanded(
+                      child: Text(
+                        displayMetrics.mostViewedProject?.title ?? 'N/A',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp, color: Colors.black),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
+                    ),
+                    Text(
+                      '${displayMetrics.mostViewedProject?.views ?? 0} views',
+                      style: TextStyle(color: Colors.blueAccent, fontSize: 12.sp, fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
-                SizedBox(height: 6.h),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10.r),
-                  child: LinearProgressIndicator(
-                    value: (amount as num) / (max as num),
-                    minHeight: 10.h,
-                    backgroundColor: const Color(0xFFF1F3F5),
-                    color: Colors.black,
-                  ),
-                ),
-                SizedBox(height: 16.h),
               ],
-            );
-          }),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildPremiumPromoCard() {
+    return Container(
+      padding: EdgeInsets.all(24.w),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Average per period', style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
-                  SizedBox(height: 4.h),
-                  Text('€${revenue?.averagePerPeriod ?? 0}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp)),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('Best performing', style: TextStyle(color: Colors.grey, fontSize: 11.sp)),
-                  SizedBox(height: 4.h),
-                  Text('€${revenue?.bestPerforming ?? 0}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp)),
-                ],
+              Icon(Icons.workspace_premium, color: Colors.amberAccent, size: 28.sp),
+              SizedBox(width: 12.w),
+              Text(
+                "Unlock Insights",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            "Upgrade your subscription to get access to advanced business analytics including:",
+            style: TextStyle(
+              color: Colors.grey.shade300,
+              fontSize: 13.sp,
+              height: 1.5,
+            ),
+          ),
+          SizedBox(height: 20.h),
+          _buildPromoBullet("Deep regional profile view tracking"),
+          _buildPromoBullet("Weekly revenue breakdowns"),
+          _buildPromoBullet("Business Conversion rates"),
+          _buildPromoBullet("Average order value analytics"),
+          SizedBox(height: 24.h),
+          SizedBox(
+            width: double.infinity,
+            height: 48.h,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(builder: (_) => const ProviderSubscriptionScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+              ),
+              child: Text(
+                "Upgrade to Premium",
+                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPromoBullet(String text) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.check_circle_rounded, color: Colors.amberAccent, size: 18.sp),
+          SizedBox(width: 8.w),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(color: Colors.white, fontSize: 13.sp, fontWeight: FontWeight.w500),
+            ),
           ),
         ],
       ),
