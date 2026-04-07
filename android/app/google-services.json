@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "402116155765",
+    "project_id": "photopia-fe0c4",
+    "storage_bucket": "photopia-fe0c4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:402116155765:android:bb4ecb915f3ad10209db3c",
+        "android_client_info": {
+          "package_name": "com.example.photopia"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBpbJ-O5x0PIE5PqFcCovQLY3XgO7BYCIE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
