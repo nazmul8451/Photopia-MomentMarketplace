@@ -29,6 +29,11 @@ class UserProfileModel {
     this.subscriptionStatus,
   });
 
+  bool get isPremium =>
+      isSubscribed == true ||
+      subscriptionStatus == 'active' ||
+      subscriptionStatus == 'trialing';
+
   static String? _formatUrl(dynamic url) {
     if (url == null) return null;
     String? urlString;

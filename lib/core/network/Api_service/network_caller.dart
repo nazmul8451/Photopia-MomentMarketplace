@@ -24,6 +24,8 @@ class NetworkResponse {
 }
 
 class NetworkCaller {
+  static final Client _client = Client(); // Persistent client for connection reuse
+  
   //API Caller Class
 
   //logical message
@@ -142,10 +144,10 @@ class NetworkCaller {
     }
     try {
       final uri = Uri.parse(Urls.refreshToken);
-      final response = await get(uri, headers: {
+      final response = await _client.get(uri, headers: {
         'Accept': 'application/json',
         'Cookie': cookie,
-      }).timeout(const Duration(seconds: 15));
+      }).timeout(const Duration(seconds: 60));
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final decodedBody = jsonDecode(response.body);
@@ -162,11 +164,11 @@ class NetworkCaller {
               try {
                 final roleUri = Uri.parse(Urls.role);
                 final roleHeaders = await _getHeaders(requireAuth: true);
-                await patch(
+                await _client.patch(
                   roleUri,
                   headers: roleHeaders,
                   body: jsonEncode({'role': 'professional'}),
-                ).timeout(const Duration(seconds: 10));
+                ).timeout(const Duration(seconds: 60));
                 debugPrint('✅ Role re-applied: professional');
               } catch (e) {
                 debugPrint('⚠️ Role re-apply failed: $e');
@@ -197,18 +199,18 @@ class NetworkCaller {
         addBearer: addBearer,
       );
 
-      final Response response = await get(
+      final Response response = await _client.get(
         uri,
         headers: headers,
-      ).timeout(const Duration(seconds: 15));
+      ).timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 401 && requireAuth) {
         final refreshed = await _refreshAccessToken();
         if (refreshed) {
           // Retry with new token
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await get(uri, headers: retryHeaders)
-              .timeout(const Duration(seconds: 15));
+          final retryResponse = await _client.get(uri, headers: retryHeaders)
+              .timeout(const Duration(seconds: 60));
           return _handleResponse(retryResponse, url, 'GET');
         } else {
           await AuthController.forceLogout();
@@ -222,8 +224,8 @@ class NetworkCaller {
         final reApplied = await _reApplyProfessionalRole();
         if (reApplied) {
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await get(uri, headers: retryHeaders)
-              .timeout(const Duration(seconds: 15));
+          final retryResponse = await _client.get(uri, headers: retryHeaders)
+              .timeout(const Duration(seconds: 60));
           return _handleResponse(retryResponse, url, 'GET');
         }
       }
@@ -261,10 +263,10 @@ class NetworkCaller {
             : 'Bearer $tokenToUse';
       }
 
-      final Response response = await get(
+      final Response response = await _client.get(
         uri,
         headers: headers,
-      ).timeout(const Duration(seconds: 30));
+      ).timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 401 && requireAuth) {
         final refreshed = await _refreshAccessToken();
@@ -276,8 +278,8 @@ class NetworkCaller {
                 ? retryToken
                 : 'Bearer $retryToken';
           }
-          final retryResponse = await get(uri, headers: retryHeaders)
-              .timeout(const Duration(seconds: 30));
+          final retryResponse = await _client.get(uri, headers: retryHeaders)
+              .timeout(const Duration(seconds: 60));
           return _handleResponse(retryResponse, url, 'GET', isRaw: true);
         } else {
           await AuthController.forceLogout();
@@ -297,8 +299,8 @@ class NetworkCaller {
                 ? retryToken
                 : 'Bearer $retryToken';
           }
-          final retryResponse = await get(uri, headers: retryHeaders)
-              .timeout(const Duration(seconds: 30));
+          final retryResponse = await _client.get(uri, headers: retryHeaders)
+              .timeout(const Duration(seconds: 60));
           return _handleResponse(retryResponse, url, 'GET', isRaw: true);
         }
       }
@@ -336,7 +338,7 @@ class NetworkCaller {
 
       _logRequest('POST', url, body ?? {}, headers);
 
-      final Response response = await post(
+      final Response response = await _client.post(
         uri,
         headers: headers,
         body: body != null ? jsonEncode(body) : null,
@@ -346,7 +348,7 @@ class NetworkCaller {
         final refreshed = await _refreshAccessToken();
         if (refreshed) {
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await post(uri,
+          final retryResponse = await _client.post(uri,
               headers: retryHeaders, body: body != null ? jsonEncode(body) : null);
           return _handleResponse(retryResponse, url, 'POST');
         } else {
@@ -361,7 +363,7 @@ class NetworkCaller {
         final reApplied = await _reApplyProfessionalRole();
         if (reApplied) {
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await post(uri,
+          final retryResponse = await _client.post(uri,
               headers: retryHeaders, body: body != null ? jsonEncode(body) : null);
           return _handleResponse(retryResponse, url, 'POST');
         }
@@ -395,7 +397,7 @@ class NetworkCaller {
 
       _logRequest('PATCH', url, body ?? {}, headers);
 
-      final Response response = await patch(
+      final Response response = await _client.patch(
         uri,
         headers: headers,
         body: body != null ? jsonEncode(body) : null,
@@ -405,7 +407,7 @@ class NetworkCaller {
         final refreshed = await _refreshAccessToken();
         if (refreshed) {
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await patch(uri,
+          final retryResponse = await _client.patch(uri,
               headers: retryHeaders, body: body != null ? jsonEncode(body) : null);
           return _handleResponse(retryResponse, url, 'PATCH');
         } else {
@@ -420,7 +422,7 @@ class NetworkCaller {
         final reApplied = await _reApplyProfessionalRole();
         if (reApplied) {
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await patch(uri,
+          final retryResponse = await _client.patch(uri,
               headers: retryHeaders, body: body != null ? jsonEncode(body) : null);
           return _handleResponse(retryResponse, url, 'PATCH');
         }
@@ -453,13 +455,13 @@ class NetworkCaller {
 
       _logRequest('DELETE', url, {}, headers);
 
-      final Response response = await delete(uri, headers: headers);
+      final Response response = await _client.delete(uri, headers: headers);
 
       if (response.statusCode == 401 && requireAuth) {
         final refreshed = await _refreshAccessToken();
         if (refreshed) {
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await delete(uri, headers: retryHeaders);
+          final retryResponse = await _client.delete(uri, headers: retryHeaders);
           return _handleResponse(retryResponse, url, 'DELETE');
         } else {
           await AuthController.forceLogout();
@@ -473,7 +475,7 @@ class NetworkCaller {
         final reApplied = await _reApplyProfessionalRole();
         if (reApplied) {
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await delete(uri, headers: retryHeaders);
+          final retryResponse = await _client.delete(uri, headers: retryHeaders);
           return _handleResponse(retryResponse, url, 'DELETE');
         }
       }
@@ -542,7 +544,7 @@ class NetworkCaller {
 
       // Send the request with a timeout
       final StreamedResponse streamedResponse = await request.send().timeout(
-        const Duration(seconds: 15),
+        const Duration(seconds: 60),
       );
 
       // Convert StreamedResponse to Response to use the existing _handleResponse method
@@ -582,18 +584,33 @@ class NetworkCaller {
     Map<String, dynamic> body,
     Map<String, String> headers,
   ) {
+    String bodyStr = body.toString();
+    if (bodyStr.length > 500) {
+      bodyStr = "${bodyStr.substring(0, 500)}... [Truncated]";
+    }
+    
     debugPrint('🚀 ===== $method API Request ===== 🚀');
     debugPrint('🌐 URL: $url');
-    debugPrint(' Headers: $headers');
-    debugPrint(' Body: $body');
+    if (url.contains('signup') || url.contains('login')) {
+      debugPrint(' Headers: [PROTECTED]');
+      debugPrint(' Body: [PROTECTED]');
+    } else {
+      debugPrint(' Headers: $headers');
+      debugPrint(' Body: $bodyStr');
+    }
     debugPrint('====================================');
   }
 
   static void _logResponse(String method, String url, Response response) {
+    String bodyStr = response.body;
+    if (bodyStr.length > 500) {
+      bodyStr = "${bodyStr.substring(0, 500)}... [Truncated]";
+    }
+
     debugPrint('🚀 ===== $method API Response ===== 🚀');
     debugPrint('🌐 URL: $url');
     debugPrint('📊 Status Code: ${response.statusCode}');
-    debugPrint('📦 Response Body: ${response.body}');
+    debugPrint('📦 Response Body: $bodyStr');
     debugPrint('====================================');
   }
   /// Specifically for handling 403 Forbidden by re-syncing the professional role
@@ -604,11 +621,11 @@ class NetworkCaller {
       try {
         final roleUri = Uri.parse(Urls.role);
         final roleHeaders = await _getHeaders(requireAuth: true);
-        final response = await patch(
+        final response = await _client.patch(
           roleUri,
           headers: roleHeaders,
           body: jsonEncode({'role': 'professional'}),
-        ).timeout(const Duration(seconds: 10));
+        ).timeout(const Duration(seconds: 60));
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
           final decodedBody = jsonDecode(response.body);

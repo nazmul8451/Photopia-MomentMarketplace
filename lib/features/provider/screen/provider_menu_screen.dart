@@ -51,7 +51,7 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                     SizedBox(height: 16.h.clamp(12, 20)),
 
                     // Premium Member Card (Show only if NOT subscribed)
-                    if (!(controller.userProfile?.isSubscribed ?? false)) ...[
+                    if (!(controller.userProfile?.isPremium ?? false)) ...[
                       _buildPremiumCard(context),
                       SizedBox(height: 16.h.clamp(12, 20)),
                     ],
@@ -75,7 +75,7 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                       icon: Icons.bar_chart,
                       title: 'Detailed Statistics',
                       showBadge: true,
-                      isSubscribed: controller.userProfile?.isSubscribed ?? false,
+                      isSubscribed: controller.userProfile?.isPremium ?? false,
                       onTap: () {
                         Navigator.push(
                           context,
@@ -188,7 +188,7 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                     ),
                     SizedBox(height: 6.h),
                     SubscriptionBadge(
-                      isSubscribed: controller.userProfile?.isSubscribed ?? false,
+                      isSubscribed: controller.userProfile?.isPremium ?? false,
                     ),
                   ],
                 ),

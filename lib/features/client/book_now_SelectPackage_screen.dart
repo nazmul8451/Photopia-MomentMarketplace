@@ -13,49 +13,43 @@ class SelectPackageScreen extends StatefulWidget {
 class _SelectPackageScreenState extends State<SelectPackageScreen> {
   int _selectedPackageIndex = 0;
 
-  // This list can be easily moved to a controller or fetched from an API
-  final List<Map<String, dynamic>> _packages = [
-    {
-      'name': 'Basic Package',
-      'price': '800',
-      'currency': '€',
-      'duration': '4 hours',
-      'features': [
-        '200 edited photos',
-        'Online gallery',
-        '1 photographer',
-        'Basic retouching',
-      ],
-    },
-    {
-      'name': 'Standard Package',
-      'price': '1,500',
-      'currency': '€',
-      'duration': '8 hours',
-      'features': [
-        '400 edited photos',
-        'Online gallery + USB',
-        '1 photographer + assistant',
-        'Advanced retouching',
-        'Engagement shoot included',
-      ],
-    },
-    {
-      'name': 'Premium Package',
-      'price': '2,500',
-      'currency': '€',
-      'duration': 'Full day',
-      'features': [
-        'Unlimited edited photos',
-        'Premium album + USB',
-        '2 photographers',
-        'Professional retouching',
-        'Engagement shoot',
-        'Drone coverage',
-        'Same-day highlights',
-      ],
-    },
-  ];
+  List<Map<String, dynamic>> _packages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initializePackages();
+  }
+
+  void _initializePackages() {
+    if (widget.service != null && widget.service!['pricingModel'] != null) {
+      final pricingModel = widget.service!['pricingModel'];
+      if (pricingModel['packages'] != null) {
+        final List rawPackages = pricingModel['packages'];
+        _packages = rawPackages.map((p) => {
+          'name': p['name'] ?? 'Package',
+          'price': p['price']?.toString() ?? '0',
+          'currency': widget.service!['currency'] ?? '€',
+          'duration': '${p['duration']} hours',
+          'features': p['includes'] != null ? List<String>.from(p['includes']) : [],
+          'description': p['description'] ?? '',
+        }).toList();
+      }
+    }
+    
+    // Fallback if no packages found
+    if (_packages.isEmpty) {
+      _packages = [
+        {
+          'name': 'Standard Package',
+          'price': widget.service?['price']?.toString() ?? '0',
+          'currency': widget.service?['currency'] ?? '€',
+          'duration': widget.service?['duration'] ?? 'Flexible',
+          'features': ['Standard Service'],
+        }
+      ];
+    }
+  }
 
   @override
   Widget build(BuildContext context){

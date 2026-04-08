@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/widgets/custom_snacbar.dart';
 import 'package:photopia/core/network/urls.dart';
@@ -38,14 +37,10 @@ class _ProviderCreateListingScreenState
   final TextEditingController _dailyRateController = TextEditingController();
   final TextEditingController _weekendDailyRateController =
       TextEditingController();
-
-  // Package controllers
-  final TextEditingController _basicPackagePriceController =
-      TextEditingController();
-  final TextEditingController _standardPackagePriceController =
-      TextEditingController();
-  final TextEditingController _premiumPackagePriceController =
-      TextEditingController();
+  final TextEditingController _dailyHoursController = TextEditingController();
+  
+  // Dynamic Package controllers
+  final List<PackageControllers> _packageControllers = [];
 
   Category? _selectedCategory;
   List<Category> _categories = [];
@@ -58,7 +53,6 @@ class _ProviderCreateListingScreenState
   final List<String> _equipment = [];
   final List<File> _selectedImages = [];
   final List<String> _existingNetworkImages = []; // Track original images URL
-  List<String> _dynamicServiceTypes = [];
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -94,101 +88,55 @@ class _ProviderCreateListingScreenState
         } else if (listing.pricingType == "DAILY") {
           _selectedPricingModel = 'By Day';
           _dailyRateController.text = listing.price?.toString() ?? '';
+          _dailyHoursController.text = listing.pricingModel?.dailyHours?.toString() ?? '8';
         } else if (listing.pricingType == "PACKAGE") {
           _selectedPricingModel = 'By Service';
-          if (listing.pricingModel?.packages != null) {
+          if (listing.pricingModel?.packages != null && listing.pricingModel!.packages!.isNotEmpty) {
+            _packageControllers.clear();
             for (var pkg in listing.pricingModel!.packages!) {
-              if (pkg.name == 'Basic') {
-                _basicPackagePriceController.text = pkg.price?.toString() ?? '';
-              }
-              if (pkg.name == 'Standard') {
-                _standardPackagePriceController.text =
-                    pkg.price?.toString() ?? '';
-              }
-              if (pkg.name == 'Premium') {
-                _premiumPackagePriceController.text =
-                    pkg.price?.toString() ?? '';
-              }
+              _packageControllers.add(PackageControllers(
+                name: pkg.name ?? '',
+                price: pkg.price?.toString() ?? '',
+                duration: pkg.duration?.toString() ?? '',
+                description: pkg.description ?? '',
+                includes: pkg.includes?.join(', ') ?? '',
+              ));
             }
           } else {
-            _basicPackagePriceController.text = listing.price?.toString() ?? '';
+            // Fallback for old listings
+            _packageControllers.add(PackageControllers(
+              name: 'Basic',
+              price: listing.price?.toString() ?? '',
+            ));
           }
         }
       }
 
-      if (listing.location?.serviceRadiusKm != null) {
-        _serviceRadius = listing.location!.serviceRadiusKm!.toDouble();
-      }
-
-      _acceptOutsideRadius = listing.allowOutsideRadius ?? false;
-
-      // Populate existing images
-      if (listing.coverMedia != null && listing.coverMedia!.isNotEmpty) {
-        _existingNetworkImages.add(listing.coverMedia!);
-      }
       if (listing.gallery != null) {
-        // filter out nulls or duplicates
         for (var img in listing.gallery!) {
-          if (img != null &&
-              img.isNotEmpty &&
-              !_existingNetworkImages.contains(img)) {
-            _existingNetworkImages.add(img);
-          }
+          if (img is String) _existingNetworkImages.add(img);
         }
       }
+
+      _serviceRadius = listing.location?.serviceRadiusKm?.toDouble() ?? 25.0;
     }
   }
 
   Future<void> _fetchCategories() async {
-    setState(() => _isLoadingCategories = true);
-    final controller = context.read<ServiceController>();
-    final categories = await controller.getCategories();
+    final controller = Provider.of<ServiceController>(context, listen: false);
+    final response = await controller.getCategories();
     if (mounted) {
       setState(() {
-        if (categories.isNotEmpty) {
-          _categories = categories;
-
-          // Extract unique service types from API categories
-          final types = _categories
-              .map((c) => c.serviceType)
-              .where((st) => st != null && st.isNotEmpty)
-              .cast<String>()
-              .toSet()
-              .toList();
-
-          if (types.isNotEmpty) {
-            _dynamicServiceTypes = types;
-            // Set default if not editing
-            if (widget.existingListing == null) {
-              _selectedServiceType = _dynamicServiceTypes.first;
-            }
-          }
-        } else {
-          // Local fallback
-          _categories = [
-            Category(sId: "6967f8313c7a3a49e02c1fde", name: "Photography", serviceType: "photography"),
-            Category(sId: "65e8a5b4f1a2b3c4d5e6f702", name: "Videography", serviceType: "videography"),
-          ];
-          _dynamicServiceTypes = ["photography", "videography"];
-        }
-        
+        _categories = response;
+        _isLoadingCategories = false;
         if (widget.existingListing != null &&
             widget.existingListing!.category != null) {
-          final existingCatId =
-              widget.existingListing!.category!.sId ??
-              widget.existingListing!.category!.id;
           _selectedCategory = _categories.firstWhere(
-            (c) => c.sId == existingCatId,
-            orElse: () => _categories.first,
-          );
-          // Set service type from existing if found
-          if (widget.existingListing!.serviceType != null) {
-            _selectedServiceType = widget.existingListing!.serviceType!;
-          }
+              (c) => c.sId == widget.existingListing!.category!.sId,
+              orElse: () => _categories.first);
         } else if (_categories.isNotEmpty) {
           _selectedCategory = _categories.first;
         }
-        _isLoadingCategories = false;
       });
     }
   }
@@ -208,64 +156,23 @@ class _ProviderCreateListingScreenState
     _weekendRateController.dispose();
     _dailyRateController.dispose();
     _weekendDailyRateController.dispose();
-    _basicPackagePriceController.dispose();
-    _standardPackagePriceController.dispose();
-    _premiumPackagePriceController.dispose();
+    _dailyHoursController.dispose();
+    for (var controller in _packageControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
   Future<void> _pickImages() async {
     final List<XFile> images = await _picker.pickMultiImage(
-      maxWidth: 1024,
-      maxHeight: 1024,
-      imageQuality: 80,
+      imageQuality: 70, // Compresses image to 70% quality
+      maxWidth: 1080,   // Limits width to 1080px for faster uploads
     );
     if (images.isNotEmpty) {
-      if (_selectedImages.length +
-              _existingNetworkImages.length +
-              images.length >
-          10) {
-        if (mounted) {
-          CustomSnackBar.show(
-            context: context,
-            message: 'You can only upload up to 10 images',
-            isError: true,
-          );
-        }
-        return;
-      }
-
-      // Fix EXIF orientation by compressing and stripping metadata
-      List<File> processedImages = [];
-      for (var xFile in images) {
-        final tempDir = Directory.systemTemp;
-        final targetPath =
-            '${tempDir.path}/${DateTime.now().microsecondsSinceEpoch}.jpg';
-
-        final compressedFile = await FlutterImageCompress.compressAndGetFile(
-          xFile.path,
-          targetPath,
-          quality: 90,
-          format: CompressFormat.jpeg,
-        );
-
-        if (compressedFile != null) {
-          processedImages.add(File(compressedFile.path));
-        } else {
-          processedImages.add(File(xFile.path));
-        }
-      }
-
       setState(() {
-        _selectedImages.addAll(processedImages);
+        _selectedImages.addAll(images.map((image) => File(image.path)));
       });
     }
-  }
-
-  void _removeExistingImage(int index) {
-    setState(() {
-      _existingNetworkImages.removeAt(index);
-    });
   }
 
   void _removeImage(int index) {
@@ -274,59 +181,44 @@ class _ProviderCreateListingScreenState
     });
   }
 
+  void _removeExistingImage(int index) {
+    setState(() {
+      _existingNetworkImages.removeAt(index);
+    });
+  }
+
   bool _isFormValid() {
-    if (_titleController.text.isEmpty ||
-        _descriptionController.text.isEmpty ||
-        _locationController.text.isEmpty ||
-        _addressController.text.isEmpty ||
-        _countryController.text.isEmpty ||
-        (_selectedImages.isEmpty && _existingNetworkImages.isEmpty) ||
+    if (_titleController.text.trim().isEmpty ||
+        _descriptionController.text.trim().length < 10 ||
+        _locationController.text.trim().isEmpty ||
+        _countryController.text.trim().isEmpty ||
         _selectedCategory == null) {
       return false;
     }
 
-    // Check pricing based on model
+    if (_selectedImages.isEmpty && _existingNetworkImages.isEmpty) {
+      return false;
+    }
+
+    // Pricing validation
     if (_selectedPricingModel == 'By Hour') {
       return _hourlyRateController.text.isNotEmpty;
     } else if (_selectedPricingModel == 'By Day') {
-      return _dailyRateController.text.isNotEmpty;
+      return _dailyRateController.text.isNotEmpty && _dailyHoursController.text.isNotEmpty;
     } else if (_selectedPricingModel == 'By Service') {
-      return _basicPackagePriceController.text.isNotEmpty;
+      return _packageControllers.isNotEmpty && _packageControllers.any((p) => p.name.text.isNotEmpty && p.price.text.isNotEmpty);
     }
 
     return true;
   }
 
   Future<void> _publishListing() async {
-    // Client-side validation for required fields
-    if (!_isFormValid()) {
-      CustomSnackBar.show(
-        context: context,
-        message: 'Please fill in all required fields and upload at least one photo',
-        isError: true,
-      );
-      return;
-    }
+    if (!_isFormValid()) return;
+    
+    final controller = Provider.of<ServiceController>(context, listen: false);
+    controller.clearErrors(); // Clear old errors
 
-    // Specific length validation based on backend requirements
-    if (_titleController.text.trim().length < 3) {
-      CustomSnackBar.show(
-        context: context,
-        message: 'Title must be at least 3 characters',
-        isError: true,
-      );
-      return;
-    }
-
-    if (_descriptionController.text.trim().length < 10) {
-      CustomSnackBar.show(
-        context: context,
-        message: 'Description must be at least 10 characters',
-        isError: true,
-      );
-      return;
-    }
-
+    // Prepare service data
     final serviceData = Data(
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
@@ -334,114 +226,91 @@ class _ProviderCreateListingScreenState
       subCategory: _subCategoryController.text.trim(),
       tags: [_selectedServiceType],
       equipment: _equipment,
-      price:
-          int.tryParse(
+      pricingType: _selectedPricingModel == 'By Hour'
+          ? "HOURLY"
+          : _selectedPricingModel == 'By Day'
+              ? "DAILY"
+              : "PACKAGE",
+      price: int.tryParse(
             _selectedPricingModel == 'By Hour'
                 ? _hourlyRateController.text
                 : _selectedPricingModel == 'By Day'
                 ? _dailyRateController.text
-                : _basicPackagePriceController.text,
+                : (_packageControllers.isNotEmpty ? _packageControllers.first.price.text : '0'),
           ) ??
           0,
       currency: "EUR",
-      pricingType: _selectedPricingModel == 'By Hour'
-          ? "HOURLY"
-          : _selectedPricingModel == 'By Day'
-          ? "DAILY"
-          : "PACKAGE",
-      serviceType: _selectedServiceType.toLowerCase(), // e.g. 'photography'
+      // Fix: Duration must be an int according to Zod error "Expected number"
+      duration: (int.tryParse(_durationController.text) ?? 1).toString(), 
       location: Location(
-        type: "ONSITE",
         country: _countryController.text.trim(),
         city: _locationController.text.trim(),
         address: _addressController.text.trim(),
         serviceRadiusKm: _serviceRadius.toInt(),
       ),
-      allowOutsideRadius: _acceptOutsideRadius,
-      duration: _durationController.text.trim(),
-      pricingRules: [], // Optional
-      // Ensure all current images are in the list we pass to the controller
-      coverMedia: _existingNetworkImages.isNotEmpty 
-          ? _existingNetworkImages.first 
-          : null,
-      gallery: _existingNetworkImages.toList(), // Send FULL list as gallery to be safe
-      status: "ACTIVE", 
-      isActive: true,
+      gallery: _existingNetworkImages,
       isVerified: widget.existingListing?.isVerified ?? false,
     );
 
-    // Setup packages if SERVICE pricing
-    if (_selectedPricingModel == 'By Service') {
+    // Setup pricing model for DAILY or PACKAGE
+    if (_selectedPricingModel == 'By Day') {
+      serviceData.pricingModel = PricingModel(
+        type: "DAILY",
+        dailyRate: double.tryParse(_dailyRateController.text),
+        dailyHours: int.tryParse(_dailyHoursController.text),
+      );
+    } else if (_selectedPricingModel == 'By Service') {
       serviceData.pricingModel = PricingModel(
         type: "PACKAGE",
-        packages: [
-          if (_basicPackagePriceController.text.isNotEmpty)
-            Packages(
-              name: "Basic",
-              price: int.tryParse(_basicPackagePriceController.text) ?? 0,
-            ),
-          if (_standardPackagePriceController.text.isNotEmpty)
-            Packages(
-              name: "Standard",
-              price: int.tryParse(_standardPackagePriceController.text) ?? 0,
-            ),
-          if (_premiumPackagePriceController.text.isNotEmpty)
-            Packages(
-              name: "Premium",
-              price: int.tryParse(_premiumPackagePriceController.text) ?? 0,
-            ),
-        ],
+        packages: _packageControllers.where((p) => p.name.text.isNotEmpty).map((p) => Packages(
+          name: p.name.text.trim(),
+          price: int.tryParse(p.price.text) ?? 0,
+          duration: int.tryParse(p.duration.text) ?? 1,
+          description: p.description.text.trim(),
+          includes: p.includes.text.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList(),
+        )).toList(),
       );
     }
 
-    final isEdit = widget.existingListing != null;
-    final controller = context.read<ServiceController>();
-
     bool success;
-    if (isEdit) {
-      final listingId =
-          widget.existingListing!.sId ?? widget.existingListing!.id ?? '';
+    if (widget.existingListing != null) {
       success = await controller.updateService(
-        listingId,
-        serviceData,
-        _selectedImages.isNotEmpty ? _selectedImages : null,
-      );
+          widget.existingListing!.sId!, serviceData, _selectedImages);
     } else {
       success = await controller.createService(serviceData, _selectedImages);
     }
 
-    if (mounted) {
-      if (success) {
-        CustomSnackBar.show(
-          context: context,
-          message: isEdit
-              ? 'Listing updated successfully!'
-              : 'Listing published successfully!',
-          isError: false,
-        );
-        Navigator.pop(context, true);
-      } else {
-        CustomSnackBar.show(
-          context: context,
-          message:
-              controller.errorMessage ??
-              (isEdit ? 'Update failed' : 'Publishing failed'),
-          isError: true,
-        );
-      }
+    if (success && mounted) {
+      CustomSnackBar.show(
+        context: context,
+        message: widget.existingListing != null
+            ? "Service updated successfully"
+            : "Service published successfully",
+        isError: false,
+      );
+      Navigator.pop(context, true);
+    } else if (mounted) {
+       // Display error summary snackbar
+       CustomSnackBar.show(
+         context: context,
+         message: controller.errorMessage ?? "Failed to publish listing",
+         isError: true,
+       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    bool inProgress = context.watch<ServiceController>().inProgress;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
         backgroundColor: Colors.white,
         elevation: 0,
-        surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.sp),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -452,258 +321,160 @@ class _ProviderCreateListingScreenState
             fontWeight: FontWeight.bold,
           ),
         ),
-        centerTitle: false,
       ),
-      body: Consumer<ServiceController>(
-        builder: (context, controller, child) {
-          return SingleChildScrollView(
-            padding: EdgeInsets.all(20.w),
-            child: Form(
+      body: _isLoadingCategories
+          ? const Center(child: CircularProgressIndicator())
+          : Form(
               key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: ListView(
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
                 children: [
+                  _buildSectionTitle('Basic Information'),
                   _buildLabel('Listing Title'),
                   _buildTextField(
-                    hintText: 'Event Photography',
-                    controller: _titleController,
+                    _titleController, 
+                    'e.g. Professional Portrait Shoot',
+                    errorText: context.watch<ServiceController>().fieldErrors['title'],
                   ),
-                  SizedBox(height: 20.h),
-
+                  SizedBox(height: 15.h),
                   _buildLabel('Category'),
-                  _buildDropdown(),
-                  SizedBox(height: 20.h),
-
-                  _buildLabel('Sub-Category (Optional)'),
+                  _buildCategoryDropdown(),
+                  SizedBox(height: 15.h),
+                  _buildLabel('Sub-Category'),
                   _buildTextField(
-                    hintText: 'Wedding, Portrait, etc.',
-                    controller: _subCategoryController,
+                    _subCategoryController, 
+                    'e.g. Wedding, Event, Portrait',
+                    errorText: context.watch<ServiceController>().fieldErrors['subCategory'],
                   ),
-                  SizedBox(height: 20.h),
-
+                  SizedBox(height: 15.h),
                   _buildLabel('Service Type'),
-                  if (_dynamicServiceTypes.isEmpty)
-                    const Text('No service types found')
-                  else
-                    ..._dynamicServiceTypes.map((type) => _buildRadioOption(type)).toList(),
-                  SizedBox(height: 20.h),
-
-                  _buildLabel('Pricing Model'),
-                  _buildPricingToggle(),
-                  SizedBox(height: 20.h),
-
-                  if (_selectedPricingModel == 'By Service') ...[
-                    _buildLabel('Basic Package (€)'),
-                    _buildTextField(
-                      hintText: '500',
-                      controller: _basicPackagePriceController,
-                    ),
-                    SizedBox(height: 20.h),
-
-                    _buildLabel('Standard Package (€)'),
-                    _buildTextField(
-                      hintText: '1200',
-                      controller: _standardPackagePriceController,
-                    ),
-                    SizedBox(height: 20.h),
-
-                    _buildLabel('Premium Package (€)'),
-                    _buildTextField(
-                      hintText: '2500',
-                      controller: _premiumPackagePriceController,
-                    ),
-                    SizedBox(height: 20.h),
-                  ] else ...[
-                    _buildLabel(
-                      '${_selectedPricingModel == 'By Day' ? 'Daily' : 'Weekday Hourly'} Rate (€)',
-                    ),
-                    _buildTextField(
-                      hintText: _selectedPricingModel == 'By Day'
-                          ? '800'
-                          : '150',
-                      controller: _selectedPricingModel == 'By Day'
-                          ? _dailyRateController
-                          : _hourlyRateController,
-                    ),
-                    SizedBox(height: 20.h),
-
-                    _buildLabel(
-                      '${_selectedPricingModel == 'By Day' ? 'Weekend Daily' : 'Weekend Hourly'} Rate (€)',
-                    ),
-                    _buildTextField(
-                      hintText: _selectedPricingModel == 'By Day'
-                          ? '1000'
-                          : '180',
-                      controller: _selectedPricingModel == 'By Day'
-                          ? _weekendDailyRateController
-                          : _weekendRateController,
-                    ),
-                    SizedBox(height: 20.h),
-                  ],
-
+                  _buildServiceTypeDropdown(),
+                  SizedBox(height: 15.h),
                   _buildLabel('Description'),
                   _buildTextField(
-                    hintText: 'Describe your service...',
+                    _descriptionController, 
+                    'Tell clients about your service (min 10 characters)...', 
                     maxLines: 4,
-                    controller: _descriptionController,
+                    errorText: _descriptionController.text.isNotEmpty && _descriptionController.text.length < 10 
+                      ? 'Description must be at least 10 characters'
+                      : context.watch<ServiceController>().fieldErrors['description'],
                   ),
-                  SizedBox(height: 20.h),
-
-                  _buildLabel('Duration'),
-                  _buildTextField(
-                    hintText: '2 hours',
-                    controller: _durationController,
-                  ),
-                  SizedBox(height: 20.h),
-
-                  _buildLabel('Country'),
-                  _buildTextField(
-                    hintText: 'Enter Country (e.g. Germany)',
-                    controller: _countryController,
-                  ),
-                  SizedBox(height: 20.h),
-
-                  _buildLabel('City'),
-                  _buildTextField(
-                    hintText: 'Enter City',
-                    controller: _locationController,
-                  ),
-                  SizedBox(height: 20.h),
-
-                  _buildLabel('Street Address'),
-                  _buildTextField(
-                    hintText: 'Enter Street Address',
-                    controller: _addressController,
-                  ),
-                  SizedBox(height: 20.h),
-
-                  _buildLabel(
-                    'Service Radius: ${_serviceRadius.toInt()} miles',
-                  ),
-                  _buildRadiusSlider(),
-                  SizedBox(height: 10.h),
-
-                  _buildAcceptOutsideRadiusToggle(),
-                  SizedBox(height: 20.h),
-
-                  _buildLabel('Equipment'),
-                  _buildEquipmentInput(),
-                  if (_equipment.isNotEmpty) _buildEquipmentList(),
-                  SizedBox(height: 20.h),
-
-                  _buildLabel(
-                    widget.existingListing != null
-                        ? 'Photos (Max 10, existing kept if not removed)'
-                        : 'Photos (Max 10)',
-                  ),
-                  _buildPhotoUploadArea(),
-                  if (_existingNetworkImages.isNotEmpty ||
-                      _selectedImages.isNotEmpty)
-                    _buildSelectedImagesGrid(),
+                  
                   SizedBox(height: 30.h),
-
-                  _buildFooterButtons(controller.inProgress),
+                  _buildSectionTitle('Pricing & Duration'),
+                  _buildPricingToggle(),
                   SizedBox(height: 20.h),
+                  _buildPricingFields(),
+                  
+                  SizedBox(height: 30.h),
+                  _buildSectionTitle('Location & Radius'),
+                  _buildLabel('Country'),
+                  _buildTextField(_countryController, 'e.g. Germany'),
+                  SizedBox(height: 15.h),
+                  _buildLabel('City'),
+                  _buildTextField(_locationController, 'e.g. Berlin'),
+                  SizedBox(height: 15.h),
+                  _buildLabel('Address'),
+                  _buildTextField(
+                    _addressController, 
+                    'e.g. Street name, Number',
+                    errorText: context.watch<ServiceController>().fieldErrors['location.address'],
+                  ),
+                  SizedBox(height: 15.h),
+                  _buildLabel('Service Radius: ${_serviceRadius.toInt()} km'),
+                  _buildRadiusSlider(),
+                  _buildAcceptOutsideRadiusToggle(),
+                  
+                  SizedBox(height: 30.h),
+                  _buildSectionTitle('More Details'),
+                  _buildLabel('Duration (Hours)'),
+                  _buildTextField(
+                    _durationController, 
+                    'e.g. 2',
+                    errorText: context.watch<ServiceController>().fieldErrors['duration'],
+                  ),
+                  SizedBox(height: 15.h),
+                  _buildLabel('Equipment (Optional)'),
+                  _buildEquipmentInput(),
+                  _buildEquipmentList(),
+                  
+                  SizedBox(height: 30.h),
+                  _buildSectionTitle('Portfolio Photos'),
+                  _buildPhotoUploadArea(),
+                  _buildSelectedImagesGrid(),
+                  
+                  SizedBox(height: 40.h),
+                  _buildFooterButtons(inProgress),
+                  SizedBox(height: 30.h),
                 ],
               ),
             ),
-          );
-        },
-      ),
     );
   }
 
-  Widget _buildLabel(String text) {
+  Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
+      padding: EdgeInsets.only(bottom: 15.h),
       child: Text(
-        text,
+        title,
         style: TextStyle(
-          fontSize: AppTypography.bodySmall,
-          color: Colors.black87,
-          fontWeight: FontWeight.w500,
+          fontSize: AppTypography.h2,
+          fontWeight: FontWeight.bold,
+          color: Colors.black,
         ),
       ),
     );
   }
 
-  Widget _buildTextField({
-    required String hintText,
-    int maxLines = 1,
-    TextEditingController? controller,
-  }) {
+  Widget _buildLabel(String label) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8.h),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: AppTypography.bodySmall,
+          fontWeight: FontWeight.w500,
+          color: Colors.black54,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String hint, {int maxLines = 1, String? errorText}) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
+        border: Border.all(color: errorText != null ? Colors.red : const Color(0xFFE0E0E0)),
       ),
-      child: TextField(
-        controller: controller,
-        maxLines: maxLines,
-        keyboardType: (maxLines == 1 && hintText.contains(RegExp(r'[0-9]')))
-            ? TextInputType.number
-            : TextInputType.text,
-        decoration: InputDecoration(
-          hintText: hintText,
-          hintStyle: TextStyle(
-            color: Colors.grey[400],
-            fontSize: AppTypography.bodyLarge,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: controller,
+            maxLines: maxLines,
+            onChanged: (value) => setState(() {}), // Trigger rebuild for button validation
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(color: Colors.grey[400], fontSize: AppTypography.bodyLarge),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            ),
           ),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: 16.w,
-            vertical: 12.h,
-          ),
-        ),
+          if (errorText != null)
+            Padding(
+              padding: EdgeInsets.only(left: 16.w, bottom: 8.h),
+              child: Text(
+                errorText,
+                style: TextStyle(color: Colors.red, fontSize: 12.sp),
+              ),
+            ),
+        ],
       ),
     );
   }
 
-  Widget _buildDropdown() {
-    if (_isLoadingCategories) {
-      return Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(color: const Color(0xFFE0E0E0)),
-        ),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 16.w,
-              height: 16.w,
-              child: const CircularProgressIndicator(strokeWidth: 2),
-            ),
-            SizedBox(width: 12.w),
-            Text(
-              'Loading categories...',
-              style: TextStyle(fontSize: AppTypography.bodyLarge),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (_categories.isEmpty) {
-      return Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(color: const Color(0xFFE0E0E0)),
-        ),
-        child: Text(
-          'No categories found',
-          style: TextStyle(
-            fontSize: AppTypography.bodyLarge,
-            color: Colors.red,
-          ),
-        ),
-      );
-    }
-
+  Widget _buildCategoryDropdown() {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       decoration: BoxDecoration(
@@ -715,87 +486,72 @@ class _ProviderCreateListingScreenState
         child: DropdownButton<Category>(
           value: _selectedCategory,
           isExpanded: true,
-          icon: Icon(
-            Icons.keyboard_arrow_down,
-            size: 24.sp,
-            color: Colors.grey,
-          ),
-          items: _categories.map((Category cat) {
-            return DropdownMenuItem<Category>(
-              value: cat,
-              child: Text(
-                cat.name ?? "",
-                style: TextStyle(fontSize: AppTypography.bodyLarge),
-              ),
-            );
-          }).toList(),
-          onChanged: (newValue) {
+          icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[400]),
+          onChanged: (Category? newValue) {
             setState(() {
               _selectedCategory = newValue;
-              if (newValue?.serviceType != null && newValue!.serviceType!.isNotEmpty) {
-                _selectedServiceType = newValue.serviceType!;
-              }
             });
           },
+          items: _categories.map<DropdownMenuItem<Category>>((Category value) {
+            return DropdownMenuItem<Category>(
+              value: value,
+              child: Text(value.name ?? ''),
+            );
+          }).toList(),
         ),
       ),
     );
   }
 
-  Widget _buildRadioOption(String value) {
-    bool isSelected = _selectedServiceType == value;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedServiceType = value),
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 4.h),
-        child: Row(
-          children: [
-            Container(
-              width: 18.w,
-              height: 18.w,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected ? Colors.black : Colors.grey[400]!,
-                ),
-              ),
-              child: isSelected
-                  ? Center(
-                      child: Container(
-                        width: 10.w,
-                        height: 10.w,
-                        decoration: const BoxDecoration(
-                          color: Colors.black,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-            SizedBox(width: 12.w),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: AppTypography.bodyLarge,
-                color: Colors.black87,
-              ),
-            ),
-          ],
+  Widget _buildServiceTypeDropdown() {
+    // Assuming service types are fixed or from tags for now
+    final serviceTypes = ['Photography', 'Videography', 'Video Editing', 'Wedding', 'Event', 'Portrait'];
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedServiceType,
+          isExpanded: true,
+          icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[400]),
+          onChanged: (String? newValue) {
+            setState(() {
+              _selectedServiceType = newValue!;
+            });
+          },
+          items: serviceTypes.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
         ),
       ),
     );
   }
 
   Widget _buildPricingToggle() {
+    final models = ['By Hour', 'By Day', 'By Service'];
     return Row(
-      children: ['By Hour', 'By Day', 'By Service'].map((model) {
+      children: models.map((model) {
         bool isSelected = _selectedPricingModel == model;
         return Expanded(
           child: GestureDetector(
-            onTap: () => setState(() => _selectedPricingModel = model),
+            onTap: () {
+              setState(() {
+                _selectedPricingModel = model;
+                if (model == 'By Service' && _packageControllers.isEmpty) {
+                  _packageControllers.add(PackageControllers(name: 'Starter'));
+                }
+              });
+            },
             child: Container(
-              margin: EdgeInsets.only(right: model == 'By Service' ? 0 : 8.w),
-              padding: EdgeInsets.symmetric(vertical: 10.h),
+              margin: EdgeInsets.only(right: model == models.last ? 0 : 8.w),
+              padding: EdgeInsets.symmetric(vertical: 12.h),
               decoration: BoxDecoration(
                 color: isSelected ? Colors.black : Colors.white,
                 borderRadius: BorderRadius.circular(10.r),
@@ -816,6 +572,118 @@ class _ProviderCreateListingScreenState
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildPricingFields() {
+    if (_selectedPricingModel == 'By Hour') {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildLabel('Hourly Rate (EUR)'),
+          _buildTextField(
+            _hourlyRateController, 
+            'e.g. 50',
+            errorText: context.watch<ServiceController>().fieldErrors['price'],
+          ),
+        ],
+      );
+    } else if (_selectedPricingModel == 'By Day') {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildLabel('Daily Rate (EUR)'),
+          _buildTextField(
+            _dailyRateController, 
+            'e.g. 350',
+            errorText: context.watch<ServiceController>().fieldErrors['dailyRate'],
+          ),
+          SizedBox(height: 15.h),
+          _buildLabel('Hours per Day'),
+          _buildTextField(
+            _dailyHoursController, 
+            'e.g. 8',
+            errorText: context.watch<ServiceController>().fieldErrors['dailyHours'],
+          ),
+        ],
+      );
+    } else {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ..._packageControllers.asMap().entries.map((entry) {
+            int index = entry.key;
+            PackageControllers controllers = entry.value;
+            return Container(
+              margin: EdgeInsets.only(bottom: 20.h),
+              padding: EdgeInsets.all(15.w),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9F9F9),
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(color: const Color(0xFFE0E0E0)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Package ${index + 1}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      if (_packageControllers.length > 1)
+                        GestureDetector(
+                          onTap: () => setState(() => _packageControllers.removeAt(index).dispose()),
+                          child: const Icon(Icons.delete_outline, color: Colors.red),
+                        ),
+                    ],
+                  ),
+                  SizedBox(height: 10.h),
+                  _buildPackageField(controllers.name, 'Package Name (e.g. Basic)'),
+                  SizedBox(height: 10.h),
+                  Row(
+                    children: [
+                      Expanded(child: _buildPackageField(controllers.price, 'Price (EUR)', isNumber: true)),
+                      SizedBox(width: 10.w),
+                      Expanded(child: _buildPackageField(controllers.duration, 'Duration (Hours)', isNumber: true)),
+                    ],
+                  ),
+                  SizedBox(height: 10.h),
+                  _buildPackageField(controllers.description, 'Description (Short)', maxLines: 2),
+                  SizedBox(height: 10.h),
+                  _buildPackageField(controllers.includes, 'Includes (comma separated)', maxLines: 2),
+                ],
+              ),
+            );
+          }),
+          TextButton.icon(
+            onPressed: () => setState(() => _packageControllers.add(PackageControllers())),
+            icon: const Icon(Icons.add),
+            label: const Text('Add Another Package'),
+            style: TextButton.styleFrom(foregroundColor: Colors.black),
+          ),
+        ],
+      );
+    }
+  }
+
+  Widget _buildPackageField(TextEditingController controller, String hint, {bool isNumber = false, int maxLines = 1}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+      ),
+      child: TextField(
+        controller: controller,
+        maxLines: maxLines,
+        onChanged: (value) => setState(() {}), // Trigger rebuild for button validation
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(color: Colors.grey[400], fontSize: AppTypography.bodyMedium),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+        ),
+      ),
     );
   }
 
@@ -1033,7 +901,6 @@ class _ProviderCreateListingScreenState
   }
 
   Widget _buildSelectedImagesGrid() {
-    // Combine existing and new for display
     final totalItems = _existingNetworkImages.length + _selectedImages.length;
 
     return Padding(
@@ -1177,5 +1044,33 @@ class _ProviderCreateListingScreenState
         ],
       ],
     );
+  }
+}
+
+class PackageControllers {
+  final TextEditingController name;
+  final TextEditingController price;
+  final TextEditingController duration;
+  final TextEditingController description;
+  final TextEditingController includes; // Comma separated for UI
+
+  PackageControllers({
+    String name = '',
+    String price = '',
+    String duration = '',
+    String description = '',
+    String includes = '',
+  }) : name = TextEditingController(text: name),
+       price = TextEditingController(text: price),
+       duration = TextEditingController(text: duration),
+       description = TextEditingController(text: description),
+       includes = TextEditingController(text: includes);
+
+  void dispose() {
+    name.dispose();
+    price.dispose();
+    duration.dispose();
+    description.dispose();
+    includes.dispose();
   }
 }

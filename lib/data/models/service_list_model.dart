@@ -247,13 +247,17 @@ class ServiceItem {
 
 class ServicePricingModel {
   String? type;
+  double? dailyRate;
+  int? dailyHours;
   List<ServicePackage>? packages;
 
-  ServicePricingModel({this.type, this.packages});
+  ServicePricingModel({this.type, this.dailyRate, this.dailyHours, this.packages});
 
   factory ServicePricingModel.fromJson(Map<String, dynamic> json) {
     return ServicePricingModel(
       type: json['type'],
+      dailyRate: (json['dailyRate'] as num?)?.toDouble(),
+      dailyHours: json['dailyHours'],
       packages: json['packages'] != null
           ? (json['packages'] as List)
               .map((p) => ServicePackage.fromJson(p))
@@ -264,6 +268,8 @@ class ServicePricingModel {
 
   Map<String, dynamic> toJson() => {
     'type': type,
+    'dailyRate': dailyRate,
+    'dailyHours': dailyHours,
     if (packages != null) 'packages': packages!.map((p) => p.toJson()).toList(),
   };
 }

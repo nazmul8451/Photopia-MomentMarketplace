@@ -92,6 +92,8 @@ class Listing {
   String? coverMedia;
   String? status;
   bool? isActive;
+  String? pricingType;
+  ListingPricingModel? pricingModel;
 
   Listing({
     this.sId,
@@ -105,6 +107,8 @@ class Listing {
     this.coverMedia,
     this.status,
     this.isActive,
+    this.pricingType,
+    this.pricingModel,
   });
 
   Listing.fromJson(Map<String, dynamic> json) {
@@ -129,6 +133,10 @@ class Listing {
     
     status = json['status'];
     isActive = json['isActive'];
+    pricingType = json['pricingType'];
+    pricingModel = json['pricingModel'] != null
+        ? new ListingPricingModel.fromJson(json['pricingModel'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -150,6 +158,76 @@ class Listing {
     data['coverMedia'] = this.coverMedia;
     data['status'] = this.status;
     data['isActive'] = this.isActive;
+    data['pricingType'] = this.pricingType;
+    if (this.pricingModel != null) {
+      data['pricingModel'] = this.pricingModel!.toJson();
+    }
+    return data;
+  }
+}
+
+class ListingPricingModel {
+  String? type;
+  double? dailyRate;
+  int? dailyHours;
+  List<ListingPackage>? packages;
+
+  ListingPricingModel({this.type, this.dailyRate, this.dailyHours, this.packages});
+
+  ListingPricingModel.fromJson(Map<String, dynamic> json) {
+    type = json['type'];
+    dailyRate = (json['dailyRate'] as num?)?.toDouble();
+    dailyHours = json['dailyHours'];
+    if (json['packages'] != null) {
+      packages = <ListingPackage>[];
+      json['packages'].forEach((v) {
+        packages!.add(new ListingPackage.fromJson(v));
+      });
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['type'] = this.type;
+    data['dailyRate'] = this.dailyRate;
+    data['dailyHours'] = this.dailyHours;
+    if (this.packages != null) {
+      data['packages'] = this.packages!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class ListingPackage {
+  String? name;
+  int? price;
+  int? duration;
+  String? description;
+  List<String>? includes;
+
+  ListingPackage({
+    this.name,
+    this.price,
+    this.duration,
+    this.description,
+    this.includes,
+  });
+
+  ListingPackage.fromJson(Map<String, dynamic> json) {
+    name = json['name'];
+    price = json['price'];
+    duration = json['duration'];
+    description = json['description'];
+    includes = json['includes'] != null ? List<String>.from(json['includes']) : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['name'] = this.name;
+    data['price'] = this.price;
+    data['duration'] = this.duration;
+    data['description'] = this.description;
+    data['includes'] = this.includes;
     return data;
   }
 }

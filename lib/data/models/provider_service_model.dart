@@ -236,12 +236,16 @@ class Data {
 
 class PricingModel {
   String? type;
+  double? dailyRate;
+  int? dailyHours;
   List<Packages>? packages;
 
-  PricingModel({this.type, this.packages});
+  PricingModel({this.type, this.dailyRate, this.dailyHours, this.packages});
 
   PricingModel.fromJson(Map<String, dynamic> json) {
     type = json['type'];
+    dailyRate = (json['dailyRate'] as num?)?.toDouble();
+    dailyHours = json['dailyHours'];
     if (json['packages'] != null) {
       packages = <Packages>[];
       json['packages'].forEach((v) {
@@ -253,6 +257,8 @@ class PricingModel {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['type'] = this.type;
+    data['dailyRate'] = this.dailyRate;
+    data['dailyHours'] = this.dailyHours;
     if (this.packages != null) {
       data['packages'] = this.packages!.map((v) => v.toJson()).toList();
     }

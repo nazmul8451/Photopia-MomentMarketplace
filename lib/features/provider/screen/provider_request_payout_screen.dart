@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/constants/app_sizes.dart';
+import 'package:photopia/controller/provider/wallet_controller.dart';
+import 'package:provider/provider.dart';
 
 class ProviderRequestPayoutScreen extends StatefulWidget {
   const ProviderRequestPayoutScreen({super.key});
@@ -11,7 +13,6 @@ class ProviderRequestPayoutScreen extends StatefulWidget {
 }
 
 class _ProviderRequestPayoutScreenState extends State<ProviderRequestPayoutScreen> {
-  final double _availableBalance = 4250.00;
   late TextEditingController _amountController;
   String _selectedMethod = 'Bank Transfer';
   String? _selectedPercentage = 'All';
@@ -19,7 +20,11 @@ class _ProviderRequestPayoutScreenState extends State<ProviderRequestPayoutScree
   @override
   void initState() {
     super.initState();
-    _amountController = TextEditingController(text: _availableBalance.toStringAsFixed(2));
+    _amountController = TextEditingController(text: '0.00');
+    // Fetch wallet data if not already loading
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<WalletController>().getMyWallet();
+    });
   }
 
   @override
@@ -28,7 +33,7 @@ class _ProviderRequestPayoutScreenState extends State<ProviderRequestPayoutScree
     super.dispose();
   }
 
-  void _updateAmount(String percentage) {
+  void _updateAmount(String percentage, double currentBalance) {
     double factor = 0.0;
     switch (percentage) {
       case '25%':
@@ -45,7 +50,7 @@ class _ProviderRequestPayoutScreenState extends State<ProviderRequestPayoutScree
         break;
     }
     
-    final newAmount = _availableBalance * factor;
+    final newAmount = currentBalance * factor;
     setState(() {
       _selectedPercentage = percentage;
       _amountController.text = newAmount.toStringAsFixed(2);
@@ -73,161 +78,178 @@ class _ProviderRequestPayoutScreenState extends State<ProviderRequestPayoutScree
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Available Balance Card
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(20.w),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E1E1E),
-                borderRadius: BorderRadius.circular(16.r),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+      body: Consumer<WalletController>(
+        builder: (context, walletController, child) {
+          final double balance = (walletController.walletData?.balance ?? 0).toDouble();
+          
+          // Fallback to update controller text only if it was 0 and we have balance now
+          if (_amountController.text == '0.00' && balance > 0 && _selectedPercentage == 'All') {
+            _amountController.text = balance.toStringAsFixed(2);
+          } else if (_amountController.text == '0.00' && balance > 0 && _selectedPercentage == null) {
+             // Optional: preset but usually let user type
+          }
+
+          if (walletController.isLoading && walletController.walletData == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Available Balance Card
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(20.w),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E1E),
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.account_balance_wallet, color: Colors.white, size: 18.sp),
-                      SizedBox(width: 8.w),
+                      Row(
+                        children: [
+                          Icon(Icons.account_balance_wallet, color: Colors.white, size: 18.sp),
+                          SizedBox(width: 8.w),
+                          Text(
+                            'Available Balance',
+                            style: TextStyle(
+                              fontSize: AppTypography.bodyMedium,
+                              color: Colors.white.withOpacity(0.9),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8.h),
                       Text(
-                        'Available Balance',
+                        '€${balance.toStringAsFixed(2)}',
                         style: TextStyle(
-                          fontSize: AppTypography.bodyMedium,
-                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 28.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        'Minimum payout: €50.00',
+                        style: TextStyle(
+                          fontSize: AppTypography.bodySmall,
+                          color: Colors.white.withOpacity(0.6),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    '€${_availableBalance.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 28.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    'Minimum payout: €50.00',
-                    style: TextStyle(
-                      fontSize: AppTypography.bodySmall,
-                      color: Colors.white.withOpacity(0.6),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 24.h),
-
-            // Payout Amount
-            Text('Payout Amount', style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.grey)),
-            SizedBox(height: 8.h),
-            TextField(
-              controller: _amountController,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              onChanged: (value) {
-                if (_selectedPercentage != null) {
-                  setState(() {
-                    _selectedPercentage = null;
-                  });
-                }
-              },
-              style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w600),
-              decoration: InputDecoration(
-                prefixText: '€ ',
-                filled: true,
-                fillColor: Colors.grey[50],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppSizes.borderRadius),
-                  borderSide: BorderSide.none,
                 ),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-              ),
-            ),
-            SizedBox(height: 12.h),
+                SizedBox(height: 24.h),
 
-            // Percentage Buttons
-            Row(
-              children: [
-                _buildPercentButton('25%'),
-                SizedBox(width: 8.w),
-                _buildPercentButton('50%'),
-                SizedBox(width: 8.w),
-                _buildPercentButton('75%'),
-                SizedBox(width: 8.w),
-                _buildPercentButton('All'),
+                // Payout Amount
+                Text('Payout Amount', style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.grey)),
+                SizedBox(height: 8.h),
+                TextField(
+                  controller: _amountController,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  onChanged: (value) {
+                    if (_selectedPercentage != null) {
+                      setState(() {
+                        _selectedPercentage = null;
+                      });
+                    }
+                  },
+                  style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w600),
+                  decoration: InputDecoration(
+                    prefixText: '€ ',
+                    filled: true,
+                    fillColor: Colors.grey[50],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(AppSizes.borderRadius),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                  ),
+                ),
+                SizedBox(height: 12.h),
+
+                // Percentage Buttons
+                Row(
+                  children: [
+                    _buildPercentButton('25%', balance),
+                    SizedBox(width: 8.w),
+                    _buildPercentButton('50%', balance),
+                    SizedBox(width: 8.w),
+                    _buildPercentButton('75%', balance),
+                    SizedBox(width: 8.w),
+                    _buildPercentButton('All', balance),
+                  ],
+                ),
+                SizedBox(height: 24.h),
+
+                // Payment Method
+                Text('Payment Method', style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.grey)),
+                SizedBox(height: 12.h),
+                _buildPaymentMethodItem(
+                  icon: Icons.account_balance, 
+                  title: 'Bank Transfer', 
+                  subtitle: '****1234\n2-3 business days', 
+                  isSelected: _selectedMethod == 'Bank Transfer',
+                  onTap: () => setState(() => _selectedMethod = 'Bank Transfer'),
+                ),
+                SizedBox(height: 12.h),
+                 _buildPaymentMethodItem(
+                  icon: Icons.payments, 
+                  title: 'PayPal', 
+                  subtitle: 'sarah.m@email.com\n1 business day', 
+                  isSelected: _selectedMethod == 'PayPal',
+                  trailing: '2.9% fee',
+                  onTap: () => setState(() => _selectedMethod = 'PayPal'),
+                ),
+
+                SizedBox(height: 32.h),
+
+                // Summary
+                Text('Payout Summary', style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.grey)),
+                SizedBox(height: 12.h),
+                _buildSummaryRow('Payout Amount', '€${_amountController.text}'),
+                SizedBox(height: 8.h),
+                _buildSummaryRow('You\'ll Receive', '€${_amountController.text}', isTotal: true),
+
+                SizedBox(height: 32.h),
+
+                // Request Button
+                SizedBox(
+                   width: double.infinity,
+                   height: AppSizes.fieldHeight,
+                   child: ElevatedButton(
+                     onPressed: () {
+                         // Show success dialog
+                         _showSuccessDialog(context);
+                     },
+                     style: ElevatedButton.styleFrom(
+                       backgroundColor: Colors.black,
+                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.borderRadius)),
+                     ),
+                     child: Text('Request Payout', style: TextStyle(
+                       fontSize: AppTypography.bodyLarge,
+                       color: Colors.white,
+                       fontWeight: FontWeight.w600,
+                     )),
+                   ),
+                 ),
+                 SizedBox(height: 20.h),
               ],
             ),
-            SizedBox(height: 24.h),
-
-            // Payment Method
-            Text('Payment Method', style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.grey)),
-            SizedBox(height: 12.h),
-            _buildPaymentMethodItem(
-              icon: Icons.account_balance, 
-              title: 'Bank Transfer', 
-              subtitle: '****1234\n2-3 business days', 
-              isSelected: _selectedMethod == 'Bank Transfer',
-              onTap: () => setState(() => _selectedMethod = 'Bank Transfer'),
-            ),
-            SizedBox(height: 12.h),
-             _buildPaymentMethodItem(
-              icon: Icons.payments, 
-              title: 'PayPal', 
-              subtitle: 'sarah.m@email.com\n1 business day', 
-              isSelected: _selectedMethod == 'PayPal',
-              trailing: '2.9% fee',
-              onTap: () => setState(() => _selectedMethod = 'PayPal'),
-            ),
-
-            SizedBox(height: 32.h),
-
-            // Summary
-            Text('Payout Summary', style: TextStyle(fontSize: AppTypography.bodyMedium, color: Colors.grey)),
-            SizedBox(height: 12.h),
-            _buildSummaryRow('Payout Amount', '€${_amountController.text}'),
-            SizedBox(height: 8.h),
-            _buildSummaryRow('You\'ll Receive', '€${_amountController.text}', isTotal: true),
-
-            SizedBox(height: 32.h),
-
-            // Request Button
-            SizedBox(
-               width: double.infinity,
-               height: AppSizes.fieldHeight,
-               child: ElevatedButton(
-                 onPressed: () {
-                     // Show success dialog
-                     _showSuccessDialog(context);
-                 },
-                 style: ElevatedButton.styleFrom(
-                   backgroundColor: Colors.black,
-                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.borderRadius)),
-                 ),
-                 child: Text('Request Payout', style: TextStyle(
-                   fontSize: AppTypography.bodyLarge,
-                   color: Colors.white,
-                   fontWeight: FontWeight.w600,
-                 )),
-               ),
-             ),
-             SizedBox(height: 20.h),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildPercentButton(String label) {
+  Widget _buildPercentButton(String label, double currentBalance) {
     final isSelected = _selectedPercentage == label;
     return Expanded(
       child: GestureDetector(
-        onTap: () => _updateAmount(label),
+        onTap: () => _updateAmount(label, currentBalance),
         child: Container(
           padding: EdgeInsets.symmetric(vertical: 8.h),
           decoration: BoxDecoration(

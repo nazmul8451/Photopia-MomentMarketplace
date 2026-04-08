@@ -62,9 +62,7 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
             Consumer<ProviderProfileController>(
               builder: (context, profileController, child) {
                 final user = profileController.userProfile;
-                final isPremium = user?.subscriptionStatus == 'active' || 
-                                 user?.subscriptionStatus == 'trialing' || 
-                                 user?.isSubscribed == true;
+                final isPremium = user?.isPremium ?? false;
                 return SubscriptionBadge(
                   isSubscribed: isPremium,
                 );
@@ -80,9 +78,8 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
         child: Consumer<StatisticsController>(
           builder: (context, controller, child) {
             final stats = controller.statisticsData;
-            final isPremiumUser = stats?.subscriptionStatus == 'active' || 
-                               stats?.subscriptionStatus == 'trialing' ||
-                               stats?.isPremium == true;
+            final profileController = context.watch<ProviderProfileController>();
+            final isPremiumUser = profileController.userProfile?.isPremium ?? false;
 
             if (controller.isLoading && stats == null) {
               return const Center(child: CircularProgressIndicator());

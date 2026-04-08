@@ -766,7 +766,7 @@ class _BookingConfirmationScreenState
                 const Divider(),
                 _buildReviewIconItem(Icons.calendar_today_outlined, dateStr),
                 if (_selectedTime.isNotEmpty)
-                  _buildReviewIconItem(Icons.access_time, _selectedTime),
+                  _buildReviewIconItem(Icons.access_time, '$_selectedTime - ${_calculateEndTime()}'),
                 _buildReviewIconItem(Icons.location_on_outlined,
                     _location.isEmpty ? 'Not specified' : _location),
                 if (_specialRequests.isNotEmpty) ...[
@@ -786,6 +786,27 @@ class _BookingConfirmationScreenState
         ],
       ),
     );
+  }
+
+  String _calculateEndTime() {
+    if (_selectedTime.isEmpty) return "";
+    try {
+      int durationHours = 1;
+      if (widget.service?['pricingType'] == 'DAILY') {
+        durationHours = widget.service?['pricingModel']?['dailyHours'] ?? 8;
+      } else {
+        final durationStr = (widget.package?['duration'] ?? widget.service?['duration'] ?? "1")
+            .toString()
+            .toLowerCase();
+        durationHours = int.tryParse(durationStr.split(' ')[0]) ?? 1;
+      }
+
+      final int startHour = int.tryParse(_selectedTime.split(':')[0]) ?? 9;
+      final int startMinute = int.tryParse(_selectedTime.split(':')[1]) ?? 0;
+      return "${(startHour + durationHours).toString().padLeft(2, '0')}:${startMinute.toString().padLeft(2, '0')}";
+    } catch (e) {
+      return "";
+    }
   }
 
   double get _packagePrice {
@@ -963,12 +984,23 @@ class _BookingConfirmationScreenState
     String endTime = "18:00";
     if (_selectedTime.isNotEmpty) {
       try {
-        final durationStr = (widget.package?['duration'] ?? widget.service?['duration'] ?? "1 hour")
-            .toString()
-            .toLowerCase();
-        final int durationHours = int.tryParse(durationStr.split(' ')[0]) ?? 1;
+        int durationHours = 1;
+        
+        if (widget.service?['pricingType'] == 'DAILY') {
+           durationHours = widget.service?['pricingModel']?['dailyHours'] ?? 8;
+        } else {
+           // Extraction for PACKAGE or standard
+           final durationStr = (widget.package?['duration'] ?? widget.service?['duration'] ?? "1")
+              .toString()
+              .toLowerCase();
+           durationHours = int.tryParse(durationStr.split(' ')[0]) ?? 1;
+        }
+
         final int startHour = int.tryParse(_selectedTime.split(':')[0]) ?? 9;
-        endTime = "${(startHour + durationHours).toString().padLeft(2, '0')}:00";
+        final int startMinute = int.tryParse(_selectedTime.split(':')[1]) ?? 0;
+        
+        final endHourNum = startHour + durationHours;
+        endTime = "${endHourNum.toString().padLeft(2, '0')}:${startMinute.toString().padLeft(2, '0')}";
       } catch (e) {
         debugPrint("Error calculating endTime: $e");
       }

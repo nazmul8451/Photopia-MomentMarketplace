@@ -33,10 +33,15 @@ class CalenderAvailibilityController extends ChangeNotifier {
       // Keep only non-null values
       body.removeWhere((key, value) => value == null);
 
+      String bodyStr = jsonEncode(body);
+      if (bodyStr.length > 500) {
+        bodyStr = "${bodyStr.substring(0, 500)}... [Truncated]";
+      }
+
       debugPrint(
         '🚀 Sending Availability Update to ${Urls.calenderSettings}',
       );
-      debugPrint('📦 Body: ${jsonEncode(body)}');
+      debugPrint('📦 Body: $bodyStr');
 
       final NetworkResponse response = await NetworkCaller.postRequest(
         url: Urls.calenderSettings,
