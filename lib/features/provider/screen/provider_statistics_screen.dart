@@ -61,8 +61,12 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
             SizedBox(width: 8.w),
             Consumer<ProviderProfileController>(
               builder: (context, profileController, child) {
+                final user = profileController.userProfile;
+                final isPremium = user?.subscriptionStatus == 'active' || 
+                                 user?.subscriptionStatus == 'trialing' || 
+                                 user?.isSubscribed == true;
                 return SubscriptionBadge(
-                  isSubscribed: profileController.userProfile?.isSubscribed ?? false,
+                  isSubscribed: isPremium,
                 );
               },
             ),
@@ -76,7 +80,10 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
         child: Consumer<StatisticsController>(
           builder: (context, controller, child) {
             final stats = controller.statisticsData;
-            
+            final isPremiumUser = stats?.subscriptionStatus == 'active' || 
+                               stats?.subscriptionStatus == 'trialing' ||
+                               stats?.isPremium == true;
+
             if (controller.isLoading && stats == null) {
               return const Center(child: CircularProgressIndicator());
             }
@@ -101,11 +108,11 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
                       SizedBox(width: 16.w),
                       Expanded(
                         child: _buildSummaryCard(
-                          icon: Icons.star_outline_rounded,
-                          label: 'Rating',
-                          value: '${stats?.rating?.score ?? 0}',
-                          subValue: '${stats?.rating?.reviews ?? 0} reviews',
-                          isPositive: true,
+                          icon: Icons.euro,
+                          label: 'Monthly Revenue',
+                          value: '€${stats?.revenueAnalytics?.currentMonth ?? 0}',
+                          subValue: '${(stats?.revenueAnalytics?.percentageChange ?? 0) >= 0 ? "+" : ""}${stats?.revenueAnalytics?.percentageChange ?? 0}% vs last month',
+                          isPositive: (stats?.revenueAnalytics?.percentageChange ?? 0) >= 0,
                         ),
                       ),
                     ],
@@ -144,7 +151,7 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
                   SizedBox(height: 24.h),
 
                   // Premium/Free Conditional Section
-                  if (stats?.isPremium == true) ...[
+                  if (isPremiumUser) ...[
                     // Regional Views
                     _buildRegionCard(stats?.viewsByRegion ?? []),
                     SizedBox(height: 24.h),

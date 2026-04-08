@@ -12,11 +12,35 @@ class SubscriptionController extends ChangeNotifier {
   String? _errorMessage;
   SubscriptionPlanModel? _planModel;
   bool _isAlreadySubscribed = false;
+  String? _termsContent;
+  String? _privacyContent;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   SubscriptionPlanModel? get planModel => _planModel;
   bool get isAlreadySubscribed => _isAlreadySubscribed;
+  String? get termsContent => _termsContent;
+  String? get privacyContent => _privacyContent;
+
+  Future<void> fetchTermsAndConditions() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await NetworkCaller.getRequest(url: Urls.termsAndConditions);
+      if (response.isSuccess && response.body != null) {
+        _termsContent = response.body!['data']['content'];
+      } else {
+        _errorMessage = response.errorMessage ?? "Failed to load terms";
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   /// Fetch all available subscription plans
   Future<void> fetchPlans() async {

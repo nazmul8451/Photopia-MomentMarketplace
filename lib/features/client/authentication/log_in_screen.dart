@@ -9,6 +9,7 @@ import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/widgets/custom_snacbar.dart';
 import 'package:photopia/core/network/Api_service/network_caller.dart';
 import 'package:photopia/core/network/urls.dart';
+import 'package:photopia/core/notification/notification_service.dart';
 
 class LogInScreen extends StatefulWidget {
   static const String name = '/log_in';
@@ -175,6 +176,9 @@ class _LogInScreenState extends State<LogInScreen> {
                               message: 'Login successful',
                               isError: false,
                             );
+
+                            // Sync FCM token after login
+                            NotificationService.instance.getTokenAndSendToBackend(context);
 
                             if (activeRole == 'professional') {
                               Navigator.pushNamedAndRemoveUntil(

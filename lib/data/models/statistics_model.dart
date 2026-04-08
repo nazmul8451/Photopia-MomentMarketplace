@@ -27,6 +27,7 @@ class StatisticsResponse {
 
 class StatisticsData {
   bool? isPremium;
+  String? subscriptionStatus;
   ProfileViews? profileViews;
   RatingStats? rating;
   List<RegionStats>? viewsByRegion;
@@ -35,6 +36,7 @@ class StatisticsData {
 
   StatisticsData({
     this.isPremium,
+    this.subscriptionStatus,
     this.profileViews,
     this.rating,
     this.viewsByRegion,
@@ -44,6 +46,7 @@ class StatisticsData {
 
   StatisticsData.fromJson(Map<String, dynamic> json) {
     isPremium = json['isPremium'];
+    subscriptionStatus = json['subscriptionStatus'];
     profileViews = json['profileViews'] != null
         ? ProfileViews.fromJson(json['profileViews'])
         : null;

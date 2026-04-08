@@ -17,6 +17,7 @@ class ProfessionalProfileModel {
   final String? coverPhoto;
   final Statistics? statistics;
   final bool isSubscribed;
+  final String? subscriptionStatus;
 
   ProfessionalProfileModel({
     this.profileViews,
@@ -35,6 +36,7 @@ class ProfessionalProfileModel {
     this.coverPhoto,
     this.statistics,
     this.isSubscribed = false,
+    this.subscriptionStatus,
   });
 
   factory ProfessionalProfileModel.fromJson(Map<String, dynamic> json) {
@@ -57,6 +59,7 @@ class ProfessionalProfileModel {
           ? Statistics.fromJson(json['statistics'])
           : null,
       isSubscribed: json['subscription'] != null || json['isSubscribed'] == true,
+      subscriptionStatus: json['subscriptionStatus']?.toString(),
     );
   }
 
@@ -76,6 +79,7 @@ class User {
   final String? description;
   final bool? verified;
   final bool isSubscribed;
+  final String? subscriptionStatus;
 
   User({
     this.id,
@@ -85,6 +89,7 @@ class User {
     this.description,
     this.verified,
     this.isSubscribed = false,
+    this.subscriptionStatus,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -96,6 +101,7 @@ class User {
       description: json['description'],
       verified: json['verified'] == true,
       isSubscribed: json['subscription'] != null || json['isSubscribed'] == true,
+      subscriptionStatus: json['subscriptionStatus']?.toString(),
     );
   }
 }

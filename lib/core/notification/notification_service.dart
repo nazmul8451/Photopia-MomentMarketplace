@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/controller/client/user_profile_controller.dart';
+import 'package:photopia/core/network/urls.dart';
 import 'package:provider/provider.dart';
 
 // Top-level background message handler
@@ -106,35 +107,43 @@ class NotificationService {
   }
 
   Future<void> getTokenAndSendToBackend(BuildContext context) async {
+    debugPrint("🔔 NotificationService: Starting token sync check...");
     if (!AuthController.isLoggedIn) {
-      debugPrint("Token sync skipped: User not logged in");
+      debugPrint("🔔 NotificationService: Token sync skipped: User is NOT logged in.");
       return;
     }
     
     try {
+      debugPrint("🔔 NotificationService: Fetching FCM token from Firebase...");
       String? token = await _fcm.getToken();
       if (token != null) {
-        debugPrint("\n\n**************************************************************\nFCM TOKEN START\n$token\nFCM TOKEN END\n**************************************************************\n\n");
+        debugPrint("🔔 NotificationService: FCM TOKEN RECEIVED: $token");
         await _sendTokenToBackend(context, token);
       } else {
-        debugPrint("FCM Token is null");
+        debugPrint("🔔 NotificationService: FCM Token is NULL - cannot sync.");
       }
     } catch (e) {
-      debugPrint("Error fetching FCM token: $e");
+      debugPrint("🔔 NotificationService: ERROR fetching FCM token: $e");
     }
   }
 
   Future<void> _sendTokenToBackend(BuildContext context, String token) async {
     try {
       final profileController = Provider.of<UserProfileController>(context, listen: false);
-      // Only call if token is different or as needed
-      debugPrint("Syncing token to backend...");
-      await profileController.updateProfile(
+      debugPrint("🔔 NotificationService: Calling updateProfile with deviceToken...");
+      debugPrint("🔔 NotificationService: Target URL: ${Urls.updateUserProfile}");
+      
+      bool success = await profileController.updateProfile(
         deviceToken: token,
       );
-      debugPrint("Token successfully synced with backend");
+      
+      if (success) {
+        debugPrint("🔔 NotificationService: ✅ Device token successfully synced with backend.");
+      } else {
+        debugPrint("🔔 NotificationService: ❌ Backend sync failed: ${profileController.errorMessage}");
+      }
     } catch (e) {
-      debugPrint("Error syncing token with backend: $e");
+      debugPrint("🔔 NotificationService: ❌ CRITICAL ERROR syncing token: $e");
     }
   }
 

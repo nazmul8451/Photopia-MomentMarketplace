@@ -92,4 +92,7 @@ class Urls {
   static const String createBooking = '$baseUrl/api/v1/booking';
 
   static String updateBookingStatus(String id) => '$baseUrl/api/v1/booking/$id/status';
+
+  //public api
+  static const String termsAndConditions = '$baseUrl/api/v1/public/terms-and-condition';
 }

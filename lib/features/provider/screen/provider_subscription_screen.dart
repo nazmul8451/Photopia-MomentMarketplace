@@ -240,12 +240,15 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
                 
                 // Bottom link/info
                 Center(
-                  child: Text(
-                    'View Terms & Conditions',
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 13.sp,
-                      decoration: TextDecoration.underline,
+                  child: GestureDetector(
+                    onTap: () => _showTermsModal(context),
+                    child: Text(
+                      'View Terms & Conditions',
+                      style: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 13.sp,
+                        decoration: TextDecoration.underline,
+                      ),
                     ),
                   ),
                 ),
@@ -256,6 +259,53 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
         },
       ),
     );
+  }
+
+  void _showTermsModal(BuildContext context) async {
+    final controller = Provider.of<SubscriptionController>(context, listen: false);
+    
+    // Show loading while fetching
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    await controller.fetchTermsAndConditions();
+    
+    if (context.mounted) {
+      Navigator.pop(context); // Close loading
+
+      if (controller.errorMessage != null && controller.termsContent == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(controller.errorMessage!)),
+        );
+        return;
+      }
+
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Terms & Conditions'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Text(
+                controller.termsContent ?? 'No content available',
+                style: TextStyle(fontSize: 14.sp, height: 1.5),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close', style: TextStyle(color: Colors.black)),
+            ),
+          ],
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+        ),
+      );
+    }
   }
 
   Widget _buildBenefitItem(String benefit) {

@@ -34,9 +34,16 @@ import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/features/onboarding/get_started.dart';
 import 'package:photopia/features/provider/screen/BottomNavigationBar/bottom_navigation_screen.dart';
 
-class Photopia extends StatelessWidget {
+import 'package:photopia/core/notification/notification_service.dart';
+
+class Photopia extends StatefulWidget {
   const Photopia({super.key});
 
+  @override
+  State<Photopia> createState() => _PhotopiaState();
+}
+
+class _PhotopiaState extends State<Photopia> {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
@@ -90,6 +97,14 @@ class Photopia extends StatelessWidget {
                 cursorColor: Colors.black54,
               ),
             ),
+            builder: (context, child) {
+              // Initialize notification service once context has access to Providers
+              // We use a post frame callback to ensure this happens after the first build
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                NotificationService.instance.init(context);
+              });
+              return child!;
+            },
             routes: AppRoutes.routes,
             home: _getInitialScreen(),
           ),
