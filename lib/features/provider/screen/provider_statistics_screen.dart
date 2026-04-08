@@ -7,6 +7,7 @@ import 'package:photopia/controller/provider/statistics_controller.dart';
 import 'package:photopia/core/widgets/subscription_badge.dart';
 import 'package:photopia/data/models/statistics_model.dart';
 import 'package:photopia/features/provider/screen/provider_subscription_screen.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
 import 'package:provider/provider.dart';
 
 class ProviderStatisticsScreen extends StatefulWidget {
@@ -179,16 +180,13 @@ class _ProviderStatisticsScreenState extends State<ProviderStatisticsScreen> {
                         ? null 
                         : () async {
                             final path = await controller.exportStatistics();
-                            if (path != null && context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Report saved to: ${path.split("/").last}'),
-                                  backgroundColor: Colors.black,
-                                  behavior: SnackBarBehavior.floating,
-                                  duration: const Duration(seconds: 4),
-                                ),
-                              );
-                            }
+                             if (path != null && context.mounted) {
+                               CustomSnackBar.show(
+                                 context: context,
+                                 message: 'Report saved to: ${path.split("/").last}',
+                                 isError: false,
+                               );
+                             }
                           },
                       icon: controller.isExporting 
                         ? SizedBox(

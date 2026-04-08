@@ -160,4 +160,10 @@ class CalenderAvailibilityController extends ChangeNotifier {
       return [];
     }
   }
+
+  void reset() {
+    _inProgress = false;
+    _errorMessage = null;
+    notifyListeners();
+  }
 }

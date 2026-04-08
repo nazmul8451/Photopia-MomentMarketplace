@@ -135,4 +135,14 @@ class SubscriptionController extends ChangeNotifier {
       return false;
     }
   }
+
+  void reset() {
+    _isLoading = false;
+    _errorMessage = null;
+    _planModel = null;
+    _isAlreadySubscribed = false;
+    _termsContent = null;
+    _privacyContent = null;
+    notifyListeners();
+  }
 }

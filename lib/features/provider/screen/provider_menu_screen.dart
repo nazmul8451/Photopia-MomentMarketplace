@@ -546,7 +546,7 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                       }
 
                       // 2. ALWAYS clear local state and navigate to login
-                      await AuthController.forceLogout();
+                      await AuthController.forceLogout(context);
                     }
                   },
             style: OutlinedButton.styleFrom(

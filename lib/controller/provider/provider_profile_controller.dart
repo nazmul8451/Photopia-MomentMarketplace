@@ -297,6 +297,9 @@ class ProviderProfileController extends ChangeNotifier {
   void reset() {
     _userProfile = null;
     _professionalProfile = null;
+    _reviews = [];
+    _inProgress = false;
+    _errorMessage = null;
     notifyListeners();
   }
 }

@@ -7,6 +7,7 @@ import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_orders_controller.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
 import 'package:photopia/data/models/conversation_model.dart';
 import 'package:photopia/data/models/chat_message_model.dart';
 import 'package:photopia/features/client/chat_screen.dart';
@@ -922,8 +923,10 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
     clientId = clientId.isEmpty ? (booking['client']?.toString() ?? '') : clientId;
 
     if (clientId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Client information not available')),
+      CustomSnackBar.show(
+        context: context,
+        message: 'Client information not available',
+        isError: true,
       );
       return;
     }
@@ -1010,13 +1013,12 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                           final success = await controller.updateOrderStatus(bookingId, status);
                           
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(success 
-                                  ? 'Order ${isAccept ? 'accepted' : 'declined'} successfully!' 
-                                  : 'Failed to update order status'),
-                                backgroundColor: success ? Colors.green : Colors.red,
-                              ),
+                            CustomSnackBar.show(
+                              context: context,
+                              message: success 
+                                ? 'Order ${isAccept ? 'accepted' : 'declined'} successfully!' 
+                                : 'Failed to update order status',
+                              isError: !success,
                             );
                           }
                         },

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/subscription_controller.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
 import 'package:photopia/data/models/subscription_plan_model.dart';
 import 'package:photopia/features/provider/widgets/provider_custom_bottom_nav_bar.dart';
 import 'package:photopia/features/provider/screen/BottomNavigationBar/bottom_navigation_screen.dart';
@@ -29,24 +30,21 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
     
     final success = await controller.createSubscription(context, plan.sId!);
     
-    if (success) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Subscription successful! You are now a Pro member.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        // Optionally navigate or refresh profile
-      }
-    } else if (controller.errorMessage != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(controller.errorMessage!),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+     if (success) {
+       if (mounted) {
+         CustomSnackBar.show(
+           context: context,
+           message: 'Subscription successful! You are now a Pro member.',
+           isError: false,
+         );
+       }
+     } else if (controller.errorMessage != null && mounted) {
+       CustomSnackBar.show(
+         context: context,
+         message: controller.errorMessage!,
+         isError: true,
+       );
+     }
   }
 
   @override
@@ -277,8 +275,10 @@ class _ProviderSubscriptionScreenState extends State<ProviderSubscriptionScreen>
       Navigator.pop(context); // Close loading
 
       if (controller.errorMessage != null && controller.termsContent == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(controller.errorMessage!)),
+        CustomSnackBar.show(
+          context: context,
+          message: controller.errorMessage!,
+          isError: true,
         );
         return;
       }

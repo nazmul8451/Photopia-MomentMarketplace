@@ -87,4 +87,12 @@ class StatisticsController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void reset() {
+    _statisticsData = null;
+    _errorMessage = null;
+    _isLoading = false;
+    _isExporting = false;
+    notifyListeners();
+  }
 }

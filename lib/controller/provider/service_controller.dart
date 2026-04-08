@@ -504,4 +504,13 @@ class ServiceController extends ChangeNotifier {
       return false;
     }
   }
+
+  void reset() {
+    _myServices = [];
+    _currentService = null;
+    _fieldErrors = {};
+    _errorMessage = null;
+    _inProgress = false;
+    notifyListeners();
+  }
 }

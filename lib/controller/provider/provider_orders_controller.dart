@@ -61,4 +61,12 @@ class ProviderOrdersController extends ChangeNotifier {
     }
     return false;
   }
+
+  void reset() {
+    _inProgress = false;
+    _isUpdating = false;
+    _errorMessage = '';
+    _orders = [];
+    notifyListeners();
+  }
 }

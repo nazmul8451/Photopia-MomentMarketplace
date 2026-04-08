@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_orders_controller.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
 import 'package:photopia/core/network/Api_service/network_caller.dart';
 import 'package:photopia/core/network/urls.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
@@ -319,8 +320,10 @@ class BookingDetailsScreen extends StatelessWidget {
           child: ElevatedButton(
             onPressed: () {
               if (clientId.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Client information not available')),
+                CustomSnackBar.show(
+                  context: context,
+                  message: 'Client information not available',
+                  isError: true,
                 );
                 return;
               }
@@ -432,13 +435,12 @@ class BookingDetailsScreen extends StatelessWidget {
                           final success = await controller.updateOrderStatus(bookingId, status);
                           
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(success 
-                                  ? 'Order ${isAccept ? 'accepted' : 'declined'} successfully!' 
-                                  : 'Failed to update order status'),
-                                backgroundColor: success ? Colors.green : Colors.red,
-                              ),
+                            CustomSnackBar.show(
+                              context: context,
+                              message: success 
+                                ? 'Order ${isAccept ? 'accepted' : 'declined'} successfully!' 
+                                : 'Failed to update order status',
+                              isError: !success,
                             );
                             if (success) {
                               Navigator.of(context).pop();

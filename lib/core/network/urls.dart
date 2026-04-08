@@ -74,6 +74,7 @@ class Urls {
 
   //** wallet api */
   static const String myWallet = '$baseUrl/api/v1/wallet/my-wallet';
+  static const String createWithdrawal = '$baseUrl/api/v1/withdrawal';
 
   //** chat api */
   static const String chat = '$baseUrl/api/v1/chat';
@@ -95,4 +96,8 @@ class Urls {
 
   //public api
   static const String termsAndConditions = '$baseUrl/api/v1/public/terms-and-condition';
+
+  // Stripe Connect api
+  static const String stripeConnectStatus = '$baseUrl/api/v1/users/stripe-connect-status';
+  static const String stripeOnboarding = '$baseUrl/api/v1/users/stripe-connect-onboarding';
 }

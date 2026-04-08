@@ -113,4 +113,11 @@ class UserProfileController extends ChangeNotifier {
       return false;
     }
   }
+
+  void reset() {
+    _inProgress = false;
+    _errorMessage = null;
+    _userProfile = null;
+    notifyListeners();
+  }
 }

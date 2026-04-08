@@ -1,5 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:provider/provider.dart';
+
+import 'package:photopia/controller/provider/wallet_controller.dart';
+import 'package:photopia/controller/provider/provider_profile_controller.dart';
+import 'package:photopia/controller/client/user_profile_controller.dart';
+import 'package:photopia/controller/provider/statistics_controller.dart';
+import 'package:photopia/controller/provider/service_controller.dart';
+import 'package:photopia/controller/provider/my_listing_controller.dart';
+import 'package:photopia/controller/provider/provider_orders_controller.dart';
+import 'package:photopia/controller/provider/subscription_controller.dart';
+import 'package:photopia/controller/provider/calender_availibility_controller.dart';
 import 'package:photopia/core/routes/app_routes.dart';
 
 /// A global navigator key used for navigation outside of widget context (e.g., from NetworkCaller)
@@ -64,11 +75,30 @@ class AuthController extends ChangeNotifier {
   static bool _isLoggingOut = false;
 
   /// Force logout when access token expires (called from NetworkCaller on 401)
-  static Future<void> forceLogout() async {
+  static Future<void> forceLogout([BuildContext? context]) async {
     if (_isLoggingOut) return;
     _isLoggingOut = true;
 
     try {
+      // 1. Reset all controllers if context is provided
+      if (context != null) {
+        try {
+          // Provider Controllers
+          context.read<WalletController>().reset();
+          context.read<ProviderProfileController>().reset();
+          context.read<UserProfileController>().reset();
+          context.read<StatisticsController>().reset();
+          context.read<ServiceController>().reset();
+          context.read<MyListingController>().reset();
+          context.read<ProviderOrdersController>().reset();
+          context.read<SubscriptionController>().reset();
+          context.read<CalenderAvailibilityController>().reset();
+          debugPrint('🧹 All controllers reset successfully.');
+        } catch (e) {
+          debugPrint('⚠️ Error resetting controllers: $e');
+        }
+      }
+
       await GetStorage().remove(_tokenKey);
       await GetStorage().remove(_roleKey);
       await GetStorage().remove(_userIdKey);

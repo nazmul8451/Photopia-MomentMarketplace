@@ -3,7 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/constants/app_sizes.dart';
 import 'package:photopia/controller/provider/wallet_controller.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProviderRequestPayoutScreen extends StatefulWidget {
   const ProviderRequestPayoutScreen({super.key});
@@ -12,25 +14,38 @@ class ProviderRequestPayoutScreen extends StatefulWidget {
   State<ProviderRequestPayoutScreen> createState() => _ProviderRequestPayoutScreenState();
 }
 
-class _ProviderRequestPayoutScreenState extends State<ProviderRequestPayoutScreen> {
+class _ProviderRequestPayoutScreenState extends State<ProviderRequestPayoutScreen> with WidgetsBindingObserver {
   late TextEditingController _amountController;
-  String _selectedMethod = 'Bank Transfer';
+  String _selectedMethod = 'Withdraw Balance';
   String? _selectedPercentage = 'All';
 
   @override
   void initState() {
     super.initState();
     _amountController = TextEditingController(text: '0.00');
+    // Add observer to detect when app returns to foreground
+    WidgetsBinding.instance.addObserver(this);
     // Fetch wallet data if not already loading
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WalletController>().getMyWallet();
+      context.read<WalletController>().getStripeStatus();
     });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _amountController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh status when user returns from browser
+      debugPrint("🔄 App resumed. Refreshing Stripe status...");
+      context.read<WalletController>().getStripeStatus();
+    }
   }
 
   void _updateAmount(String percentage, double currentBalance) {
@@ -190,19 +205,10 @@ class _ProviderRequestPayoutScreenState extends State<ProviderRequestPayoutScree
                 SizedBox(height: 12.h),
                 _buildPaymentMethodItem(
                   icon: Icons.account_balance, 
-                  title: 'Bank Transfer', 
-                  subtitle: '****1234\n2-3 business days', 
-                  isSelected: _selectedMethod == 'Bank Transfer',
-                  onTap: () => setState(() => _selectedMethod = 'Bank Transfer'),
-                ),
-                SizedBox(height: 12.h),
-                 _buildPaymentMethodItem(
-                  icon: Icons.payments, 
-                  title: 'PayPal', 
-                  subtitle: 'sarah.m@email.com\n1 business day', 
-                  isSelected: _selectedMethod == 'PayPal',
-                  trailing: '2.9% fee',
-                  onTap: () => setState(() => _selectedMethod = 'PayPal'),
+                  title: 'Withdraw Balance', 
+                  subtitle: 'Bank Transfer\n2-3 business days', 
+                  isSelected: _selectedMethod == 'Withdraw Balance',
+                  onTap: () => setState(() => _selectedMethod = 'Withdraw Balance'),
                 ),
 
                 SizedBox(height: 32.h),
@@ -216,24 +222,76 @@ class _ProviderRequestPayoutScreenState extends State<ProviderRequestPayoutScree
 
                 SizedBox(height: 32.h),
 
-                // Request Button
+                // Request/Connect Button
                 SizedBox(
                    width: double.infinity,
                    height: AppSizes.fieldHeight,
                    child: ElevatedButton(
-                     onPressed: () {
-                         // Show success dialog
-                         _showSuccessDialog(context);
+                     onPressed: walletController.isLoading 
+                       ? null 
+                       : () async {
+                         if (walletController.isStripeReady) {
+                           // 1. Get and validate amount
+                           final amountStr = _amountController.text;
+                           final amount = double.tryParse(amountStr) ?? 0.0;
+                           
+                           if (amount <= 0) {
+                             CustomSnackBar.show(
+                               context: context,
+                               message: 'Please enter a valid payout amount',
+                               isError: true,
+                             );
+                             return;
+                           }
+
+                           // 2. Call API
+                           final success = await walletController.createWithdrawal(amount);
+
+                           if (success && context.mounted) {
+                             // Show success dialog (Existing payout request logic)
+                             _showSuccessDialog(context);
+                           } else if (context.mounted) {
+                             CustomSnackBar.show(
+                               context: context,
+                               message: 'Withdrawal failed. Please check your balance.',
+                               isError: true,
+                             );
+                           }
+                         } else {
+                           // Handle Stripe Onboarding
+                           final url = await walletController.getStripeOnboardingUrl();
+                           if (url != null && context.mounted) {
+                             final uri = Uri.parse(url);
+                             if (await canLaunchUrl(uri)) {
+                               await launchUrl(uri, mode: LaunchMode.externalApplication);
+                             } else {
+                               CustomSnackBar.show(
+                                 context: context,
+                                 message: 'Could not launch onboarding URL',
+                                 isError: true,
+                               );
+                             }
+                           }
+                         }
                      },
                      style: ElevatedButton.styleFrom(
                        backgroundColor: Colors.black,
                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSizes.borderRadius)),
                      ),
-                     child: Text('Request Payout', style: TextStyle(
-                       fontSize: AppTypography.bodyLarge,
-                       color: Colors.white,
-                       fontWeight: FontWeight.w600,
-                     )),
+                     child: walletController.isLoading 
+                       ? SizedBox(
+                           height: 20.sp, 
+                           width: 20.sp, 
+                           child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                         )
+                       : Text(
+                           walletController.isStripeReady ? 'Request Payout' : 'Connect Stripe Account', 
+                           style: TextStyle(
+                             fontSize: AppTypography.bodyLarge,
+                             color: Colors.white,
+                             fontWeight: FontWeight.w600,
+                           ),
+                         ),
                    ),
                  ),
                  SizedBox(height: 20.h),

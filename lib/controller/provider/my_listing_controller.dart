@@ -103,4 +103,13 @@ class MyListingController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void reset() {
+    _isProgress = false;
+    _isSingleListingProgress = false;
+    _errorMessage = null;
+    _myListingModel = null;
+    _singleListingData = null;
+    notifyListeners();
+  }
 }
