@@ -29,6 +29,15 @@ class ChatController extends ChangeNotifier {
   List<ChatRoom> get chats => _chatData?.chats ?? [];
   List<ChatMessage> get messages => _messages;
 
+  void reset() {
+    _isLoading = false;
+    _errorMessage = '';
+    _chatData = null;
+    _messages = [];
+    disconnectSocket();
+    notifyListeners();
+  }
+
   Future<void> _recoverUserId() async {
     final String token = AuthController.accessToken ?? '';
     if (token.isEmpty) return;

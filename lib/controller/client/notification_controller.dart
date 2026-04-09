@@ -27,6 +27,14 @@ class NotificationController extends ChangeNotifier {
 
   int get unreadCount => _stats?.unread ?? _notifications.where((n) => !n.isRead).length;
 
+  void reset() {
+    _isLoading = false;
+    _errorMessage = null;
+    _notifications = [];
+    _stats = null;
+    notifyListeners();
+  }
+
   Future<void> fetchMyNotifications() async {
     _isLoading = true;
     _errorMessage = null;

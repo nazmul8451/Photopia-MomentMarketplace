@@ -11,6 +11,8 @@ import 'package:photopia/controller/provider/my_listing_controller.dart';
 import 'package:photopia/controller/provider/provider_orders_controller.dart';
 import 'package:photopia/controller/provider/subscription_controller.dart';
 import 'package:photopia/controller/provider/calender_availibility_controller.dart';
+import 'package:photopia/controller/client/chat_controller.dart';
+import 'package:photopia/controller/client/notification_controller.dart';
 import 'package:photopia/core/routes/app_routes.dart';
 
 /// A global navigator key used for navigation outside of widget context (e.g., from NetworkCaller)
@@ -80,19 +82,26 @@ class AuthController extends ChangeNotifier {
     _isLoggingOut = true;
 
     try {
-      // 1. Reset all controllers if context is provided
-      if (context != null) {
+      // 1. Reset all controllers if context is provided or can be found
+      final BuildContext? activeContext = context ?? navigatorKey.currentContext;
+      if (activeContext != null) {
         try {
           // Provider Controllers
-          context.read<WalletController>().reset();
-          context.read<ProviderProfileController>().reset();
-          context.read<UserProfileController>().reset();
-          context.read<StatisticsController>().reset();
-          context.read<ServiceController>().reset();
-          context.read<MyListingController>().reset();
-          context.read<ProviderOrdersController>().reset();
-          context.read<SubscriptionController>().reset();
-          context.read<CalenderAvailibilityController>().reset();
+          activeContext.read<WalletController>().reset();
+          activeContext.read<ProviderProfileController>().reset();
+          activeContext.read<UserProfileController>().reset();
+          activeContext.read<StatisticsController>().reset();
+          activeContext.read<ServiceController>().reset();
+          activeContext.read<MyListingController>().reset();
+          activeContext.read<ProviderOrdersController>().reset();
+          activeContext.read<SubscriptionController>().reset();
+          activeContext.read<CalenderAvailibilityController>().reset();
+          
+          // Client Controllers (Need to ensure they have reset handlers if used, 
+          // but we know Notification and Chat do now)
+          activeContext.read<NotificationController>().reset();
+          activeContext.read<ChatController>().reset();
+          
           debugPrint('🧹 All controllers reset successfully.');
         } catch (e) {
           debugPrint('⚠️ Error resetting controllers: $e');
