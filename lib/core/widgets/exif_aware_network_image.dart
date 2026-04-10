@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:shimmer/shimmer.dart';
 
 class ExifAwareNetworkImage extends StatefulWidget {
   final String url;
@@ -53,9 +54,13 @@ class _ExifAwareNetworkImageState extends State<ExifAwareNetworkImage> {
     });
 
     try {
-      final String? token = AuthController.accessToken ?? GetStorage().read('user_token');
+      final String? token =
+          AuthController.accessToken ?? GetStorage().read('user_token');
       Map<String, String> requestHeaders = {
-        if (token != null) 'Authorization': token.startsWith('Bearer ') ? token : 'Bearer $token',
+        if (token != null)
+          'Authorization': token.startsWith('Bearer ')
+              ? token
+              : 'Bearer $token',
       };
       if (widget.headers != null) {
         requestHeaders.addAll(widget.headers!);
@@ -67,7 +72,7 @@ class _ExifAwareNetworkImageState extends State<ExifAwareNetworkImage> {
 
       if (response.statusCode == 200) {
         Uint8List bytes = response.bodyBytes;
-        
+
         try {
           // Native rotation fix using flutter_image_compress
           var result = await FlutterImageCompress.compressWithList(
@@ -98,10 +103,14 @@ class _ExifAwareNetworkImageState extends State<ExifAwareNetworkImage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return SizedBox(
-        height: widget.height,
-        width: widget.width,
-        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      return Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Container(
+          height: widget.height,
+          width: widget.width,
+          color: Colors.white,
+        ),
       );
     }
 
@@ -109,7 +118,9 @@ class _ExifAwareNetworkImageState extends State<ExifAwareNetworkImage> {
       return SizedBox(
         height: widget.height,
         width: widget.width,
-        child: const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
+        child: const Center(
+          child: Icon(Icons.broken_image, color: Colors.grey),
+        ),
       );
     }
 

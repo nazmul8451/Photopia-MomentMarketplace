@@ -17,20 +17,46 @@ class ServiceListController extends ChangeNotifier {
   bool _isFiltered = false;
   bool get isFiltered => _isFiltered;
 
-  List<ServiceItem> get displayServices => _isFiltered ? _filteredServices : _services;
+  List<ServiceItem> get displayServices =>
+      _isFiltered ? _filteredServices : _services;
 
   ServiceItem? _serviceDetail;
   ServiceItem? get serviceDetail => _serviceDetail;
 
-  Future<bool> getAllServices() async {
+  Future<bool> getAllServices({Map<String, dynamic>? filters, bool refresh = true}) async {
+    if (_isLoading) return false;
+
     _isLoading = true;
     _errorMessage = null;
-    _services = []; // Clear current list while loading
+    if (refresh) {
+      _services = []; // Clear current list while loading only if refresh is true
+    }
     notifyListeners();
 
     try {
+      String url = Urls.getAllservice;
+
+      if (filters != null && filters.isNotEmpty) {
+        final queryParams = <String>[];
+        filters.forEach((key, value) {
+          if (value != null && value.toString().isNotEmpty) {
+            if (value is List) {
+              for (var item in value) {
+                queryParams.add('$key=$item');
+              }
+            } else {
+              queryParams.add('$key=$value');
+            }
+          }
+        });
+        if (queryParams.isNotEmpty) {
+          url += (url.contains('?') ? '&' : '?') + queryParams.join('&');
+        }
+      }
+
+      debugPrint("🚀 [SERVICES] Fetching URL: $url");
       final response = await NetworkCaller.getRequest(
-        url: Urls.getAllservice,
+        url: url,
         requireAuth: false,
       );
 
@@ -39,10 +65,6 @@ class ServiceListController extends ChangeNotifier {
       if (response.isSuccess && response.body != null) {
         final model = ServiceListModel.fromJson(response.body!);
         _services = model.data?.data ?? [];
-        // DEBUG: print coverMedia URLs to trace image loading issues
-        for (var s in _services.take(3)) {
-          debugPrint('🖼️ [ServiceCard] coverMedia=${s.coverMedia} | title=${s.title}');
-        }
         notifyListeners();
         return true;
       } else {

@@ -1,10 +1,35 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/features/client/search_filter_screen.dart';
 
-class SearchHeader extends StatelessWidget {
+class SearchHeader extends StatefulWidget {
   final Function(Map<String, dynamic>)? onFilterApplied;
   const SearchHeader({super.key, this.onFilterApplied});
+
+  @override
+  State<SearchHeader> createState() => _SearchHeaderState();
+}
+
+class _SearchHeaderState extends State<SearchHeader> {
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (widget.onFilterApplied != null) {
+        widget.onFilterApplied!({'searchTerm': value});
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +62,9 @@ class SearchHeader extends StatelessWidget {
                     border: Border.all(color: Colors.black54.withOpacity(0.3)),
                   ),
                   child: TextField(
+                    controller: _searchController,
                     textAlignVertical: TextAlignVertical.center,
+                    onChanged: _onSearchChanged,
                     decoration: InputDecoration(
                       hintText: 'Search photographers, services...',
                       hintStyle: TextStyle(
@@ -60,6 +87,11 @@ class SearchHeader extends StatelessWidget {
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
                     ),
+                    onSubmitted: (value) {
+                      if (widget.onFilterApplied != null) {
+                        widget.onFilterApplied!({'searchTerm': value});
+                      }
+                    },
                   ),
                 ),
               ),
@@ -81,8 +113,10 @@ class SearchHeader extends StatelessWidget {
                         builder: (context) => const SearchFilterScreen(),
                       ),
                     );
-                    if (result != null && onFilterApplied != null) {
-                      onFilterApplied!(result);
+                    if (result != null && widget.onFilterApplied != null) {
+                      // Include the current search term in the filter map
+                      result['searchTerm'] = _searchController.text;
+                      widget.onFilterApplied!(result);
                     }
                   },
                   icon: Image.asset(

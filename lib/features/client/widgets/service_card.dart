@@ -11,6 +11,7 @@ import 'package:photopia/core/utils/guest_dialog_helper.dart';
 import 'package:photopia/core/network/Api_service/network_caller.dart';
 import 'package:photopia/core/network/urls.dart';
 import 'package:photopia/core/widgets/subscription_badge.dart';
+
 class ServiceCard extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -103,46 +104,7 @@ class ServiceCard extends StatelessWidget {
                             imageUrl: imageUrl,
                             fit: BoxFit.cover,
                           )
-                        : FutureBuilder<NetworkResponse>(
-                            future: NetworkCaller.getRequest(url: Urls.getSingleList(id), requireAuth: false),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return Container(color: Colors.grey[200], alignment: Alignment.center, child: Text('...', style: TextStyle(fontSize: 10.sp)));
-                              }
-                              String? fetchedUrl;
-                              String errorMsg = '';
-                              if (snapshot.hasError) {
-                                errorMsg = 'E:${snapshot.error}';
-                              } else if (snapshot.hasData && !snapshot.data!.isSuccess) {
-                                errorMsg = 'Code:${snapshot.data!.statusCode}';
-                              } else if (snapshot.hasData && snapshot.data!.isSuccess && snapshot.data!.body != null) {
-                                final data = snapshot.data!.body!['data'];
-                                if (data != null) {
-                                  if (data['coverMedia'] != null) {
-                                    fetchedUrl = data['coverMedia'];
-                                  } else if (data['gallery'] != null && (data['gallery'] as List).isNotEmpty) {
-                                    fetchedUrl = (data['gallery'] as List).first;
-                                  } else {
-                                    errorMsg = 'No Img';
-                                  }
-                                } else {
-                                  errorMsg = 'Null Data';
-                                }
-                              }
-                              
-                              if (fetchedUrl != null && fetchedUrl.isNotEmpty) {
-                                return CustomNetworkImage(
-                                  imageUrl: fetchedUrl,
-                                  fit: BoxFit.cover,
-                                );
-                              } else {
-                                return const CustomNetworkImage(
-                                  imageUrl: '',
-                                  fit: BoxFit.cover,
-                                );
-                              }
-                            },
-                          ),
+                        : ServiceImageLoader(id: id),
                   ),
                 ),
                 Positioned(
@@ -152,7 +114,10 @@ class ServiceCard extends StatelessWidget {
                     isSubscribed: isPremium,
                     fontSize: 9.sp.clamp(9, 10),
                     iconSize: 10.sp,
-                    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 6.w,
+                      vertical: 3.h,
+                    ),
                   ),
                 ),
                 Positioned(
@@ -253,65 +218,22 @@ class ServiceCard extends StatelessWidget {
                       ],
                     ),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(
-                          Icons.star,
-                          color: Colors.orange,
-                          size: 12.sp.clamp(12, 13),
+                        RatingInfoWidget(
+                          providerId: providerId?.toString(),
+                          initialRating: rating,
+                          initialReviews: reviews,
                         ),
-                        SizedBox(width: 4.w),
                         Text(
-                          rating.toString(),
+                          '€${price ?? 0}',
                           style: TextStyle(
-                            fontSize: 11.sp.clamp(11, 12),
+                            fontSize: 14.sp,
                             fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Flexible(
-                          child: Text(
-                            ' ($reviews)',
-                            style: TextStyle(
-                              fontSize: 11.sp.clamp(11, 12),
-                              color: Colors.grey,
-                            ),
-                            overflow: TextOverflow.ellipsis,
+                            color: Colors.black,
                           ),
                         ),
                       ],
-                    ),
-                    Wrap(
-                      spacing: 4.w,
-                      runSpacing: 4.h,
-                      children: tags
-                          .take(2)
-                          .map(
-                            (tag) => Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 4.w,
-                                vertical: 2.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(4).r,
-                              ),
-                              child: Text(
-                                '#$tag',
-                                style: TextStyle(
-                                  fontSize: 9.sp.clamp(9, 10),
-                                  color: Colors.grey[700],
-                                ),
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                    Text(
-                      priceRange,
-                      style: TextStyle(
-                        fontSize: 12.sp.clamp(12, 13),
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
                     ),
                   ],
                 ),
@@ -320,6 +242,151 @@ class ServiceCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class ServiceImageLoader extends StatefulWidget {
+  final dynamic id;
+  const ServiceImageLoader({super.key, required this.id});
+
+  @override
+  State<ServiceImageLoader> createState() => _ServiceImageLoaderState();
+}
+
+class _ServiceImageLoaderState extends State<ServiceImageLoader> {
+  late Future<NetworkResponse> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = NetworkCaller.getRequest(
+      url: Urls.getSingleList(widget.id),
+      requireAuth: false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<NetworkResponse>(
+      future: _future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return ShimmerSkeleton(
+            width: double.infinity,
+            height: double.infinity,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(16).r),
+          );
+        }
+        String? fetchedUrl;
+        if (snapshot.hasData &&
+            snapshot.data!.isSuccess &&
+            snapshot.data!.body != null) {
+          final data = snapshot.data!.body!['data'];
+          if (data != null) {
+            if (data['coverMedia'] != null) {
+              fetchedUrl = data['coverMedia'];
+            } else if (data['gallery'] != null &&
+                (data['gallery'] as List).isNotEmpty) {
+              fetchedUrl = (data['gallery'] as List).first;
+            }
+          }
+        }
+
+        if (fetchedUrl != null && fetchedUrl.isNotEmpty) {
+          return CustomNetworkImage(imageUrl: fetchedUrl, fit: BoxFit.cover);
+        } else {
+          return const CustomNetworkImage(imageUrl: '', fit: BoxFit.cover);
+        }
+      },
+    );
+  }
+}
+
+class RatingInfoWidget extends StatefulWidget {
+  final String? providerId;
+  final double initialRating;
+  final int initialReviews;
+  final double? starSize;
+  final double? fontSize;
+
+  const RatingInfoWidget({
+    super.key,
+    this.providerId,
+    required this.initialRating,
+    required this.initialReviews,
+    this.starSize,
+    this.fontSize,
+  });
+
+  @override
+  State<RatingInfoWidget> createState() => _RatingInfoWidgetState();
+}
+
+class _RatingInfoWidgetState extends State<RatingInfoWidget> {
+  late Future<NetworkResponse> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = NetworkCaller.getRequest(
+      url: Urls.getReviewsByProvider(widget.providerId ?? ''),
+      requireAuth: false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<NetworkResponse>(
+      future: _future,
+      builder: (context, snapshot) {
+        double displayRating = widget.initialRating;
+        int displayReviews = widget.initialReviews;
+
+        if (snapshot.hasData &&
+            snapshot.data!.isSuccess &&
+            snapshot.data!.body != null) {
+          final body = snapshot.data!.body!;
+          final data = body['data'];
+          if (data != null && data['data'] != null) {
+            final List reviewList = data['data'];
+            if (reviewList.isNotEmpty) {
+              displayReviews = reviewList.length;
+              double sum = 0;
+              for (var r in reviewList) {
+                sum += (r['rating'] as num?)?.toDouble() ?? 0.0;
+              }
+              displayRating = sum / displayReviews;
+            }
+          }
+        }
+
+        return Row(
+          children: [
+            Icon(
+              Icons.star,
+              size: widget.starSize ?? 14.sp,
+              color: Colors.amber,
+            ),
+            SizedBox(width: 4.w),
+            Text(
+              displayRating.toStringAsFixed(1),
+              style: TextStyle(
+                fontSize: widget.fontSize ?? 12.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            Text(
+              ' ($displayReviews)',
+              style: TextStyle(
+                fontSize: widget.fontSize ?? 12.sp,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

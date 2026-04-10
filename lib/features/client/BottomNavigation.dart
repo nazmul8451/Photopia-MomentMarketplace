@@ -57,19 +57,16 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
       // If tapping the already selected tab, pop to the first route
       _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
 
-      // Refresh Home data if already on Home
+      // Refresh Home data if already on Home and tapping again
       if (index == 0) {
-        context.read<ServiceListController>().getAllServices();
+        context.read<ServiceListController>().getAllServices(refresh: true);
       }
     } else {
       setState(() {
         _selectedIndex = index;
       });
 
-      // Refresh Home data when switching to Home
-      if (index == 0) {
-        context.read<ServiceListController>().getAllServices();
-      }
+      // NO REFRESH when switching tabs unless we want to force it
     }
   }
 

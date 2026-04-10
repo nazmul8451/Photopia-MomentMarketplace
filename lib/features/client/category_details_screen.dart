@@ -24,7 +24,10 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
     super.initState();
     // Fetch data from API
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ServiceListController>().getAllServices();
+      final controller = context.read<ServiceListController>();
+      if (controller.services.isEmpty) {
+        controller.getAllServices();
+      }
     });
   }
 
@@ -76,8 +79,8 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> {
                         serviceCtrl.applyFavoritesFilter(true, favoriteIds);
                       } else {
                         serviceCtrl.resetFilters();
-                        // You can still call getAllServices if needed for sync
-                        // serviceCtrl.getAllServices(); 
+                        // Call getAllServices with the new filters (like budget, serviceType, etc.)
+                        serviceCtrl.getAllServices(filters: filters); 
                       }
                     },
                   ),

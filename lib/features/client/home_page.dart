@@ -31,7 +31,10 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     // Load services from API
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ServiceListController>().getAllServices();
+      final controller = context.read<ServiceListController>();
+      if (controller.services.isEmpty) {
+        controller.getAllServices();
+      }
       context.read<LocationController>().determinePosition();
     });
 
@@ -57,10 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _navigateToServiceDetails(
-    BuildContext context,
-    ServiceItem service,
-  ) {
+  void _navigateToServiceDetails(BuildContext context, ServiceItem service) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => ServiceDetailsScreen(service: service.toJson()),
@@ -93,10 +93,12 @@ class _MyHomePageState extends State<MyHomePage> {
               final item = items[index];
               return HorizontalProjectCard(
                 id: item.sId,
+                providerId: item.providerId?.sId,
                 imageUrl: item.coverMedia ?? '',
                 title: item.title ?? 'No Title',
                 providerName: item.providerId?.name ?? 'Unknown Provider',
                 rating: item.rating,
+                price: item.price,
                 isAvailable: showAvailability && (item.isActive ?? false),
                 onTap: () => _navigateToServiceDetails(context, item),
               );
@@ -161,19 +163,25 @@ class _MyHomePageState extends State<MyHomePage> {
             Expanded(
               child: Consumer<ServiceListController>(
                 builder: (context, serviceListController, child) {
-                  if (serviceListController.isLoading && serviceListController.services.isEmpty) {
+                  if (serviceListController.isLoading &&
+                      serviceListController.services.isEmpty) {
                     return const HomeShimmer();
                   }
 
                   // ─── Error State ────────────────────────────────────────────
-                  if (serviceListController.errorMessage != null && serviceListController.services.isEmpty) {
+                  if (serviceListController.errorMessage != null &&
+                      serviceListController.services.isEmpty) {
                     return Center(
                       child: Padding(
                         padding: EdgeInsets.all(32.w),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.wifi_off_rounded, size: 60.sp, color: Colors.grey.shade300),
+                            Icon(
+                              Icons.wifi_off_rounded,
+                              size: 60.sp,
+                              color: Colors.grey.shade300,
+                            ),
                             SizedBox(height: 16.h),
                             Text(
                               'Unable to load services',
@@ -187,20 +195,31 @@ class _MyHomePageState extends State<MyHomePage> {
                             Text(
                               'Please check your internet connection and try again.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 13.sp, color: Colors.grey),
+                              style: TextStyle(
+                                fontSize: 13.sp,
+                                color: Colors.grey,
+                              ),
                             ),
                             SizedBox(height: 24.h),
                             GestureDetector(
-                              onTap: () => serviceListController.getAllServices(),
+                              onTap: () =>
+                                  serviceListController.getAllServices(),
                               child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 28.w, vertical: 12.h),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 28.w,
+                                  vertical: 12.h,
+                                ),
                                 decoration: BoxDecoration(
                                   color: Colors.black,
                                   borderRadius: BorderRadius.circular(10.r),
                                 ),
                                 child: Text(
                                   'Try Again',
-                                  style: TextStyle(color: Colors.white, fontSize: 14.sp, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ),
@@ -220,28 +239,41 @@ class _MyHomePageState extends State<MyHomePage> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.search_off_rounded, size: 60.sp, color: Colors.grey.shade300),
+                            Icon(
+                              Icons.search_off_rounded,
+                              size: 60.sp,
+                              color: Colors.grey.shade300,
+                            ),
                             SizedBox(height: 16.h),
                             Text(
                               'No services available',
-                              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             SizedBox(height: 8.h),
                             Text(
                               'No services found at the moment. Pull down to refresh.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 13.sp, color: Colors.grey),
+                              style: TextStyle(
+                                fontSize: 13.sp,
+                                color: Colors.grey,
+                              ),
                             ),
                           ],
                         ),
                       ),
                     );
                   }
-                  
+
                   // Distribute data
                   final originalProjects = services.take(6).toList();
-                  final availableNow = services.where((s) => s.isActive == true).toList();
-                  final trendingProjects = [...services]..sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
+                  final availableNow = services
+                      .where((s) => s.isActive == true)
+                      .toList();
+                  final trendingProjects = [...services]
+                    ..sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
 
                   return RefreshIndicator(
                     color: Colors.black,
@@ -250,37 +282,37 @@ class _MyHomePageState extends State<MyHomePage> {
                       await serviceListController.getAllServices();
                     },
                     child: SingleChildScrollView(
-                      controller: _scrollController, 
+                      controller: _scrollController,
                       physics: const AlwaysScrollableScrollPhysics(
                         parent: BouncingScrollPhysics(),
                       ),
                       child: Column(
                         children: [
-                        SizedBox(height: 10.h),
-                        // Original Projects Section
-                        _buildHorizontalSection(
-                          title: 'Original Projects',
-                          items: originalProjects,
-                        ),
-                        SizedBox(height: 10.h),
-                        // Available Right Now Section
-                        _buildHorizontalSection(
-                          title: 'Available Right Now',
-                          items: availableNow,
-                          showAvailability: true,
-                        ),
-                        SizedBox(height: 10.h),
-                        // Trending Projects Section
-                        _buildHorizontalSection(
-                          title: 'Trending Projects',
-                          items: trendingProjects,
-                        ),
-                        SizedBox(
-                          height: 100.h,
-                        ), // Bottom padding for navigation bar
-                      ],
+                          SizedBox(height: 10.h),
+                          // Original Projects Section
+                          _buildHorizontalSection(
+                            title: 'Original Projects',
+                            items: originalProjects,
+                          ),
+                          SizedBox(height: 10.h),
+                          // Available Right Now Section
+                          _buildHorizontalSection(
+                            title: 'Available Right Now',
+                            items: availableNow,
+                            showAvailability: true,
+                          ),
+                          SizedBox(height: 10.h),
+                          // Trending Projects Section
+                          _buildHorizontalSection(
+                            title: 'Trending Projects',
+                            items: trendingProjects,
+                          ),
+                          SizedBox(
+                            height: 100.h,
+                          ), // Bottom padding for navigation bar
+                        ],
+                      ),
                     ),
-                  ),
                   );
                 },
               ),

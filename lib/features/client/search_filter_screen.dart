@@ -10,22 +10,36 @@ class SearchFilterScreen extends StatefulWidget {
 }
 
 class _SearchFilterScreenState extends State<SearchFilterScreen> {
-  final TextEditingController _locationController = TextEditingController(text: 'Barcelona, Spain');
+  final TextEditingController _locationController = TextEditingController(
+    text: 'Barcelona, Spain',
+  );
   double _radius = 200;
-  final TextEditingController _minBudgetController = TextEditingController(text: '0');
-  final TextEditingController _maxBudgetController = TextEditingController(text: '5000');
+  RangeValues _budgetRange = const RangeValues(0, 5000);
   bool _showFavoritesOnly = false;
 
   final List<String> _serviceTypes = [
-    'Photography', 'Videography', 'Wedding', 'Corporate', 
-    'Portrait', 'Product', 'Fashion', 'Real Estate', 
-    'Event', 'Aerial/Drone'
+    'Photography',
+    'Videography',
+    'Wedding',
+    'Corporate',
+    'Portrait',
+    'Product',
+    'Fashion',
+    'Real Estate',
+    'Event',
+    'Aerial/Drone',
   ];
   final Set<String> _selectedServices = {'Photography'};
 
   final List<String> _equipments = [
-    'DSLR', 'Mirrorless', 'Drone', '4K Video', 
-    'Studio Lighting', 'Smartphone', 'Cinema Camera', 'Gimbal/Stabilizer'
+    'DSLR',
+    'Mirrorless',
+    'Drone',
+    '4K Video',
+    'Studio Lighting',
+    'Smartphone',
+    'Cinema Camera',
+    'Gimbal/Stabilizer',
   ];
   final Set<String> _selectedEquipments = {'DSLR'};
 
@@ -44,7 +58,7 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
         title: Text(
           'Search Filter',
           style: TextStyle(
-            color:  Colors.black, // Light blue color from image
+            color: Colors.black, // Light blue color from image
             fontSize: 18.sp.clamp(18, 20),
             fontWeight: FontWeight.bold,
           ),
@@ -64,12 +78,10 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
               prefixIcon: Icons.location_on_outlined,
             ),
             SizedBox(height: 20.h),
-            
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildSectionTitle('Radius: ${_radius.toInt()} km'),
-              ],
+              children: [_buildSectionTitle('Radius: ${_radius.toInt()} km')],
             ),
             SliderTheme(
               data: SliderTheme.of(context).copyWith(
@@ -91,29 +103,34 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
             ),
             SizedBox(height: 20.h),
 
-            _buildSectionTitle('Budget (€)'),
+            _buildSectionTitle(
+              'Budget: €${_budgetRange.start.round()} - €${_budgetRange.end.round()}',
+            ),
             SizedBox(height: 10.h),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTextField(
-                    controller: _minBudgetController,
-                    hint: 'Min',
-                    keyboardType: TextInputType.number,
-                  ),
+            SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                trackHeight: 4.h,
+                rangeThumbShape: const RoundRangeSliderThumbShape(
+                  enabledThumbRadius: 8,
                 ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w),
-                  child: Text('-', style: TextStyle(fontSize: 18.sp.clamp(18, 20), color: Colors.grey)),
+                overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+                activeTrackColor: Colors.black,
+                inactiveTrackColor: Colors.grey.shade200,
+                thumbColor: Colors.black,
+              ),
+              child: RangeSlider(
+                values: _budgetRange,
+                min: 0,
+                max: 5000,
+                divisions: 100,
+                labels: RangeLabels(
+                  '€${_budgetRange.start.round()}',
+                  '€${_budgetRange.end.round()}',
                 ),
-                Expanded(
-                  child: _buildTextField(
-                    controller: _maxBudgetController,
-                    hint: 'Max',
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-              ],
+                onChanged: (values) {
+                  setState(() => _budgetRange = values);
+                },
+              ),
             ),
             SizedBox(height: 25.h),
 
@@ -145,7 +162,8 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                   ),
                   Switch(
                     value: _showFavoritesOnly,
-                    onChanged: (val) => setState(() => _showFavoritesOnly = val),
+                    onChanged: (val) =>
+                        setState(() => _showFavoritesOnly = val),
                     activeColor: Colors.black,
                     activeTrackColor: Colors.black12,
                   ),
@@ -159,19 +177,23 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
             Wrap(
               spacing: 8.w,
               runSpacing: 8.h,
-              children: _serviceTypes.map((service) => _buildFilterChip(
-                label: service,
-                isSelected: _selectedServices.contains(service),
-                onSelected: (selected) {
-                  setState(() {
-                    if (selected) {
-                      _selectedServices.add(service);
-                    } else {
-                      _selectedServices.remove(service);
-                    }
-                  });
-                },
-              )).toList(),
+              children: _serviceTypes
+                  .map(
+                    (service) => _buildFilterChip(
+                      label: service,
+                      isSelected: _selectedServices.contains(service),
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedServices.add(service);
+                          } else {
+                            _selectedServices.remove(service);
+                          }
+                        });
+                      },
+                    ),
+                  )
+                  .toList(),
             ),
             SizedBox(height: 25.h),
 
@@ -180,19 +202,23 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
             Wrap(
               spacing: 8.w,
               runSpacing: 8.h,
-              children: _equipments.map((equipment) => _buildFilterChip(
-                label: equipment,
-                isSelected: _selectedEquipments.contains(equipment),
-                onSelected: (selected) {
-                  setState(() {
-                    if (selected) {
-                      _selectedEquipments.add(equipment);
-                    } else {
-                      _selectedEquipments.remove(equipment);
-                    }
-                  });
-                },
-              )).toList(),
+              children: _equipments
+                  .map(
+                    (equipment) => _buildFilterChip(
+                      label: equipment,
+                      isSelected: _selectedEquipments.contains(equipment),
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedEquipments.add(equipment);
+                          } else {
+                            _selectedEquipments.remove(equipment);
+                          }
+                        });
+                      },
+                    ),
+                  )
+                  .toList(),
             ),
             SizedBox(height: 40.h),
 
@@ -207,10 +233,11 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                         _radius = 200;
                         _showFavoritesOnly = false;
                         _locationController.text = '';
-                        _minBudgetController.text = '0';
-                        _maxBudgetController.text = '5000';
+                        _budgetRange = const RangeValues(0, 5000);
                       });
-                      Navigator.pop(context); // Optional: if "clear all" should also go back
+                      Navigator.pop(
+                        context,
+                      ); // Optional: if "clear all" should also go back
                     },
                     style: OutlinedButton.styleFrom(
                       backgroundColor: const Color(0xFFE9ECEF),
@@ -222,7 +249,11 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                     ),
                     child: Text(
                       'Clear All',
-                      style: TextStyle(color: Colors.black87, fontSize: 16.sp.clamp(16, 18), fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontSize: 16.sp.clamp(16, 18),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -234,9 +265,11 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                       Navigator.pop(context, {
                         'location': _locationController.text,
                         'radius': _radius,
-                        'minBudget': _minBudgetController.text,
-                        'maxBudget': _maxBudgetController.text,
-                        'services': _selectedServices.toList(),
+                        'minPrice': _budgetRange.start.round(),
+                        'maxPrice': _budgetRange.end.round(),
+                        'serviceType': _selectedServices
+                            .map((s) => s.toLowerCase())
+                            .toList(),
                         'equipments': _selectedEquipments.toList(),
                         'favoritesOnly': _showFavoritesOnly,
                       });
@@ -250,7 +283,11 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
                     ),
                     child: Text(
                       'Apply Filters',
-                      style: TextStyle(color: Colors.white, fontSize: 16.sp.clamp(16, 18), fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.sp.clamp(16, 18),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -291,9 +328,14 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
         keyboardType: keyboardType,
         decoration: InputDecoration(
           hintText: hint,
-          prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: Colors.grey, size: 20.sp) : null,
+          prefixIcon: prefixIcon != null
+              ? Icon(prefixIcon, color: Colors.grey, size: 20.sp)
+              : null,
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 12.h),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 15.w,
+            vertical: 12.h,
+          ),
         ),
       ),
     );
@@ -318,7 +360,9 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10).r,
-        side: BorderSide(color: isSelected ? Colors.black : Colors.grey.shade200),
+        side: BorderSide(
+          color: isSelected ? Colors.black : Colors.grey.shade200,
+        ),
       ),
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
     );

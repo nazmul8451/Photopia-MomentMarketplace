@@ -24,8 +24,9 @@ class NetworkResponse {
 }
 
 class NetworkCaller {
-  static final Client _client = Client(); // Persistent client for connection reuse
-  
+  static final Client _client =
+      Client(); // Persistent client for connection reuse
+
   //API Caller Class
 
   //logical message
@@ -46,12 +47,11 @@ class NetworkCaller {
     };
 
     String? tokenToUse = token;
-    
-    // Always prioritize AuthController.accessToken, then GetStorage()
+
+    // Always check AuthController.accessToken and GetStorage(), even if requireAuth is false
     if (tokenToUse == null || tokenToUse.isEmpty) {
-      if (requireAuth) {
-        tokenToUse = AuthController.accessToken ?? GetStorage().read('user_token');
-      }
+      tokenToUse =
+          AuthController.accessToken ?? GetStorage().read('user_token');
     }
 
     if (tokenToUse != null && tokenToUse.isNotEmpty) {
@@ -69,9 +69,11 @@ class NetworkCaller {
           headers['Authorization'] = tokenToUse;
         }
       }
-      debugPrint("🔐 Auth token added to headers: ${tokenToUse.substring(0, 5)}...");
+      debugPrint(
+        "🔐 Auth token added to headers: ${tokenToUse.substring(0, 5)}...",
+      );
     }
-    
+
     return headers;
   }
 
@@ -104,7 +106,9 @@ class NetworkCaller {
 
     if (decodedData is Map) {
       // Safely convert Map<dynamic, dynamic> to Map<String, dynamic>
-      finalBody = decodedData.map((key, value) => MapEntry(key.toString(), value));
+      finalBody = decodedData.map(
+        (key, value) => MapEntry(key.toString(), value),
+      );
       serverMessage = finalBody['message']?.toString();
     }
 
@@ -144,10 +148,9 @@ class NetworkCaller {
     }
     try {
       final uri = Uri.parse(Urls.refreshToken);
-      final response = await _client.get(uri, headers: {
-        'Accept': 'application/json',
-        'Cookie': cookie,
-      }).timeout(const Duration(seconds: 60));
+      final response = await _client
+          .get(uri, headers: {'Accept': 'application/json', 'Cookie': cookie})
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         final decodedBody = jsonDecode(response.body);
@@ -160,15 +163,19 @@ class NetworkCaller {
             // If user was in professional mode, re-switch role
             final storedRole = AuthController.activeRole;
             if (storedRole == 'professional') {
-              debugPrint('🔄 Re-applying professional role after token refresh...');
+              debugPrint(
+                '🔄 Re-applying professional role after token refresh...',
+              );
               try {
                 final roleUri = Uri.parse(Urls.role);
                 final roleHeaders = await _getHeaders(requireAuth: true);
-                await _client.patch(
-                  roleUri,
-                  headers: roleHeaders,
-                  body: jsonEncode({'role': 'professional'}),
-                ).timeout(const Duration(seconds: 60));
+                await _client
+                    .patch(
+                      roleUri,
+                      headers: roleHeaders,
+                      body: jsonEncode({'role': 'professional'}),
+                    )
+                    .timeout(const Duration(seconds: 60));
                 debugPrint('✅ Role re-applied: professional');
               } catch (e) {
                 debugPrint('⚠️ Role re-apply failed: $e');
@@ -199,17 +206,19 @@ class NetworkCaller {
         addBearer: addBearer,
       );
 
-      final Response response = await _client.get(
-        uri,
-        headers: headers,
-      ).timeout(const Duration(seconds: 60));
+      _logRequest('GET', url, {}, headers);
+
+      final Response response = await _client
+          .get(uri, headers: headers)
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 401 && requireAuth) {
         final refreshed = await _refreshAccessToken();
         if (refreshed) {
           // Retry with new token
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await _client.get(uri, headers: retryHeaders)
+          final retryResponse = await _client
+              .get(uri, headers: retryHeaders)
               .timeout(const Duration(seconds: 60));
           return _handleResponse(retryResponse, url, 'GET');
         } else {
@@ -224,7 +233,8 @@ class NetworkCaller {
         final reApplied = await _reApplyProfessionalRole();
         if (reApplied) {
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await _client.get(uri, headers: retryHeaders)
+          final retryResponse = await _client
+              .get(uri, headers: retryHeaders)
               .timeout(const Duration(seconds: 60));
           return _handleResponse(retryResponse, url, 'GET');
         }
@@ -248,10 +258,10 @@ class NetworkCaller {
   }) async {
     try {
       final Uri uri = Uri.parse(url);
-      
+
       // For binary files, we don't want Content-Type: application/json
       final Map<String, String> headers = {};
-      
+
       String? tokenToUse = token ?? AuthController.accessToken;
       if (tokenToUse == null || tokenToUse.isEmpty) {
         tokenToUse = GetStorage().read('user_token');
@@ -263,10 +273,9 @@ class NetworkCaller {
             : 'Bearer $tokenToUse';
       }
 
-      final Response response = await _client.get(
-        uri,
-        headers: headers,
-      ).timeout(const Duration(seconds: 60));
+      final Response response = await _client
+          .get(uri, headers: headers)
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 401 && requireAuth) {
         final refreshed = await _refreshAccessToken();
@@ -278,7 +287,8 @@ class NetworkCaller {
                 ? retryToken
                 : 'Bearer $retryToken';
           }
-          final retryResponse = await _client.get(uri, headers: retryHeaders)
+          final retryResponse = await _client
+              .get(uri, headers: retryHeaders)
               .timeout(const Duration(seconds: 60));
           return _handleResponse(retryResponse, url, 'GET', isRaw: true);
         } else {
@@ -299,7 +309,8 @@ class NetworkCaller {
                 ? retryToken
                 : 'Bearer $retryToken';
           }
-          final retryResponse = await _client.get(uri, headers: retryHeaders)
+          final retryResponse = await _client
+              .get(uri, headers: retryHeaders)
               .timeout(const Duration(seconds: 60));
           return _handleResponse(retryResponse, url, 'GET', isRaw: true);
         }
@@ -348,8 +359,11 @@ class NetworkCaller {
         final refreshed = await _refreshAccessToken();
         if (refreshed) {
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await _client.post(uri,
-              headers: retryHeaders, body: body != null ? jsonEncode(body) : null);
+          final retryResponse = await _client.post(
+            uri,
+            headers: retryHeaders,
+            body: body != null ? jsonEncode(body) : null,
+          );
           return _handleResponse(retryResponse, url, 'POST');
         } else {
           await AuthController.forceLogout();
@@ -363,8 +377,11 @@ class NetworkCaller {
         final reApplied = await _reApplyProfessionalRole();
         if (reApplied) {
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await _client.post(uri,
-              headers: retryHeaders, body: body != null ? jsonEncode(body) : null);
+          final retryResponse = await _client.post(
+            uri,
+            headers: retryHeaders,
+            body: body != null ? jsonEncode(body) : null,
+          );
           return _handleResponse(retryResponse, url, 'POST');
         }
       }
@@ -407,8 +424,11 @@ class NetworkCaller {
         final refreshed = await _refreshAccessToken();
         if (refreshed) {
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await _client.patch(uri,
-              headers: retryHeaders, body: body != null ? jsonEncode(body) : null);
+          final retryResponse = await _client.patch(
+            uri,
+            headers: retryHeaders,
+            body: body != null ? jsonEncode(body) : null,
+          );
           return _handleResponse(retryResponse, url, 'PATCH');
         } else {
           await AuthController.forceLogout();
@@ -422,8 +442,11 @@ class NetworkCaller {
         final reApplied = await _reApplyProfessionalRole();
         if (reApplied) {
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await _client.patch(uri,
-              headers: retryHeaders, body: body != null ? jsonEncode(body) : null);
+          final retryResponse = await _client.patch(
+            uri,
+            headers: retryHeaders,
+            body: body != null ? jsonEncode(body) : null,
+          );
           return _handleResponse(retryResponse, url, 'PATCH');
         }
       }
@@ -461,7 +484,10 @@ class NetworkCaller {
         final refreshed = await _refreshAccessToken();
         if (refreshed) {
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await _client.delete(uri, headers: retryHeaders);
+          final retryResponse = await _client.delete(
+            uri,
+            headers: retryHeaders,
+          );
           return _handleResponse(retryResponse, url, 'DELETE');
         } else {
           await AuthController.forceLogout();
@@ -475,7 +501,10 @@ class NetworkCaller {
         final reApplied = await _reApplyProfessionalRole();
         if (reApplied) {
           final retryHeaders = await _getHeaders(requireAuth: requireAuth);
-          final retryResponse = await _client.delete(uri, headers: retryHeaders);
+          final retryResponse = await _client.delete(
+            uri,
+            headers: retryHeaders,
+          );
           return _handleResponse(retryResponse, url, 'DELETE');
         }
       }
@@ -527,7 +556,7 @@ class NetworkCaller {
       if (filePath != null && filePath.isNotEmpty && fileKey != null) {
         final mimeType = lookupMimeType(filePath) ?? 'application/octet-stream';
         final typeSplit = mimeType.split('/');
-        
+
         request.files.add(
           await MultipartFile.fromPath(
             fileKey,
@@ -555,14 +584,18 @@ class NetworkCaller {
         if (refreshed) {
           // Retry logic for multipart would be complex, but let's at least log it
           // OR we could call the method again if we had the original arguments
-          debugPrint('🔄 Token refreshed during multipart. Please retry upload.');
+          debugPrint(
+            '🔄 Token refreshed during multipart. Please retry upload.',
+          );
         } else {
           await AuthController.forceLogout();
         }
       } else if (response.statusCode == 403 && requireAuth) {
         final reApplied = await _reApplyProfessionalRole();
         if (reApplied) {
-          debugPrint('🔄 Role re-applied during multipart. Please retry upload.');
+          debugPrint(
+            '🔄 Role re-applied during multipart. Please retry upload.',
+          );
         }
       }
 
@@ -585,52 +618,58 @@ class NetworkCaller {
     Map<String, String> headers,
   ) {
     String bodyStr = body.toString();
-    if (bodyStr.length > 500) {
-      bodyStr = "${bodyStr.substring(0, 500)}... [Truncated]";
+    if (bodyStr.length > 1000) {
+      bodyStr = "${bodyStr.substring(0, 1000)}... [Truncated]";
     }
-    
-    debugPrint('🚀 ===== $method API Request ===== 🚀');
+
+    debugPrint('🚀 [NETWORK REQUEST] ===== $method ===== 🚀');
     debugPrint('🌐 URL: $url');
     if (url.contains('signup') || url.contains('login')) {
-      debugPrint(' Headers: [PROTECTED]');
-      debugPrint(' Body: [PROTECTED]');
+      debugPrint(' 🔑 Headers: [PROTECTED]');
+      debugPrint(' 📝 Body: [PROTECTED]');
     } else {
-      debugPrint(' Headers: $headers');
-      debugPrint(' Body: $bodyStr');
+      debugPrint(' 🔑 Headers: $headers');
+      debugPrint(' 📝 Body: $bodyStr');
     }
-    debugPrint('====================================');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }
 
   static void _logResponse(String method, String url, Response response) {
     String bodyStr = response.body;
-    if (bodyStr.length > 500) {
-      bodyStr = "${bodyStr.substring(0, 500)}... [Truncated]";
+    if (bodyStr.length > 1000) {
+      bodyStr = "${bodyStr.substring(0, 1000)}... [Truncated]";
     }
 
-    debugPrint('🚀 ===== $method API Response ===== 🚀');
+    debugPrint('✅ [NETWORK RESPONSE] ===== $method ===== ✅');
     debugPrint('🌐 URL: $url');
     debugPrint('📊 Status Code: ${response.statusCode}');
     debugPrint('📦 Response Body: $bodyStr');
-    debugPrint('====================================');
+    debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
   }
+
   /// Specifically for handling 403 Forbidden by re-syncing the professional role
   static Future<bool> _reApplyProfessionalRole() async {
-    final storedRole = AuthController.activeRole ?? GetStorage().read('active_role');
+    final storedRole =
+        AuthController.activeRole ?? GetStorage().read('active_role');
     if (storedRole == 'professional') {
       debugPrint('🔄 403 Detected. Re-applying professional role...');
       try {
         final roleUri = Uri.parse(Urls.role);
         final roleHeaders = await _getHeaders(requireAuth: true);
-        final response = await _client.patch(
-          roleUri,
-          headers: roleHeaders,
-          body: jsonEncode({'role': 'professional'}),
-        ).timeout(const Duration(seconds: 60));
+        final response = await _client
+            .patch(
+              roleUri,
+              headers: roleHeaders,
+              body: jsonEncode({'role': 'professional'}),
+            )
+            .timeout(const Duration(seconds: 60));
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
           final decodedBody = jsonDecode(response.body);
           if (decodedBody is Map) {
-            final body = decodedBody.map((key, value) => MapEntry(key.toString(), value));
+            final body = decodedBody.map(
+              (key, value) => MapEntry(key.toString(), value),
+            );
             final newToken = body['data']?['accessToken'];
             if (newToken != null) {
               await AuthController.saveUserToken(newToken);
@@ -640,7 +679,9 @@ class NetworkCaller {
           debugPrint('✅ Professional role re-applied successfully after 403');
           return true;
         } else {
-          debugPrint('⚠️ Role re-apply failed with status: ${response.statusCode}');
+          debugPrint(
+            '⚠️ Role re-apply failed with status: ${response.statusCode}',
+          );
         }
       } catch (e) {
         debugPrint('⚠️ Role re-apply error: $e');

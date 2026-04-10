@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/controller/location_controller.dart';
 import 'package:photopia/features/client/notification_screen.dart';
+import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:provider/provider.dart';
 
 class HomeHeader extends StatelessWidget {
@@ -34,12 +35,19 @@ class HomeHeader extends StatelessWidget {
                       ),
                       SizedBox(width: 4.w),
                       if (controller.isLoading)
-                        SizedBox(
-                          width: 10.w,
-                          height: 10.w,
-                          child: const CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.grey,
+                        Container(
+                          width: 100.w,
+                          height: 12.h,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(4).r,
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4).r,
+                            child: const ShimmerSkeleton(
+                              width: double.infinity,
+                              height: double.infinity,
+                            ),
                           ),
                         )
                       else
