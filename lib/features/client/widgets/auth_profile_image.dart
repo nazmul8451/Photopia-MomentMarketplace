@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:image/image.dart' as img;
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/network/urls.dart';
 
@@ -59,7 +60,8 @@ class _AuthProfileImageState extends State<AuthProfileImage> {
     });
 
     try {
-      final String? token = AuthController.accessToken ?? GetStorage().read('user_token');
+      final String? token =
+          AuthController.accessToken ?? GetStorage().read('user_token');
 
       final String baseFullUrl = widget.imageUrl!.startsWith('http')
           ? widget.imageUrl!
@@ -81,19 +83,41 @@ class _AuthProfileImageState extends State<AuthProfileImage> {
       );
 
       if (response.statusCode == 200) {
-        // Correct EXIF orientation using flutter_image_compress (Native & Robust)
         Uint8List bytes = response.bodyBytes;
         try {
-          // Native compression bypasses many Dart-level EXIF bugs
-          final result = await FlutterImageCompress.compressWithList(
-            bytes,
-            quality: 95,
-            rotate: 0, // 0 = Auto-rotate based on EXIF
-            keepExif: false, // Bake the orientation permanently into bytes
-          );
-          bytes = Uint8List.fromList(result);
+          // Use native compressor to fix orientation - this is the most reliable way in Flutter
+          // autoCorrectionAngle: true will look at EXIF and rotate the pixels.
+          // keepExif: false will strip the orientation tag so it doesn't rotate again.
+          final Uint8List fixedBytes =
+              await FlutterImageCompress.compressWithList(
+                bytes,
+                quality: 100,
+                rotate: 0,
+                autoCorrectionAngle: true,
+                keepExif: false,
+              );
+
+          if (fixedBytes.isNotEmpty) {
+            bytes = fixedBytes;
+            debugPrint(
+              "✅ Image orientation fixed using FlutterImageCompress. Size: ${bytes.length}",
+            );
+          }
         } catch (e) {
-          debugPrint("Critical Orientation Fix Failed: $e");
+          debugPrint("❌ Native Orientation Fix Failed: $e");
+          // Fallback to pure Dart fix if native fails
+          try {
+            final img.Image? decoded = img.decodeImage(bytes);
+            if (decoded != null) {
+              final img.Image oriented = img.bakeOrientation(decoded);
+              bytes = Uint8List.fromList(img.encodeJpg(oriented, quality: 95));
+              debugPrint(
+                "✅ Image orientation baked using fallback (Pure Dart).",
+              );
+            }
+          } catch (e2) {
+            debugPrint("❌ Fallback Orientation Fix also failed: $e2");
+          }
         }
 
         if (!mounted) return;
@@ -136,7 +160,11 @@ class _AuthProfileImageState extends State<AuthProfileImage> {
                 size: widget.size * 0.5,
                 color: Colors.grey.shade400,
               )
-            : Image.memory(_imageBytes!, fit: BoxFit.cover),
+            : Image.memory(
+                _imageBytes!,
+                key: ValueKey(_imageBytes!.hashCode),
+                fit: BoxFit.cover,
+              ),
       ),
     );
   }

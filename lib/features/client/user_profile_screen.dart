@@ -10,6 +10,7 @@ import 'package:photopia/controller/client/log_out_controller.dart';
 import 'package:photopia/controller/client/user_profile_controller.dart';
 import 'package:photopia/controller/location_controller.dart';
 import 'package:photopia/features/client/widgets/auth_profile_image.dart';
+import 'package:photopia/features/client/edit_profile_screen.dart';
 import 'package:photopia/features/provider/screen/provider_profile_screen.dart'
     as provider_view;
 import 'package:photopia/core/widgets/full_screen_image_viewer.dart';
@@ -51,10 +52,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.edit_note, color: Colors.black, size: 28.sp),
             onPressed: () {
-              Navigator.pushNamed(context, AppRoutes.edit_profile);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => EditProfileScreen()),
+              );
             },
+            icon: Icon(Icons.edit_outlined, color: Colors.black, size: 24.sp),
           ),
           SizedBox(width: 10.w),
         ],
@@ -102,24 +106,54 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       padding: EdgeInsets.symmetric(vertical: 15.h),
       child: Column(
         children: [
-          GestureDetector(
-            onTap: () {
-              if (imageUrl != null) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => FullScreenImageViewer(
-                      imageUrl: imageUrl,
-                      tag: 'user_profile_hero',
+          Stack(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  if (imageUrl != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => FullScreenImageViewer(
+                          imageUrl: imageUrl,
+                          tag: 'user_profile_hero',
+                        ),
+                      ),
+                    );
+                  }
+                },
+                child: Hero(
+                  tag: 'user_profile_hero',
+                  child: AuthProfileImage(imageUrl: imageUrl, size: 90.w),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditProfileScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(6.w),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF1A1A1A),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 16.sp,
                     ),
                   ),
-                );
-              }
-            },
-            child: Hero(
-              tag: 'user_profile_hero',
-              child: AuthProfileImage(imageUrl: imageUrl, size: 90.w),
-            ),
+                ),
+              ),
+            ],
           ),
           SizedBox(height: 10.h),
           Text(
@@ -188,8 +222,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      const provider_view.ProviderProfileScreen(),
+                  builder: (context) => provider_view.ProviderProfileScreen(),
                 ),
               );
             },
