@@ -29,7 +29,7 @@ class _SelectPackageScreenState extends State<SelectPackageScreen> {
         _packages = rawPackages.map((p) => {
           'name': p['name'] ?? 'Package',
           'price': p['price']?.toString() ?? '0',
-          'currency': widget.service!['currency'] ?? '€',
+          'currency': '€',
           'duration': '${p['duration']} hours',
           'features': p['includes'] != null ? List<String>.from(p['includes']) : [],
           'description': p['description'] ?? '',
@@ -43,7 +43,7 @@ class _SelectPackageScreenState extends State<SelectPackageScreen> {
         {
           'name': 'Standard Package',
           'price': widget.service?['price']?.toString() ?? '0',
-          'currency': widget.service?['currency'] ?? '€',
+          'currency': '€',
           'duration': widget.service?['duration'] ?? 'Flexible',
           'features': ['Standard Service'],
         }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/features/client/book_now_SelectPackage_screen.dart';
 import 'package:photopia/features/client/book_now_confirmation_screen.dart';
 import 'package:photopia/features/client/provider_profile_screen.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
@@ -123,6 +124,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                       providerId: serviceDetail?.providerId?.sId ?? (widget.service['providerId'] is Map ? widget.service['providerId']['_id'] : widget.service['providerId'])?.toString() ?? '',
                       name: providerName,
                       avatar: providerAvatar,
+                      fullService: serviceDetail?.toJson() ?? widget.service,
                     ),
                   ),
                 ],
@@ -334,7 +336,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
     return Wrap(spacing: 8.w, runSpacing: 8.h, children: tags.map((tag) => Container(padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h), decoration: BoxDecoration(color: Colors.grey.withOpacity(0.05), borderRadius: BorderRadius.circular(20).r), child: Text(tag.startsWith('#') ? tag : '#$tag', style: TextStyle(fontSize: 12.sp.clamp(12, 13), color: Colors.black87, fontWeight: FontWeight.w600)))).toList());
   }
 
-  Widget _buildBottomBar({required String providerId, required String name, required String avatar}) {
+  Widget _buildBottomBar({required String providerId, required String name, required String avatar, required Map<String, dynamic> fullService}) {
     return Container(
       padding: EdgeInsets.fromLTRB(20.w, 15.h, 20.w, 20.h),
       decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4))]),
@@ -375,7 +377,13 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                   GuestDialogHelper.showGuestDialog(context);
                   return;
                 }
-                Navigator.push(context, MaterialPageRoute(builder: (context) => BookingConfirmationScreen(service: widget.service)));
+                final String pricingType = fullService['pricingType'] ?? fullService['pricingModel']?['type'] ?? '';
+                debugPrint("NAVIGATING: pricingType='$pricingType', fullService: $fullService");
+                if (pricingType == 'PACKAGE' || pricingType.toUpperCase() == 'PACKAGE') {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => SelectPackageScreen(service: fullService)));
+                } else {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => BookingConfirmationScreen(service: fullService)));
+                }
               },
               child: Container(height: 50.h, decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12).r), child: Center(child: Text('Book Now', style: TextStyle(color: Colors.white, fontSize: 14.sp.clamp(14, 16), fontWeight: FontWeight.bold)))),
             ),

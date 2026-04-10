@@ -264,7 +264,7 @@ class _BookingConfirmationScreenState
                 onPageChanged: (index) {
                   setState(() {
                     _pageIndex = index;
-                    if (index == 6) _isSuccess = true;
+                    if (index == 4) _isSuccess = true;
                   });
                 },
                 children: [
@@ -745,6 +745,33 @@ class _BookingConfirmationScreenState
               style: TextStyle(
                   fontSize: 13.sp.clamp(13, 14), color: Colors.grey)),
           SizedBox(height: 25.h),
+          if (_hasDeposit) ...[
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12).r,
+                border: Border.all(color: Colors.orange.withOpacity(0.2)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.orange, size: 18.sp),
+                  SizedBox(width: 10.w),
+                  Expanded(
+                    child: Text(
+                      'Payment Notice: You will only be charged ${((_depositPercentage) * 100).toInt()}% of the total price today to confirm your booking.',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.orange.shade900,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 20.h),
+          ],
           Container(
             padding: EdgeInsets.all(20.w),
             decoration: BoxDecoration(
@@ -774,12 +801,41 @@ class _BookingConfirmationScreenState
                   _buildReviewItem('Special Requests', _specialRequests),
                 ],
                 const Divider(),
-                _buildReviewItem('Price', 
-                    '${widget.package?['currency'] ?? widget.service?['currency'] ?? '€'}${_packagePrice.toStringAsFixed(2)}',
-                    isBold: true),
+                _buildReviewItem('Final Service Total', '€${_packagePrice.toStringAsFixed(2)}'),
+                if (_hasDeposit) ...[
+                  _buildReviewItem('Payable Now (Deposit)', '€${_depositAmount.toStringAsFixed(2)}', color: Colors.green, isBold: true),
+                  _buildReviewItem('Remaining Balance', '€${_balanceAmount.toStringAsFixed(2)}', color: Colors.orange),
+                ],
               ],
             ),
           ),
+          if (_hasDeposit) ...[
+            SizedBox(height: 20.h),
+            Container(
+              padding: EdgeInsets.all(15.w),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12).r,
+                border: Border.all(color: Colors.orange.withOpacity(0.2)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.orange, size: 20.sp),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Text(
+                      'Note: You only need to pay the deposit (50%) now to confirm. The rest is due later.',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.orange.shade900,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           SizedBox(height: 40.h),
           _buildBottomButton(),
           SizedBox(height: 20.h),
@@ -816,16 +872,34 @@ class _BookingConfirmationScreenState
     return double.tryParse(priceStr) ?? 0;
   }
 
-  double get _serviceFeeAmount {
-    return _packagePrice * 0.03; // 3% fee
+  bool get _hasDeposit => _depositPercentage < 1.0;
+
+  double get _depositPercentage {
+    // Force 50% for all services for now as per user's "automatic 50%" request, 
+    // unless specified otherwise in service data.
+    final val = widget.service?['depositPercentage']?.toString();
+    if (val != null) {
+      return double.tryParse(val) ?? 0.5;
+    }
+    return 0.5; 
+  }
+
+  double get _depositAmount {
+    return _packagePrice * _depositPercentage;
+  }
+
+  double get _balanceAmount {
+    return _packagePrice - _depositAmount;
   }
 
   double get _totalBookingAmount {
-    return _packagePrice + _serviceFeeAmount;
+    // Only charge the deposit amount at the time of booking
+    return _depositAmount;
   }
 
   Widget _buildStep4() {
-    final currency = widget.package?['currency'] ?? widget.service?['currency'] ?? '€';
+    const String currency = '€';
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -837,10 +911,42 @@ class _BookingConfirmationScreenState
                   fontSize: 16.sp.clamp(16, 18),
                   fontWeight: FontWeight.bold)),
           SizedBox(height: 8.h),
-          Text('Complete your booking with payment',
+          Text(_hasDeposit 
+              ? 'Secure your booking with a partial payment' 
+              : 'Complete your booking with payment',
               style: TextStyle(
                   fontSize: 13.sp.clamp(13, 14), color: Colors.grey)),
           SizedBox(height: 25.h),
+          
+          if (_hasDeposit) ...[
+            Container(
+              padding: EdgeInsets.all(15.w),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(12).r,
+                border: Border.all(color: Colors.blue.withOpacity(0.1)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue, size: 20.sp),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Text(
+                      'Automatic Deposit: You only need to pay ${(_depositPercentage * 100).toInt()}% of the total amount now. The remaining balance will be shown in your order history and can be settled later.',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.blue.shade900,
+                        fontWeight: FontWeight.w600,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 20.h),
+          ],
+
           Container(
             padding: EdgeInsets.all(20.w),
             decoration: BoxDecoration(
@@ -850,10 +956,16 @@ class _BookingConfirmationScreenState
             ),
             child: Column(
               children: [
-                _buildPriceRow('Package Total', '$currency${_packagePrice.toStringAsFixed(2)}'),
-                _buildPriceRow('Service Fee (3%)', '$currency${_serviceFeeAmount.toStringAsFixed(2)}'),
-                const Divider(),
-                _buildPriceRow('Total', '$currency${_totalBookingAmount.toStringAsFixed(2)}', isBold: true),
+                _buildPriceRow('Service Total', '$currency${_packagePrice.toStringAsFixed(2)}'),
+                if (_hasDeposit) ...[
+                  _buildPriceRow('Deposit Percentage', '${(_depositPercentage * 100).toInt()}%'),
+                  const Divider(),
+                  _buildPriceRow('Payable Now (Deposit)', '$currency${_depositAmount.toStringAsFixed(2)}', isBold: true),
+                  _buildPriceRow('Remaining Balance', '$currency${_balanceAmount.toStringAsFixed(2)}'),
+                ] else ...[
+                  const Divider(),
+                  _buildPriceRow('Total', '$currency${_totalBookingAmount.toStringAsFixed(2)}', isBold: true),
+                ],
               ],
             ),
           ),
@@ -866,9 +978,6 @@ class _BookingConfirmationScreenState
           _buildPaymentOption(
               'Credit/Debit Card', 'Visa, Mastercard, Amex',
               Icons.credit_card_outlined),
-          SizedBox(height: 12.h),
-          _buildPaymentOption('PayPal', 'Pay with PayPal balance',
-              Icons.account_balance_wallet_outlined),
           SizedBox(height: 40.h),
           _buildBottomButton(),
           SizedBox(height: 20.h),
@@ -878,37 +987,99 @@ class _BookingConfirmationScreenState
   }
 
   Widget _buildSuccessStep() {
-    return Padding(
-      padding: EdgeInsets.all(30.w),
+    final dateStr = _selectedDateTime != null
+        ? DateFormat('EEEE, MMMM d, y').format(_selectedDateTime!)
+        : 'N/A';
+    const currency = '€';
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.all(25.w),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          SizedBox(height: 10.h),
           Container(
-            padding: EdgeInsets.all(20.w),
+            padding: EdgeInsets.all(15.w),
             decoration: const BoxDecoration(
               color: Color(0xFFE8F5E9),
               shape: BoxShape.circle,
             ),
             child: Icon(Icons.check,
-                color: const Color(0xFF4CAF50), size: 40.sp),
+                color: const Color(0xFF4CAF50), size: 35.sp),
           ),
-          SizedBox(height: 30.h),
+          SizedBox(height: 20.h),
           Text(
             'Booking Confirmed!',
             style: TextStyle(
-                fontSize: 18.sp.clamp(18, 22),
+                fontSize: 20.sp.clamp(18, 24),
                 fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: 15.h),
+          SizedBox(height: 10.h),
           Text(
-            "Your session has been successfully booked. You'll receive a confirmation email shortly.",
+            "Your session has been successfully booked.\nYou'll receive a confirmation email shortly.",
             textAlign: TextAlign.center,
             style: TextStyle(
-                fontSize: 13.sp.clamp(13, 14),
+                fontSize: 13.sp.clamp(12, 14),
                 color: Colors.grey,
-                height: 1.5),
+                height: 1.4),
           ),
-          SizedBox(height: 50.h),
+          SizedBox(height: 30.h),
+          
+          // --- Booking Summary Card ---
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(20.w),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16).r,
+              border: Border.all(color: Colors.grey.shade100),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('RECEIPT', 
+                      style: TextStyle(
+                        fontSize: 12.sp, 
+                        fontWeight: FontWeight.bold, 
+                        color: Colors.blue.shade800,
+                        letterSpacing: 1.2,
+                      )
+                    ),
+                    Text('#${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}', 
+                      style: TextStyle(fontSize: 12.sp, color: Colors.grey)
+                    ),
+                  ],
+                ),
+                const Divider(height: 30),
+                _buildSummaryRow(Icons.camera_alt_outlined, 'Service', widget.service?['title'] ?? 'Photography'),
+                _buildSummaryRow(Icons.calendar_today_outlined, 'Date', dateStr),
+                _buildSummaryRow(Icons.access_time, 'Time', '$_selectedTime - ${_calculateEndTime()}'),
+                _buildSummaryRow(Icons.location_on_outlined, 'Location', _location.isEmpty ? 'Not specified' : _location),
+                const Divider(height: 30),
+                
+                // --- Payment Details in Card ---
+                _buildSummaryPriceRow('Total Price', '$currency${_packagePrice.toStringAsFixed(2)}'),
+                if (_hasDeposit) ...[
+                  _buildSummaryPriceRow('Paid (Deposit)', '$currency${_depositAmount.toStringAsFixed(2)}', color: Colors.green, isBold: true),
+                  _buildSummaryPriceRow('Balance Due', '$currency${_balanceAmount.toStringAsFixed(2)}', color: Colors.orange),
+                ] else ...[
+                  _buildSummaryPriceRow('Amount Paid', '$currency${_packagePrice.toStringAsFixed(2)}', color: Colors.green, isBold: true),
+                ],
+              ],
+            ),
+          ),
+          
+          SizedBox(height: 40.h),
           GestureDetector(
             onTap: () =>
                 Navigator.of(context).popUntil((route) => route.isFirst),
@@ -930,6 +1101,43 @@ class _BookingConfirmationScreenState
               ),
             ),
           ),
+          SizedBox(height: 20.h),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 15.h),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16.sp, color: Colors.grey[400]),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
+                SizedBox(height: 2.h),
+                Text(value, style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w600, color: Colors.black)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryPriceRow(String label, String value, {Color color = Colors.black, bool isBold = false}) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8.h),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(fontSize: 13.sp, color: isBold ? Colors.black : Colors.grey[600], fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
+          Text(value, style: TextStyle(fontSize: 14.sp, fontWeight: isBold ? FontWeight.bold : FontWeight.w600, color: color)),
         ],
       ),
     );
@@ -1016,6 +1224,7 @@ class _BookingConfirmationScreenState
             bookingDate: formattedDate,
             startTime: _selectedTime,
             endTime: endTime,
+            packageName: widget.package?['name'],
             address: _location,
             city: _city ?? "Dhaka",
             country: _country ?? "Bangladesh",
@@ -1053,7 +1262,7 @@ class _BookingConfirmationScreenState
 
           if (mounted) {
             _pageController.animateToPage(
-              6,
+              4,
               duration: const Duration(milliseconds: 400),
               curve: Curves.easeInOut,
             );
@@ -1103,23 +1312,24 @@ class _BookingConfirmationScreenState
               }
 
               // 2. Validation for Step 2 (Location)
-              if (_pageIndex == 3 && _location.trim().isEmpty) {
+              if (_pageIndex == 1 && _location.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Please provide a location address')),
                 );
                 return;
               }
 
-              int nextPageIndex = _pageIndex + 1;
-              if (_pageIndex < 3) nextPageIndex = 3;
-              _pageController.animateToPage(
-                nextPageIndex,
-                duration: const Duration(milliseconds: 400),
-                curve: Curves.easeInOut,
-              );
-            } else if (_pageIndex == 5) {
-              // Final review step -> call API
-              _handleBooking();
+              if (_pageIndex == 3) {
+                // Final review step -> call API and start payment
+                _handleBooking();
+              } else {
+                int nextPageIndex = _pageIndex + 1;
+                _pageController.animateToPage(
+                  nextPageIndex,
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeInOut,
+                );
+              }
             }
           },
           child: Container(
@@ -1133,7 +1343,9 @@ class _BookingConfirmationScreenState
               child: bookingCtrl.isLoading
                   ? const CircularProgressIndicator(color: Colors.white)
                   : Text(
-                      _pageIndex == 5 ? 'Pay & Confirm' : 'Continue',
+                      _pageIndex == 3 
+                        ? (_hasDeposit ? 'Pay 50% Deposit Now' : 'Pay & Confirm') 
+                        : 'Continue',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16.sp.clamp(16, 18),
@@ -1194,7 +1406,7 @@ class _BookingConfirmationScreenState
   }
 
 
-  Widget _buildReviewItem(String label, String value, {bool isBold = false}) {
+  Widget _buildReviewItem(String label, String value, {bool isBold = false, Color color = Colors.black}) {
     return Padding(
       padding: EdgeInsets.only(bottom: 15.h),
       child: Column(
@@ -1208,7 +1420,7 @@ class _BookingConfirmationScreenState
               style: TextStyle(
                   fontSize: 14.sp.clamp(14, 16),
                   fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
-                  color: Colors.black)),
+                  color: color)),
         ],
       ),
     );

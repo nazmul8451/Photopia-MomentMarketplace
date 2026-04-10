@@ -121,12 +121,13 @@ class SubscriptionPlanData {
   }
 
   String get formattedPrice {
-    String currencySymbol = '\$';
-    final String currentCurrency = (currency ?? 'usd').toLowerCase();
+    String currencySymbol = '€';
+    final String currentCurrency = (currency ?? 'eur').toLowerCase();
     
-    if (currentCurrency == 'usd') currencySymbol = '\$';
     if (currentCurrency == 'eur') currencySymbol = '€';
-    if (currentCurrency == 'bdt') currencySymbol = '৳';
+    else if (currentCurrency == 'usd') currencySymbol = '€'; // Preferred Euro globally
+    else if (currentCurrency == 'bdt') currencySymbol = '৳';
+    else currencySymbol = '€';
     
     return '$currencySymbol${price?.toStringAsFixed(2) ?? '0.00'}';
   }

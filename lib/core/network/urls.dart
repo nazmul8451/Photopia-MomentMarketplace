@@ -91,6 +91,7 @@ class Urls {
   static const String myPayments = '$baseUrl/api/v1/payment/my-payments';
 
   static const String createBooking = '$baseUrl/api/v1/booking';
+  static const String calculateBookingPrice = '$baseUrl/api/v1/booking/calculate-price';
 
   static String updateBookingStatus(String id) => '$baseUrl/api/v1/booking/$id/status';
 

@@ -101,13 +101,35 @@ class BookingDetailsScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Client Information',
-                style: TextStyle(
-                  fontSize: 16.sp.clamp(14, 18),
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Client Information',
+                    style: TextStyle(
+                      fontSize: 16.sp.clamp(14, 18),
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
+                  ),
+                  if (currentBooking['depositPercentage'] != null) ...[
+                    SizedBox(height: 4.h),
+                    Row(
+                      children: [
+                        Icon(Icons.check_circle_outline, size: 14.sp, color: Colors.green),
+                        SizedBox(width: 4.w),
+                        Text(
+                          'Deposit Paid: ${((currentBooking['depositPercentage'] ?? 1.0) * 100).toInt()}%',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.green.shade700,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
               ),
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
@@ -177,6 +199,39 @@ class BookingDetailsScreen extends StatelessWidget {
   }
 
   Widget _buildServiceDetails(Map<String, dynamic> service, Map<String, dynamic> location, Map<String, dynamic> currentBooking) {
+    // 1. Move logic to the START of the function
+    final String displayPrice = () {
+      String price = '0';
+      final pricingDetails = currentBooking['pricingDetails'];
+      final String? packageName = currentBooking['packageName'];
+      
+      if (pricingDetails != null && pricingDetails['baseRate'] != null && pricingDetails['baseRate'] != 0) {
+        price = pricingDetails['baseRate'].toString();
+      } else if (packageName != null && service['pricingModel'] != null && service['pricingModel']['packages'] != null) {
+        final List packages = service['pricingModel']['packages'];
+        final package = packages.firstWhere((p) => p['name'] == packageName, orElse: () => null);
+        if (package != null) {
+          price = package['price']?.toString() ?? service['price']?.toString() ?? '0';
+        }
+      }
+      
+      if (price == '0' || price == '0.0') {
+        if (pricingDetails != null && pricingDetails['subtotal'] != null && pricingDetails['subtotal'] != 0) {
+          price = pricingDetails['subtotal'].toString();
+        } else if (currentBooking['totalAmount'] != null && currentBooking['totalAmount'] != 0) {
+          price = currentBooking['totalAmount'].toString();
+        } else {
+          price = service['price']?.toString() ?? '0';
+        }
+      }
+      return price;
+    }();
+
+    double dPrice = double.tryParse(displayPrice) ?? 0;
+    double dDepositPercent = double.tryParse(currentBooking['depositPercentage']?.toString() ?? '1.0') ?? 1.0;
+    double displayPaid = dPrice * dDepositPercent;
+    double displayRemaining = dPrice - displayPaid;
+
     return Container(
       padding: EdgeInsets.all(15.w),
       decoration: BoxDecoration(
@@ -203,6 +258,11 @@ class BookingDetailsScreen extends StatelessWidget {
           SizedBox(height: 10.h),
           const Divider(),
           SizedBox(height: 10.h),
+          SizedBox(height: 10.h),
+          const Divider(),
+          SizedBox(height: 10.h),
+          
+          // Total Price Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -214,18 +274,58 @@ class BookingDetailsScreen extends StatelessWidget {
                 ),
               ),
               Text(
-                '€${currentBooking['pricingDetails']?['subtotal'] ?? 
-                   currentBooking['pricingDetails']?['clientTotal'] ?? 
-                   currentBooking['totalAmount'] ?? '0'}',
+                '€$displayPrice',
                 style: TextStyle(
-                  fontSize: 20.sp.clamp(18, 22),
+                  fontSize: 18.sp.clamp(16, 20),
                   fontWeight: FontWeight.bold,
+                  color: Colors.black,
                 ),
               ),
             ],
           ),
+          
+          // Payment Breakdown (Deposit & Balance)
+          if (currentBooking['depositPercentage'] != null && currentBooking['depositPercentage'] < 1.0) ...[
+            SizedBox(height: 12.h),
+            _buildPaymentDetailRow(
+              'Paid (Deposit ${((dDepositPercent) * 100).toInt()}%)', 
+              '€${displayPaid.toStringAsFixed(2)}',
+              color: const Color(0xFF4CAF50),
+            ),
+            SizedBox(height: 8.h),
+            _buildPaymentDetailRow(
+              'Remaining Balance', 
+              '€${displayRemaining.toStringAsFixed(2)}',
+              color: Colors.redAccent,
+              isBold: true,
+            ),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _buildPaymentDetailRow(String label, String value, {Color? color, bool isBold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13.sp.clamp(12, 14),
+            color: Colors.grey[600],
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14.sp.clamp(13, 15),
+            fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
+            color: color ?? Colors.black,
+          ),
+        ),
+      ],
     );
   }
 

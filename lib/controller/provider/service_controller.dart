@@ -53,27 +53,29 @@ class ServiceController extends ChangeNotifier {
       final Map<String, dynamic> dataMap = serviceData.toJson();
 
       // Ensure required fields from Zod schema are present
-      dataMap['status'] = dataMap['status'] ?? "ACTIVE";
+      dataMap['status'] = dataMap['status']?.toString().toLowerCase() != 'inactive' 
+          ? "active" 
+          : "inactive";
       dataMap['isActive'] = dataMap['isActive'] ?? true;
       dataMap['currency'] = dataMap['currency'] ?? "EUR";
       dataMap['pricingType'] = dataMap['pricingType'] ?? "HOURLY";
-      if (dataMap['serviceType'] == null || dataMap['serviceType'] == "fixed") {
-          dataMap['serviceType'] = "photography"; // Default based on Zod error options
+      
+      if (dataMap['serviceType'] == null || dataMap['serviceType'] == "fixed" || dataMap['serviceType'] == "photography") {
+          dataMap['serviceType'] = "hourly"; 
       }
-      // Backend expects duration as a string, not number
-      dataMap['duration'] = dataMap['duration']?.toString() ?? "1";
+      
+      String durationVal = dataMap['duration']?.toString() ?? "1";
+      if (!durationVal.toLowerCase().contains("hour")) {
+          durationVal = "$durationVal hours";
+      }
+      dataMap['duration'] = durationVal;
 
       if (serviceData.category != null) {
-        // If the backend expects the name, use name. If it expects ID, use ID.
-        // The guide shows "Photography" (String). 
-        // We'll use the ID if sId is available, otherwise name. 
-        // Standard practice for this backend seems to be IDs.
         dataMap['category'] = serviceData.category?.sId ?? serviceData.category?.name ?? "";
       }
 
       if (dataMap['location'] != null) {
-        // Backend expects 'ONSITE' or 'REMOTE', not 'physical'
-        dataMap['location']['type'] = "ONSITE";
+        dataMap['location']['type'] = "physical";
         dataMap['location']['address'] = dataMap['location']['address'] ?? "";
       }
 
@@ -204,23 +206,30 @@ class ServiceController extends ChangeNotifier {
       final Map<String, dynamic> dataMap = serviceData.toJson();
 
       // Ensure required update fields are present according to Zod
-      dataMap['status'] = serviceData.status ?? "ACTIVE";
+      dataMap['status'] = serviceData.status?.toLowerCase() != 'inactive' 
+          ? "active" 
+          : "inactive";
       dataMap['isActive'] = serviceData.isActive ?? true;
       dataMap['isVerified'] = serviceData.isVerified ?? false;
       dataMap['currency'] = dataMap['currency'] ?? "EUR";
       dataMap['pricingType'] = dataMap['pricingType'] ?? "HOURLY";
-      if (dataMap['serviceType'] == null || dataMap['serviceType'] == "fixed") {
-          dataMap['serviceType'] = "photography";
+      
+      if (dataMap['serviceType'] == null || dataMap['serviceType'] == "fixed" || dataMap['serviceType'] == "photography") {
+          dataMap['serviceType'] = "hourly";
       }
       
-      dataMap['duration'] = dataMap['duration']?.toString() ?? "1";
+      String durationVal = dataMap['duration']?.toString() ?? "1";
+      if (!durationVal.toLowerCase().contains("hour")) {
+          durationVal = "$durationVal hours";
+      }
+      dataMap['duration'] = durationVal;
 
       if (serviceData.category != null) {
         dataMap['category'] = serviceData.category?.sId ?? serviceData.category?.name ?? "";
       }
 
       if (dataMap['location'] != null) {
-        dataMap['location']['type'] = "ONSITE";
+        dataMap['location']['type'] = "physical";
         dataMap['location']['address'] = dataMap['location']['address'] ?? "";
       }
 

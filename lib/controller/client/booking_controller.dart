@@ -17,7 +17,8 @@ class BookingController extends ChangeNotifier {
     required String serviceId,
     required String bookingDate,
     required String startTime,
-    required String endTime,
+    String? endTime,
+    String? packageName,
     required String address,
     required String city,
     required String country,
@@ -28,7 +29,7 @@ class BookingController extends ChangeNotifier {
     String? clientPhone,
     String? eventType,
     String? specialRequests,
-    int distanceFromProviderKm = 0,
+    double distanceFromProviderKm = 0,
     String? notes,
   }) async {
     _isLoading = true;
@@ -40,7 +41,6 @@ class BookingController extends ChangeNotifier {
       "serviceId": serviceId,
       "bookingDate": bookingDate,
       "startTime": startTime,
-      "endTime": endTime,
       "eventLocation": {
         "address": address,
         "city": city,
@@ -50,17 +50,31 @@ class BookingController extends ChangeNotifier {
           "lng": lng,
         },
         "distanceFromProviderKm": distanceFromProviderKm,
-        "notes": notes ?? "",
       },
       "clientName": clientName ?? "",
       "clientEmail": clientEmail ?? "",
       "clientPhone": clientPhone ?? "",
-      "userEmail": clientEmail ?? "",
-      "userName": clientName ?? "",
-      "userPhone": clientPhone ?? "",
-      "eventType": eventType ?? "General",
-      "specialRequests": specialRequests ?? "",
     };
+
+    if (endTime != null && endTime.isNotEmpty) {
+      body["endTime"] = endTime;
+    }
+    
+    if (packageName != null && packageName.isNotEmpty) {
+      body["packageName"] = packageName;
+    }
+
+    if (notes != null && notes.isNotEmpty) {
+      body["eventLocation"]["notes"] = notes;
+    }
+    
+    if (eventType != null && eventType.isNotEmpty) {
+      body["eventType"] = eventType;
+    }
+    
+    if (specialRequests != null && specialRequests.isNotEmpty) {
+      body["specialRequests"] = specialRequests;
+    }
 
     try {
       final response = await NetworkCaller.postRequest(
@@ -107,6 +121,57 @@ class BookingController extends ChangeNotifier {
     } catch (e) {
       debugPrint('❌ BookingController: Status update failed: $e');
       return false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> calculateBookingPrice({
+    required String serviceId,
+    required String bookingDate,
+    required String startTime,
+    String? endTime,
+    String? packageName,
+    double distanceFromProviderKm = 0.0,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    final Map<String, dynamic> body = {
+      "serviceId": serviceId,
+      "date": bookingDate,
+      "startTime": startTime,
+      "distanceFromProviderKm": distanceFromProviderKm,
+    };
+
+    if (endTime != null && endTime.isNotEmpty) {
+      body["endTime"] = endTime;
+    }
+
+    if (packageName != null && packageName.isNotEmpty) {
+      body["packageName"] = packageName;
+    }
+
+    try {
+      final response = await NetworkCaller.postRequest(
+        url: Urls.calculateBookingPrice,
+        body: body,
+      );
+
+      if (response.isSuccess) {
+        _isLoading = false;
+        notifyListeners();
+        return response.body?['data'];
+      } else {
+        _errorMessage = response.errorMessage ?? "Failed to calculate price";
+        _isLoading = false;
+        notifyListeners();
+        return null;
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return null;
     }
   }
 }

@@ -240,7 +240,6 @@ class _ProviderCreateListingScreenState
           ) ??
           0,
       currency: "EUR",
-      // Fix: Duration must be an int according to Zod error "Expected number"
       duration: (int.tryParse(_durationController.text) ?? 1).toString(), 
       location: Location(
         country: _countryController.text.trim(),
@@ -387,13 +386,19 @@ class _ProviderCreateListingScreenState
                   
                   SizedBox(height: 30.h),
                   _buildSectionTitle('More Details'),
-                  _buildLabel('Duration (Hours)'),
-                  _buildTextField(
-                    _durationController, 
-                    'e.g. 2',
-                    errorText: context.watch<ServiceController>().fieldErrors['duration'],
-                  ),
-                  SizedBox(height: 15.h),
+                  if (_selectedPricingModel != 'By Service') ...[
+                    _buildLabel('Duration (Hours)'),
+                    _buildDurationDropdown(_durationController, hint: 'Select duration'),
+                    if (context.watch<ServiceController>().fieldErrors['duration'] != null)
+                      Padding(
+                        padding: EdgeInsets.only(top: 4.h, left: 4.w),
+                        child: Text(
+                          context.watch<ServiceController>().fieldErrors['duration']!,
+                          style: TextStyle(color: Colors.red, fontSize: 12.sp),
+                        ),
+                      ),
+                    SizedBox(height: 15.h),
+                  ],
                   _buildLabel('Equipment (Optional)'),
                   _buildEquipmentInput(),
                   _buildEquipmentList(),
@@ -485,6 +490,7 @@ class _ProviderCreateListingScreenState
       child: DropdownButtonHideUnderline(
         child: DropdownButton<Category>(
           value: _selectedCategory,
+          dropdownColor: Colors.white,
           isExpanded: true,
           icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[400]),
           onChanged: (Category? newValue) {
@@ -505,7 +511,13 @@ class _ProviderCreateListingScreenState
 
   Widget _buildServiceTypeDropdown() {
     // Assuming service types are fixed or from tags for now
-    final serviceTypes = ['Photography', 'Videography', 'Video Editing', 'Wedding', 'Event', 'Portrait'];
+    final List<String> serviceTypes = ['Photography', 'Videography', 'Video Editing', 'Wedding', 'Event', 'Portrait'];
+    
+    // Safety check to ensure the existing selected value is in the dropdown list
+    if (!serviceTypes.contains(_selectedServiceType)) {
+      serviceTypes.add(_selectedServiceType);
+    }
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       decoration: BoxDecoration(
@@ -516,6 +528,7 @@ class _ProviderCreateListingScreenState
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: _selectedServiceType,
+          dropdownColor: Colors.white,
           isExpanded: true,
           icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[400]),
           onChanged: (String? newValue) {
@@ -643,7 +656,7 @@ class _ProviderCreateListingScreenState
                     children: [
                       Expanded(child: _buildPackageField(controllers.price, 'Price (EUR)', isNumber: true)),
                       SizedBox(width: 10.w),
-                      Expanded(child: _buildPackageField(controllers.duration, 'Duration (Hours)', isNumber: true)),
+                      Expanded(child: _buildDurationDropdown(controllers.duration, hint: 'Duration')),
                     ],
                   ),
                   SizedBox(height: 10.h),
@@ -682,6 +695,42 @@ class _ProviderCreateListingScreenState
           hintStyle: TextStyle(color: Colors.grey[400], fontSize: AppTypography.bodyMedium),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDurationDropdown(TextEditingController controller, {required String hint}) {
+    final options = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '12', '24'];
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 12.w),
+      height: 48.h, // Match standard text field height roughly
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          dropdownColor: Colors.white,
+          hint: Text(hint, style: TextStyle(color: Colors.grey[400], fontSize: AppTypography.bodyMedium)),
+          value: options.contains(controller.text) ? controller.text : null,
+          isExpanded: true,
+          icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[400]),
+          onChanged: (String? newValue) {
+            setState(() {
+              if (newValue != null) {
+                controller.text = newValue;
+              }
+            });
+          },
+          items: options.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text('$value Hour${value == '1' ? '' : 's'}'),
+            );
+          }).toList(),
         ),
       ),
     );

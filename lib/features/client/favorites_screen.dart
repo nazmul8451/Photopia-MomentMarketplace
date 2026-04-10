@@ -154,7 +154,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
               reviews: service['reviews'] ?? 0,
               priceRange:
                   service['priceRange'] ??
-                  '${service['currency'] ?? '\$'} ${service['price'] ?? 0}',
+                  '${service['currency'] ?? '€'} ${service['price'] ?? 0}',
               tags: List<String>.from(service['tags'] ?? []),
               isPremium: service['isPremium'] ?? false,
               providerId: service['providerId'] is Map

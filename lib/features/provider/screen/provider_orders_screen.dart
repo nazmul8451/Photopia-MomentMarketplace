@@ -243,10 +243,34 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
         final service = order['serviceId'] is Map ? order['serviceId'] : {};
         final location = order['eventLocation'] is Map ? order['eventLocation'] : {};
 
-        // Prioritize subtotal (base price) over totalAmount (which contains fees)
-        final price = order['pricingDetails']?['subtotal']?.toString() ?? 
-                      order['totalAmount']?.toString() ?? 
-                      order['pricingDetails']?['clientTotal']?.toString() ?? '0';
+        // Updated Price extraction logic for Today tab
+        String price = '0';
+        final pricingDetails = order['pricingDetails'];
+        final String? packageName = order['packageName'];
+        
+        // Priority 1: Base Rate (What the user saw during booking)
+        if (pricingDetails != null && pricingDetails['baseRate'] != null && pricingDetails['baseRate'] != 0) {
+          price = pricingDetails['baseRate'].toString();
+        } 
+        // Priority 2: Package Matching
+        else if (packageName != null && service['pricingModel'] != null && service['pricingModel']['packages'] != null) {
+          final List packages = service['pricingModel']['packages'];
+          final package = packages.firstWhere((p) => p['name'] == packageName, orElse: () => null);
+          if (package != null) {
+            price = package['price']?.toString() ?? service['price']?.toString() ?? '0';
+          }
+        }
+        
+        // Fallbacks
+        if (price == '0' || price == '0.0') {
+          if (pricingDetails != null && pricingDetails['subtotal'] != null && pricingDetails['subtotal'] != 0) {
+            price = pricingDetails['subtotal'].toString();
+          } else if (order['totalAmount'] != null && order['totalAmount'] != 0) {
+            price = order['totalAmount'].toString();
+          } else {
+            price = service['price']?.toString() ?? '0';
+          }
+        }
 
         return _buildTodayBookingCard(
           name: client['name'] ?? 'Unknown Client',
@@ -312,10 +336,34 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
         final client = order['clientId'] is Map ? order['clientId'] : {};
         final service = order['serviceId'] is Map ? order['serviceId'] : {};
 
-        // Prioritize subtotal (base price) over totalAmount (which contains fees)
-        final price = order['pricingDetails']?['subtotal']?.toString() ?? 
-                      order['totalAmount']?.toString() ?? 
-                      order['pricingDetails']?['clientTotal']?.toString() ?? '0';
+        // Updated Price extraction logic for Upcoming tab
+        String price = '0';
+        final pricingDetails = order['pricingDetails'];
+        final String? packageName = order['packageName'];
+        
+        // Priority 1: Base Rate (What the user saw during booking)
+        if (pricingDetails != null && pricingDetails['baseRate'] != null && pricingDetails['baseRate'] != 0) {
+          price = pricingDetails['baseRate'].toString();
+        } 
+        // Priority 2: Package Matching
+        else if (packageName != null && service['pricingModel'] != null && service['pricingModel']['packages'] != null) {
+          final List packages = service['pricingModel']['packages'];
+          final package = packages.firstWhere((p) => p['name'] == packageName, orElse: () => null);
+          if (package != null) {
+            price = package['price']?.toString() ?? service['price']?.toString() ?? '0';
+          }
+        }
+        
+        // Fallbacks
+        if (price == '0' || price == '0.0') {
+          if (pricingDetails != null && pricingDetails['subtotal'] != null && pricingDetails['subtotal'] != 0) {
+            price = pricingDetails['subtotal'].toString();
+          } else if (order['totalAmount'] != null && order['totalAmount'] != 0) {
+            price = order['totalAmount'].toString();
+          } else {
+            price = service['price']?.toString() ?? '0';
+          }
+        }
 
         return _buildUpcomingBookingCard(
           name: client['name'] ?? 'Unknown Client',
@@ -381,10 +429,34 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
         final service = order['serviceId'] is Map ? order['serviceId'] : {};
         final location = order['eventLocation'] is Map ? order['eventLocation'] : {};
 
-        // Prioritize subtotal (base price) over totalAmount (which contains fees)
-        final price = order['pricingDetails']?['subtotal']?.toString() ?? 
-                      order['totalAmount']?.toString() ?? 
-                      order['pricingDetails']?['clientTotal']?.toString() ?? '0';
+        // Updated Price extraction logic for Pending tab
+        String price = '0';
+        final pricingDetails = order['pricingDetails'];
+        final String? packageName = order['packageName'];
+        
+        // Priority 1: Base Rate (What the user saw during booking)
+        if (pricingDetails != null && pricingDetails['baseRate'] != null && pricingDetails['baseRate'] != 0) {
+          price = pricingDetails['baseRate'].toString();
+        } 
+        // Priority 2: Package Matching
+        else if (packageName != null && service['pricingModel'] != null && service['pricingModel']['packages'] != null) {
+          final List packages = service['pricingModel']['packages'];
+          final package = packages.firstWhere((p) => p['name'] == packageName, orElse: () => null);
+          if (package != null) {
+            price = package['price']?.toString() ?? service['price']?.toString() ?? '0';
+          }
+        }
+        
+        // Fallbacks
+        if (price == '0' || price == '0.0') {
+          if (pricingDetails != null && pricingDetails['subtotal'] != null && pricingDetails['subtotal'] != 0) {
+            price = pricingDetails['subtotal'].toString();
+          } else if (order['totalAmount'] != null && order['totalAmount'] != 0) {
+            price = order['totalAmount'].toString();
+          } else {
+            price = service['price']?.toString() ?? '0';
+          }
+        }
 
         return _buildPendingBookingCard(
           name: client['name'] ?? 'Unknown Client',
