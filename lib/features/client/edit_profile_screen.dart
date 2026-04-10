@@ -116,7 +116,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       location: _locationController.text.trim(),
       email: _emailController.text.trim(),
       description: _descriptionController.text.trim(),
-      specialty: _specialtyController.text.trim(),
       imagePath: _selectedImage?.path,
     );
 
@@ -251,12 +250,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       }
                       return null;
                     },
-                  ),
-                  SizedBox(height: 20.h),
-                  _buildTextField(
-                    controller: _specialtyController,
-                    label: 'Specialty',
-                    icon: Icons.star_border_outlined,
                   ),
                   SizedBox(height: 20.h),
                   _buildTextField(

@@ -12,6 +12,7 @@ import 'package:photopia/features/client/search_screen.dart';
 import 'package:photopia/features/client/notification_screen.dart';
 import 'package:photopia/features/client/edit_profile_screen.dart';
 import 'package:photopia/features/client/view_profile_screen.dart';
+import 'package:photopia/features/client/order_history_screen.dart';
 import 'package:photopia/features/common/mode_transition_screen.dart';
 import 'package:photopia/features/onboarding/onboarding_screen.dart';
 import 'package:photopia/features/onboarding/get_started.dart';
@@ -29,6 +30,7 @@ class AppRoutes {
   static const String user_profile = UserProfileScreen.name;
   static const String edit_profile = EditProfileScreen.name;
   static const String view_profile = ViewProfileScreen.name;
+  static const String order_history = OrderHistoryScreen.name;
   static const String home = "/home";
   static const String search = SearchScreen.name;
   static const String favorites = FavoritesScreen.name;
@@ -42,7 +44,8 @@ class AppRoutes {
   static const String splash = "/";
   static const String provider_subscription = ProviderSubscriptionScreen.name;
 
-  static Map<String, WidgetBuilder> get routes => {    sign_up: (context) => const SignUpScreen(),
+  static Map<String, WidgetBuilder> get routes => {
+    sign_up: (context) => const SignUpScreen(),
     forgot_password: (context) => const ForgotPasswordScreen(),
     otp_verification: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
@@ -65,6 +68,7 @@ class AppRoutes {
     bottom_navigation: (context) => const BottomNavigationScreen(),
     user_profile: (context) => const UserProfileScreen(),
     view_profile: (context) => const ViewProfileScreen(),
+    order_history: (context) => const OrderHistoryScreen(),
     edit_profile: (context) => const EditProfileScreen(),
     home: (context) => const MyHomePage(),
     search: (context) => const SearchScreen(),

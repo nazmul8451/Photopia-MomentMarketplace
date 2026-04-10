@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:photopia/core/network/Api_service/network_caller.dart';
 import 'package:photopia/core/network/urls.dart';
+import 'package:photopia/data/models/booking_model.dart';
 
 class BookingController extends ChangeNotifier {
   bool _isLoading = false;
@@ -11,6 +12,43 @@ class BookingController extends ChangeNotifier {
 
   String? _lastBookingId;
   String? get lastBookingId => _lastBookingId;
+
+  List<Booking> _bookings = [];
+  List<Booking> get bookings => _bookings;
+
+  Future<bool> getMyBookings({String? status, String? filterType}) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final String url = Urls.getMyOrders(
+        status: status,
+        filterType: filterType,
+      );
+      final response = await NetworkCaller.getRequest(
+        url: url,
+        requireAuth: true,
+      );
+
+      _isLoading = false;
+      if (response.isSuccess && response.body != null) {
+        final model = BookingModel.fromJson(response.body!);
+        _bookings = model.data ?? [];
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = response.errorMessage ?? "Failed to fetch bookings";
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _isLoading = false;
+      _errorMessage = "Error fetching bookings: $e";
+      notifyListeners();
+      return false;
+    }
+  }
 
   Future<String?> createBooking({
     required String providerId,
@@ -45,10 +83,7 @@ class BookingController extends ChangeNotifier {
         "address": address,
         "city": city,
         "country": country,
-        "coordinates": {
-          "lat": lat,
-          "lng": lng,
-        },
+        "coordinates": {"lat": lat, "lng": lng},
         "distanceFromProviderKm": distanceFromProviderKm,
       },
       "clientName": clientName ?? "",
@@ -59,7 +94,7 @@ class BookingController extends ChangeNotifier {
     if (endTime != null && endTime.isNotEmpty) {
       body["endTime"] = endTime;
     }
-    
+
     if (packageName != null && packageName.isNotEmpty) {
       body["packageName"] = packageName;
     }
@@ -67,11 +102,11 @@ class BookingController extends ChangeNotifier {
     if (notes != null && notes.isNotEmpty) {
       body["eventLocation"]["notes"] = notes;
     }
-    
+
     if (eventType != null && eventType.isNotEmpty) {
       body["eventType"] = eventType;
     }
-    
+
     if (specialRequests != null && specialRequests.isNotEmpty) {
       body["specialRequests"] = specialRequests;
     }
@@ -85,13 +120,14 @@ class BookingController extends ChangeNotifier {
       if (response.isSuccess) {
         final data = response.body?['data'];
         // API returns: { "data": { "booking": { "_id": "..." } } }
-        _lastBookingId = data?['booking']?['_id']?.toString()
-            ?? data?['booking']?['id']?.toString()
-            ?? data?['_id']?.toString()
-            ?? data?['id']?.toString();
+        _lastBookingId =
+            data?['booking']?['_id']?.toString() ??
+            data?['booking']?['id']?.toString() ??
+            data?['_id']?.toString() ??
+            data?['id']?.toString();
 
         debugPrint('✅ BookingController: Booking ID parsed: $_lastBookingId');
-        
+
         _isLoading = false;
         notifyListeners();
         return _lastBookingId;
@@ -116,7 +152,9 @@ class BookingController extends ChangeNotifier {
         body: {"status": status},
         requireAuth: true,
       );
-      debugPrint('📋 BookingController: Status update to "$status" → success: ${response.isSuccess}');
+      debugPrint(
+        '📋 BookingController: Status update to "$status" → success: ${response.isSuccess}',
+      );
       return response.isSuccess;
     } catch (e) {
       debugPrint('❌ BookingController: Status update failed: $e');

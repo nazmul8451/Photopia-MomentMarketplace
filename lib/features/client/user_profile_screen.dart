@@ -10,6 +10,9 @@ import 'package:photopia/controller/client/log_out_controller.dart';
 import 'package:photopia/controller/client/user_profile_controller.dart';
 import 'package:photopia/controller/location_controller.dart';
 import 'package:photopia/features/client/widgets/auth_profile_image.dart';
+import 'package:photopia/controller/client/booking_controller.dart';
+import 'package:photopia/data/models/booking_model.dart';
+import 'package:photopia/features/client/order_history_screen.dart';
 import 'package:photopia/features/client/edit_profile_screen.dart';
 import 'package:photopia/features/provider/screen/provider_profile_screen.dart'
     as provider_view;
@@ -30,6 +33,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (AuthController.isLoggedIn) {
         context.read<UserProfileController>().getUserProfile();
+        context.read<BookingController>().getMyBookings();
       }
     });
   }
@@ -71,18 +75,39 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
           final user = controller.userProfile;
 
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                _buildProfileCard(context, user),
-                SizedBox(height: 20.h),
-                _buildRecentOrders(),
-                SizedBox(height: 20.h),
-                _buildMenuSection(context),
-                SizedBox(height: 30.h),
-                _buildActionButtons(context),
-                SizedBox(height: 100.h), // Spacing for bottom nav
-              ],
+          return RefreshIndicator(
+            onRefresh: () async {
+              await controller.getUserProfile();
+              if (mounted) {
+                await context.read<BookingController>().getMyBookings();
+              }
+            },
+            color: Colors.black,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: [
+                  _buildProfileCard(context, user),
+                  SizedBox(height: 20.h),
+                  Consumer<BookingController>(
+                    builder: (context, bookingController, child) {
+                      final recentBookings = bookingController.bookings
+                          .take(2)
+                          .toList();
+                      return Column(
+                        children: [
+                          _buildRecentOrders(recentBookings),
+                          SizedBox(height: 20.h),
+                          _buildMenuSection(context, bookingController),
+                        ],
+                      );
+                    },
+                  ),
+                  SizedBox(height: 30.h),
+                  _buildActionButtons(context),
+                  SizedBox(height: 100.h), // Spacing for bottom nav
+                ],
+              ),
             ),
           );
         },
@@ -247,7 +272,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildRecentOrders() {
+  Widget _buildRecentOrders(List<Booking> recentBookings) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       child: Container(
@@ -268,30 +293,58 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               ),
             ),
             SizedBox(height: 15.h),
-            _buildOrderItem(
-              'Wedding Photography',
-              'Emma Wilson',
-              '2024-06-15',
-              '€1,500',
-              'Completed',
-            ),
-            const Divider(),
-            _buildOrderItem(
-              'Corporate Video',
-              'Tech Media Studio',
-              '2024-05-20',
-              '€2,800',
-              'Completed',
-            ),
+            if (recentBookings.isEmpty)
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 20.h),
+                child: Center(
+                  child: Text(
+                    'No recent orders',
+                    style: TextStyle(color: Colors.grey, fontSize: 14.sp),
+                  ),
+                ),
+              )
+            else
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: recentBookings.length,
+                separatorBuilder: (context, index) => const Divider(),
+                itemBuilder: (context, index) {
+                  final booking = recentBookings[index];
+                  // Parse date if needed
+                  String formattedDate = booking.bookingDate ?? '';
+                  if (formattedDate.contains('T')) {
+                    formattedDate = formattedDate.split('T')[0];
+                  }
+
+                  return _buildOrderItem(
+                    booking.serviceId?.title ?? 'Service',
+                    booking.providerId?.name ?? 'Provider',
+                    formattedDate,
+                    '${booking.currency ?? booking.pricingDetails?.currency ?? '€'}${booking.totalPrice?.toStringAsFixed(0) ?? '0'}',
+                    booking.status?.toUpperCase() ?? 'PENDING',
+                  );
+                },
+              ),
             SizedBox(height: 15.h),
             Center(
-              child: Text(
-                'View All Orders',
-                style: TextStyle(
-                  fontSize: AppTypography.bodyMedium,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.underline,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const OrderHistoryScreen(),
+                    ),
+                  );
+                },
+                child: Text(
+                  'View All Orders',
+                  style: TextStyle(
+                    fontSize: AppTypography.bodyMedium,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
             ),
@@ -372,7 +425,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _buildMenuSection(BuildContext context) {
+  Widget _buildMenuSection(
+    BuildContext context,
+    BookingController bookingController,
+  ) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w),
       child: Container(
@@ -385,7 +441,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             _buildMenuItem(
               Icons.shopping_bag_outlined,
               'Order History',
-              badge: '3',
+              badge: bookingController.bookings.length.toString(),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const OrderHistoryScreen(),
+                  ),
+                );
+              },
             ),
             _buildMenuItem(
               Icons.notifications_none,

@@ -13,6 +13,7 @@ import 'package:photopia/controller/client/service_list_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
 import 'package:provider/provider.dart';
 
+import 'package:photopia/controller/client/booking_controller.dart';
 import 'package:photopia/core/notification/notification_service.dart';
 
 class BottomNavigationScreen extends StatefulWidget {
@@ -66,7 +67,10 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
         _selectedIndex = index;
       });
 
-      // NO REFRESH when switching tabs unless we want to force it
+      // Refresh bookings if switching to Profile tab
+      if (index == 4) {
+        context.read<BookingController>().getMyBookings();
+      }
     }
   }
 
