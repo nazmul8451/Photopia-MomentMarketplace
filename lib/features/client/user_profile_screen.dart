@@ -10,8 +10,10 @@ import 'package:photopia/controller/client/log_out_controller.dart';
 import 'package:photopia/controller/client/user_profile_controller.dart';
 import 'package:photopia/controller/location_controller.dart';
 import 'package:photopia/features/client/widgets/auth_profile_image.dart';
+import 'package:photopia/controller/client/notification_controller.dart';
 import 'package:photopia/controller/client/booking_controller.dart';
 import 'package:photopia/data/models/booking_model.dart';
+import 'package:photopia/features/client/privacy_policy_screen.dart';
 import 'package:photopia/features/client/order_history_screen.dart';
 import 'package:photopia/features/client/edit_profile_screen.dart';
 import 'package:photopia/features/provider/screen/provider_profile_screen.dart'
@@ -34,6 +36,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       if (AuthController.isLoggedIn) {
         context.read<UserProfileController>().getUserProfile();
         context.read<BookingController>().getMyBookings();
+        context.read<NotificationController>().fetchNotificationStats();
       }
     });
   }
@@ -429,47 +432,67 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     BuildContext context,
     BookingController bookingController,
   ) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20).r,
-        ),
-        child: Column(
-          children: [
-            _buildMenuItem(
-              Icons.shopping_bag_outlined,
-              'Order History',
-              badge: bookingController.bookings.length.toString(),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const OrderHistoryScreen(),
-                  ),
-                );
-              },
+    return Consumer<NotificationController>(
+      builder: (context, notificationController, child) {
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(vertical: 10.h),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20).r,
             ),
-            _buildMenuItem(
-              Icons.notifications_none,
-              'Notifications',
-              badge: '5',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const NotificationScreen(),
-                  ),
-                );
-              },
+            child: Column(
+              children: [
+                _buildMenuItem(
+                  Icons.shopping_bag_outlined,
+                  'Order History',
+                  badge: bookingController.bookings.length.toString(),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const OrderHistoryScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildMenuItem(
+                  Icons.notifications_none_outlined,
+                  'Notifications',
+                  badge: notificationController.unreadCount.toString(),
+                  onTap: () {
+                    // Navigate to notification screen
+                  },
+                ),
+                _buildMenuItem(
+                  Icons.lock_outline,
+                  'Privacy Policy',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PrivacyPolicyScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildMenuItem(
+                  Icons.language_outlined,
+                  'Language',
+                  value: 'English',
+                ),
+                _buildMenuItem(
+                  Icons.settings_outlined,
+                  'Settings',
+                  isLast: true,
+                ),
+              ],
             ),
-            _buildMenuItem(Icons.lock_outline, 'Privacy & Security'),
-            _buildMenuItem(Icons.language, 'Language', value: 'English'),
-            _buildMenuItem(Icons.settings_outlined, 'Settings', isLast: true),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

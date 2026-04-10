@@ -38,6 +38,7 @@ class Urls {
   static String getTimeSlots(String providerId, String date, int duration) => '$baseUrl/api/v1/availability/slots/$providerId?date=$date&duration=$duration';
 
   static const String myListingApi = '$baseUrl/api/v1/services/my/services';
+  static const String getPrivacyPolicy = '$baseUrl/api/v1/public/privacy-policy';
   static String getSingleList(String id) => '$baseUrl/api/v1/services/$id';
   static String getMyOrders({String? filterType, String? status}) {
     String url = '$baseUrl/api/v1/booking/my-bookings';
