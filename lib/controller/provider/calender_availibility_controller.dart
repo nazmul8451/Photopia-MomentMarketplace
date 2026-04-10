@@ -161,6 +161,44 @@ class CalenderAvailibilityController extends ChangeNotifier {
     }
   }
 
+  List<dynamic> _bookingsForSelectedDate = [];
+  List<dynamic> get bookingsForSelectedDate => _bookingsForSelectedDate;
+
+  Future<bool> getBookingsByDate({required String date}) async {
+    _inProgress = true;
+    _errorMessage = null;
+    _bookingsForSelectedDate = [];
+    notifyListeners();
+
+    try {
+      final String url = Urls.getBookingsByDate(date);
+      debugPrint('📅 Fetching Bookings for Date: $date');
+      debugPrint('🌐 URL: $url');
+
+      final NetworkResponse response = await NetworkCaller.getRequest(
+        url: url,
+        requireAuth: true,
+      );
+
+      _inProgress = false;
+      if (response.isSuccess && response.body != null) {
+        _bookingsForSelectedDate = response.body!['data'] ?? [];
+        debugPrint('✅ Fetched ${_bookingsForSelectedDate.length} bookings');
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = response.errorMessage ?? 'Failed to fetch bookings';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _inProgress = false;
+      _errorMessage = 'An unexpected error occurred: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
   void reset() {
     _inProgress = false;
     _errorMessage = null;

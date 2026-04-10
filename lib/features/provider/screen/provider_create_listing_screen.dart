@@ -48,12 +48,15 @@ class _ProviderCreateListingScreenState
 
   String _selectedServiceType = 'Photography';
   String _selectedPricingModel = 'By Hour';
+  String _selectedLocationType = 'On-site'; // Mandatory location type
   double _serviceRadius = 25.0;
   bool _acceptOutsideRadius = false;
   final List<String> _equipment = [];
   final List<File> _selectedImages = [];
   final List<String> _existingNetworkImages = []; // Track original images URL
   final ImagePicker _picker = ImagePicker();
+
+  final List<String> _locationTypes = ['On-site', 'Remote', 'Studio'];
 
   @override
   void initState() {
@@ -118,6 +121,18 @@ class _ProviderCreateListingScreenState
         }
       }
 
+      if (listing.location?.type != null) {
+        String rawType = listing.location!.type!.toLowerCase();
+        if (rawType.contains('onsite') || rawType.contains('physical')) {
+          _selectedLocationType = 'On-site';
+        } else if (rawType.contains('remote') || rawType.contains('virtual')) {
+          _selectedLocationType = 'Remote';
+        } else if (rawType.contains('studio')) {
+          _selectedLocationType = 'Studio';
+        } else {
+          _selectedLocationType = 'On-site'; // Fallback
+        }
+      }
       _serviceRadius = listing.location?.serviceRadiusKm?.toDouble() ?? 25.0;
     }
   }
@@ -188,25 +203,67 @@ class _ProviderCreateListingScreenState
   }
 
   bool _isFormValid() {
-    if (_titleController.text.trim().isEmpty ||
-        _descriptionController.text.trim().length < 10 ||
-        _locationController.text.trim().isEmpty ||
-        _countryController.text.trim().isEmpty ||
-        _selectedCategory == null) {
+    // 1. Basic Fields
+    if (_titleController.text.trim().isEmpty) {
+      CustomSnackBar.show(context: context, message: "Title is required", isError: true);
+      return false;
+    }
+    if (_selectedCategory == null) {
+      CustomSnackBar.show(context: context, message: "Category is required", isError: true);
+      return false;
+    }
+    if (_descriptionController.text.trim().length < 10) {
+      CustomSnackBar.show(context: context, message: "Description must be at least 10 characters", isError: true);
       return false;
     }
 
-    if (_selectedImages.isEmpty && _existingNetworkImages.isEmpty) {
-      return false;
-    }
-
-    // Pricing validation
+    // 2. Pricing & Duration Specifics
     if (_selectedPricingModel == 'By Hour') {
-      return _hourlyRateController.text.isNotEmpty;
+      if (_hourlyRateController.text.trim().isEmpty) {
+        CustomSnackBar.show(context: context, message: "Hourly rate is required", isError: true);
+        return false;
+      }
+      if (_durationController.text.trim().isEmpty) {
+        CustomSnackBar.show(context: context, message: "Duration is required", isError: true);
+        return false;
+      }
     } else if (_selectedPricingModel == 'By Day') {
-      return _dailyRateController.text.isNotEmpty && _dailyHoursController.text.isNotEmpty;
+      if (_dailyRateController.text.trim().isEmpty) {
+        CustomSnackBar.show(context: context, message: "Daily rate is required", isError: true);
+        return false;
+      }
+      if (_durationController.text.trim().isEmpty) {
+        CustomSnackBar.show(context: context, message: "Duration is required", isError: true);
+        return false;
+      }
     } else if (_selectedPricingModel == 'By Service') {
-      return _packageControllers.isNotEmpty && _packageControllers.any((p) => p.name.text.isNotEmpty && p.price.text.isNotEmpty);
+      if (_packageControllers.isEmpty) {
+        CustomSnackBar.show(context: context, message: "At least one package is required", isError: true);
+        return false;
+      }
+      for (int i = 0; i < _packageControllers.length; i++) {
+        final pkg = _packageControllers[i];
+        if (pkg.name.text.trim().isEmpty || pkg.price.text.trim().isEmpty || pkg.duration.text.trim().isEmpty) {
+          CustomSnackBar.show(context: context, message: "Package ${i + 1} must have name, price, and duration", isError: true);
+          return false;
+        }
+      }
+    }
+
+    // 3. Location Fields
+    if (_countryController.text.trim().isEmpty) {
+      CustomSnackBar.show(context: context, message: "Country is required", isError: true);
+      return false;
+    }
+    if (_locationController.text.trim().isEmpty) {
+      CustomSnackBar.show(context: context, message: "City is required", isError: true);
+      return false;
+    }
+
+    // Photos (mandatory)
+    if (_selectedImages.isEmpty && _existingNetworkImages.isEmpty) {
+      CustomSnackBar.show(context: context, message: "At least one portfolio photo is required", isError: true);
+      return false;
     }
 
     return true;
@@ -241,13 +298,17 @@ class _ProviderCreateListingScreenState
           0,
       currency: "EUR",
       duration: (int.tryParse(_durationController.text) ?? 1).toString(), 
+      serviceType: _selectedServiceType.toLowerCase().replaceAll(' ', '_'), 
       location: Location(
+        type: _selectedLocationType == 'Remote' ? 'REMOTE' : 'ONSITE', // Strictly map to backend enum
         country: _countryController.text.trim(),
         city: _locationController.text.trim(),
         address: _addressController.text.trim(),
         serviceRadiusKm: _serviceRadius.toInt(),
       ),
       gallery: _existingNetworkImages,
+      coverMedia: _existingNetworkImages.isNotEmpty ? _existingNetworkImages.first : "", // Ensure coverMedia is never null
+      status: (widget.existingListing?.status ?? "ACTIVE").toUpperCase(), // Strictly map to backend enum
       isVerified: widget.existingListing?.isVerified ?? false,
     );
 
@@ -367,6 +428,9 @@ class _ProviderCreateListingScreenState
                   
                   SizedBox(height: 30.h),
                   _buildSectionTitle('Location & Radius'),
+                  _buildLabel('Location Type'),
+                  _buildLocationTypeDropdown(),
+                  SizedBox(height: 15.h),
                   _buildLabel('Country'),
                   _buildTextField(_countryController, 'e.g. Germany'),
                   SizedBox(height: 15.h),
@@ -508,14 +572,23 @@ class _ProviderCreateListingScreenState
       ),
     );
   }
-
   Widget _buildServiceTypeDropdown() {
-    // Assuming service types are fixed or from tags for now
-    final List<String> serviceTypes = ['Photography', 'Videography', 'Video Editing', 'Wedding', 'Event', 'Portrait'];
+    final List<String> serviceTypes = [
+      'photography', 
+      'videography', 
+      'video_editing', 
+      'photo_editing', 
+      'graphic_design', 
+      'drone_photography', 
+      'event_coverage', 
+      'studio_rental'
+    ];
     
     // Safety check to ensure the existing selected value is in the dropdown list
-    if (!serviceTypes.contains(_selectedServiceType)) {
-      serviceTypes.add(_selectedServiceType);
+    if (!serviceTypes.contains(_selectedServiceType.toLowerCase())) {
+      _selectedServiceType = serviceTypes.first;
+    } else {
+      _selectedServiceType = _selectedServiceType.toLowerCase();
     }
 
     return Container(
@@ -537,6 +610,42 @@ class _ProviderCreateListingScreenState
             });
           },
           items: serviceTypes.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              // Convert technical name (photography) to readable label (Photography)
+              child: Text(value.split('_').map((e) => e.isNotEmpty ? (e[0].toUpperCase() + e.substring(1)) : '').join(' ')),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLocationTypeDropdown() {
+    // Safety check: ensure selected value is in the options list
+    if (!_locationTypes.contains(_selectedLocationType)) {
+      _selectedLocationType = _locationTypes.first;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedLocationType,
+          dropdownColor: Colors.white,
+          isExpanded: true,
+          icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[400]),
+          onChanged: (String? newValue) {
+            setState(() {
+              _selectedLocationType = newValue!;
+            });
+          },
+          items: _locationTypes.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
               child: Text(value),
@@ -703,6 +812,9 @@ class _ProviderCreateListingScreenState
   Widget _buildDurationDropdown(TextEditingController controller, {required String hint}) {
     final options = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '12', '24'];
     
+    // Safety check: ensure selected value is in options or handles null
+    String? effectiveValue = options.contains(controller.text) ? controller.text : null;
+    
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -715,7 +827,7 @@ class _ProviderCreateListingScreenState
         child: DropdownButton<String>(
           dropdownColor: Colors.white,
           hint: Text(hint, style: TextStyle(color: Colors.grey[400], fontSize: AppTypography.bodyMedium)),
-          value: options.contains(controller.text) ? controller.text : null,
+          value: effectiveValue,
           isExpanded: true,
           icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[400]),
           onChanged: (String? newValue) {

@@ -28,7 +28,14 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
     _selectedDate = _currentDate;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchAvailabilityData();
+      _fetchBookingsForDate(_selectedDate ?? _currentDate);
     });
+  }
+
+  Future<void> _fetchBookingsForDate(DateTime date) async {
+    final String formattedDate = DateFormat('yyyy-MM-dd').format(date);
+    final controller = context.read<CalenderAvailibilityController>();
+    await controller.getBookingsByDate(date: formattedDate);
   }
 
   Future<void> _fetchAvailabilityData() async {
@@ -284,13 +291,43 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
           ),
         ),
         SizedBox(height: 15.h),
-        _buildScheduleItem(
-          title: 'Wedding Photography',
-          client: 'Jennifer Smith',
-          time: '10:00 AM',
-          location: 'Central Park, NYC',
-          cost: '€1200',
-          status: 'confirmed',
+        Consumer<CalenderAvailibilityController>(
+          builder: (context, controller, child) {
+            if (controller.inProgress && controller.bookingsForSelectedDate.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (controller.bookingsForSelectedDate.isEmpty) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: 20.h),
+                child: Center(
+                  child: Text(
+                    'No bookings for this date',
+                    style: TextStyle(color: Colors.grey, fontSize: 14.sp),
+                  ),
+                ),
+              );
+            }
+
+            return Column(
+              children: controller.bookingsForSelectedDate.map((booking) {
+                final pricing = booking['pricingDetails'];
+                final service = booking['serviceId'];
+                
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 12.h),
+                  child: _buildScheduleItem(
+                    title: service?['title'] ?? booking['eventType'] ?? 'Booking',
+                    client: booking['clientName'] ?? booking['clientId']?['name'] ?? 'Client',
+                    time: booking['startTime'] ?? 'N/A',
+                    location: booking['eventLocation']?['address'] ?? 'N/A',
+                    cost: '€${pricing?['subtotal'] ?? '0'}',
+                    status: booking['status'] ?? 'pending',
+                  ),
+                );
+              }).toList(),
+            );
+          },
         ),
         SizedBox(height: 20.h),
       ],
@@ -335,6 +372,7 @@ class _ProviderCalendarScreenState extends State<ProviderCalendarScreen> {
             setState(() {
               _selectedDate = date;
             });
+            _fetchBookingsForDate(date);
           },
           child: Container(
             decoration: BoxDecoration(

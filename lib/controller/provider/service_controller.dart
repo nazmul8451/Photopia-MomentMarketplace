@@ -53,43 +53,25 @@ class ServiceController extends ChangeNotifier {
       final Map<String, dynamic> dataMap = serviceData.toJson();
 
       // Ensure required fields from Zod schema are present
-      dataMap['status'] = dataMap['status']?.toString().toLowerCase() != 'inactive' 
-          ? "active" 
-          : "inactive";
+      dataMap['status'] = dataMap['status']?.toString().toUpperCase() == 'INACTIVE' 
+          ? "INACTIVE" 
+          : "ACTIVE";
       dataMap['isActive'] = dataMap['isActive'] ?? true;
       dataMap['currency'] = dataMap['currency'] ?? "EUR";
-      dataMap['pricingType'] = dataMap['pricingType'] ?? "HOURLY";
-      
-      if (dataMap['serviceType'] == null || dataMap['serviceType'] == "fixed" || dataMap['serviceType'] == "photography") {
-          dataMap['serviceType'] = "hourly"; 
-      }
-      
-      String durationVal = dataMap['duration']?.toString() ?? "1";
-      if (!durationVal.toLowerCase().contains("hour")) {
-          durationVal = "$durationVal hours";
-      }
-      dataMap['duration'] = durationVal;
+      dataMap['pricingType'] = dataMap['pricingType']?.toString().toUpperCase() ?? "HOURLY";
 
       if (serviceData.category != null) {
         dataMap['category'] = serviceData.category?.sId ?? serviceData.category?.name ?? "";
       }
 
       if (dataMap['location'] != null) {
-        dataMap['location']['type'] = "physical";
         dataMap['location']['address'] = dataMap['location']['address'] ?? "";
       }
 
-      // Ensure pricingModel fields satisfy Zod constraints (dailyHours >= 1)
+      // Ensure pricingModel fields satisfy Zod constraints if not already set
       if (dataMap['pricingModel'] != null) {
         dataMap['pricingModel']['dailyRate'] = dataMap['pricingModel']['dailyRate'] ?? 1;
         dataMap['pricingModel']['dailyHours'] = dataMap['pricingModel']['dailyHours'] ?? 8;
-      } else {
-        dataMap['pricingModel'] = {
-          "type": dataMap['pricingType'] ?? "HOURLY",
-          "dailyRate": 1,
-          "dailyHours": 8,
-          "packages": []
-        };
       }
 
       // Remove fields that should not be sent for creation
@@ -206,30 +188,21 @@ class ServiceController extends ChangeNotifier {
       final Map<String, dynamic> dataMap = serviceData.toJson();
 
       // Ensure required update fields are present according to Zod
-      dataMap['status'] = serviceData.status?.toLowerCase() != 'inactive' 
-          ? "active" 
-          : "inactive";
+      dataMap['status'] = serviceData.status?.toUpperCase() == 'INACTIVE' 
+          ? "INACTIVE" 
+          : "ACTIVE";
       dataMap['isActive'] = serviceData.isActive ?? true;
       dataMap['isVerified'] = serviceData.isVerified ?? false;
       dataMap['currency'] = dataMap['currency'] ?? "EUR";
+      dataMap['pricingType'] = dataMap['pricingType']?.toString().toUpperCase() ?? "HOURLY";
+      
       dataMap['pricingType'] = dataMap['pricingType'] ?? "HOURLY";
-      
-      if (dataMap['serviceType'] == null || dataMap['serviceType'] == "fixed" || dataMap['serviceType'] == "photography") {
-          dataMap['serviceType'] = "hourly";
-      }
-      
-      String durationVal = dataMap['duration']?.toString() ?? "1";
-      if (!durationVal.toLowerCase().contains("hour")) {
-          durationVal = "$durationVal hours";
-      }
-      dataMap['duration'] = durationVal;
 
       if (serviceData.category != null) {
         dataMap['category'] = serviceData.category?.sId ?? serviceData.category?.name ?? "";
       }
 
       if (dataMap['location'] != null) {
-        dataMap['location']['type'] = "physical";
         dataMap['location']['address'] = dataMap['location']['address'] ?? "";
       }
 

@@ -50,6 +50,7 @@ class Urls {
     return url;
   }
   static String getSingleBooking(String id) => '$baseUrl/api/v1/booking/$id';
+  static String getBookingsByDate(String date) => '$baseUrl/api/v1/booking/my-bookings-by-date?date=$date';
 
   //--------------------------------------User site api----------------------------------------------------------
 
