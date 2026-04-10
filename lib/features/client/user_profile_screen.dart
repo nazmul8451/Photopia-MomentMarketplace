@@ -459,6 +459,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   },
                 ),
                 _buildMenuItem(
+                  Icons.notifications_none_outlined,
+                  'Notifications',
+                  badge: notificationController.unreadCount.toString(),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationScreen(),
+                      ),
+                    );
+                  },
+                ),
+                _buildMenuItem(
                   Icons.lock_outline,
                   'Privacy Policy',
                   onTap: () {

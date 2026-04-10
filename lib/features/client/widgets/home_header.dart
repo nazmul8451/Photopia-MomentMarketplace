@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/controller/client/notification_controller.dart';
 import 'package:photopia/controller/location_controller.dart';
 import 'package:photopia/features/client/notification_screen.dart';
 import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
@@ -76,22 +77,28 @@ class HomeHeader extends StatelessWidget {
                 ),
               );
             },
-            child: Stack(
-              children: [
-                Icon(Icons.notifications_outlined, size: 20.sp),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    width: 8.w,
-                    height: 8.w,
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ],
+            child: Consumer<NotificationController>(
+              builder: (context, controller, child) {
+                final bool hasUnread = controller.unreadCount > 0;
+                return Stack(
+                  children: [
+                    Icon(Icons.notifications_outlined, size: 20.sp),
+                    if (hasUnread)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          width: 8.w,
+                          height: 8.w,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
             ),
           ),
         ],

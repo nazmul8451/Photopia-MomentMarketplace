@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/controller/client/service_list_controller.dart';
+import 'package:photopia/controller/client/notification_controller.dart';
 import 'package:photopia/controller/location_controller.dart';
 import 'package:photopia/data/models/service_list_model.dart';
 import 'package:photopia/features/client/widgets/home_header.dart';
@@ -36,6 +37,7 @@ class _MyHomePageState extends State<MyHomePage> {
         controller.getAllServices();
       }
       context.read<LocationController>().determinePosition();
+      context.read<NotificationController>().fetchNotificationStats();
     });
 
     _scrollController.addListener(_onScroll);

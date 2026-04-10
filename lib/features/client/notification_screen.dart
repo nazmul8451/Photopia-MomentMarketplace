@@ -22,6 +22,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   @override
+  void dispose() {
+    // Mark all as read when leaving the screen
+    context.read<NotificationController>().markAllAsRead();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -136,7 +143,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (controller.errorMessage != null && controller.notifications.isEmpty) {
+          if (controller.errorMessage != null &&
+              controller.notifications.isEmpty) {
             return Center(child: Text(controller.errorMessage!));
           }
 
@@ -154,7 +162,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
             itemCount: controller.notifications.length,
             itemBuilder: (context, index) {
               final notification = controller.notifications[index];
-              return _buildNotificationCard(notification, index, controller);
+              return GestureDetector(
+                onTap: () =>
+                    _showNotificationDialog(context, notification, controller),
+                child: _buildNotificationCard(notification, index, controller),
+              );
             },
           );
         },
@@ -162,7 +174,79 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
-  Widget _buildNotificationCard(NotificationModel notification, int index, NotificationController controller) {
+  void _showNotificationDialog(
+    BuildContext context,
+    NotificationModel notification,
+    NotificationController controller,
+  ) {
+    // Mark as read immediately when clicked
+    if (!notification.isRead) {
+      controller.markSingleAsRead(notification.id);
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20).r,
+        ),
+        title: Row(
+          children: [
+            Icon(
+              controller.getIconForType(notification.type),
+              color: Colors.black,
+            ),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: Text(
+                notification.title,
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              notification.content,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: Colors.black87,
+                height: 1.5,
+              ),
+            ),
+            SizedBox(height: 15.h),
+            Text(
+              controller.formatTime(notification.createdAt),
+              style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Close',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationCard(
+    NotificationModel notification,
+    int index,
+    NotificationController controller,
+  ) {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
@@ -183,10 +267,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             children: [
               // Unread Indicator
               if (!notification.isRead)
-                Container(
-                  width: 4.w,
-                  color: Colors.black,
-                ),
+                Container(width: 4.w, color: Colors.black),
               Expanded(
                 child: Padding(
                   padding: EdgeInsets.all(15.w),
