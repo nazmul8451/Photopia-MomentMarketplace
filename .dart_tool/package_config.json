@@ -80,6 +80,12 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "convert",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/convert-3.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "cross_file",
       "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/cross_file-0.3.5+2",
       "packageUri": "lib/",
@@ -116,6 +122,18 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "device_info_plus",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/device_info_plus-12.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
+      "name": "device_info_plus_platform_interface",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/device_info_plus_platform_interface-7.0.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
       "name": "device_preview",
       "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/device_preview-1.3.1",
       "packageUri": "lib/",
@@ -138,6 +156,12 @@
       "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/file-7.0.1",
       "packageUri": "lib/",
       "languageVersion": "3.0"
+    },
+    {
+      "name": "file_picker",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/file_picker-8.3.7",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
     },
     {
       "name": "file_selector_linux",
@@ -872,6 +896,60 @@
       "languageVersion": "3.8"
     },
     {
+      "name": "syncfusion_flutter_core",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_flutter_core-33.1.47",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
+      "name": "syncfusion_flutter_pdf",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_flutter_pdf-33.1.47",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
+      "name": "syncfusion_flutter_pdfviewer",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_flutter_pdfviewer-33.1.47",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
+      "name": "syncfusion_flutter_signaturepad",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_flutter_signaturepad-33.1.47",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
+      "name": "syncfusion_pdfviewer_linux",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_pdfviewer_linux-33.1.47",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
+      "name": "syncfusion_pdfviewer_macos",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_pdfviewer_macos-33.1.47",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
+      "name": "syncfusion_pdfviewer_platform_interface",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_pdfviewer_platform_interface-33.1.47",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
+      "name": "syncfusion_pdfviewer_web",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_pdfviewer_web-33.1.47",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
+      "name": "syncfusion_pdfviewer_windows",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/syncfusion_pdfviewer_windows-33.1.47",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
+    },
+    {
       "name": "synchronized",
       "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/synchronized-3.4.0",
       "packageUri": "lib/",
@@ -1032,6 +1110,12 @@
       "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/win32-5.15.0",
       "packageUri": "lib/",
       "languageVersion": "3.8"
+    },
+    {
+      "name": "win32_registry",
+      "rootUri": "file:///C:/Users/Night%20Furry/AppData/Local/Pub/Cache/hosted/pub.dev/win32_registry-2.1.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.7"
     },
     {
       "name": "xdg_directories",

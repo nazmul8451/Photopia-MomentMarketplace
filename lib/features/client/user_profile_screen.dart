@@ -10,6 +10,7 @@ import 'package:photopia/controller/client/log_out_controller.dart';
 import 'package:photopia/controller/client/user_profile_controller.dart';
 import 'package:photopia/controller/location_controller.dart';
 import 'package:photopia/features/client/widgets/auth_profile_image.dart';
+import 'package:photopia/core/widgets/full_screen_image_viewer.dart';
 
 class UserProfileScreen extends StatefulWidget {
   static const String name = '/user_profile';
@@ -103,7 +104,25 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       padding: EdgeInsets.symmetric(vertical: 15.h),
       child: Column(
         children: [
-          AuthProfileImage(imageUrl: imageUrl, size: 90.w),
+          GestureDetector(
+            onTap: () {
+              if (imageUrl != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => FullScreenImageViewer(
+                      imageUrl: imageUrl,
+                      tag: 'user_profile_hero',
+                    ),
+                  ),
+                );
+              }
+            },
+            child: Hero(
+              tag: 'user_profile_hero',
+              child: AuthProfileImage(imageUrl: imageUrl, size: 90.w),
+            ),
+          ),
           SizedBox(height: 10.h),
           Text(
             user?.fullName ?? 'Loading...',

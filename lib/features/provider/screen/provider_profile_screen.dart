@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/provider/provider_profile_controller.dart';
@@ -10,6 +11,11 @@ import 'package:photopia/core/widgets/custom_snacbar.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:photopia/core/widgets/full_screen_image_viewer.dart';
+import 'package:photopia/core/widgets/document_viewer_screen.dart';
+import 'package:photopia/data/models/professional_profile_model.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:open_filex/open_filex.dart';
 
 class ProviderProfileScreen extends StatefulWidget {
   const ProviderProfileScreen({super.key});
@@ -31,11 +37,13 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
   List<String> _tempSpecializations = [];
   List<String> _tempLanguages = [];
   List<dynamic> _tempPortfolio = [];
+  List<dynamic> _tempDocuments = [];
 
   // Tracking deletions for the /remove-items API
   final Set<String> _removedSpecializations = {};
   final Set<String> _removedLanguages = {};
   final Set<String> _removedPortfolio = {};
+  final Set<String> _removedDocuments = {};
 
   @override
   void initState() {
@@ -55,6 +63,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         _tempSpecializations = List<String>.from(ctrl.specializations);
         _tempLanguages = List<String>.from(ctrl.languages);
         _tempPortfolio = List<dynamic>.from(ctrl.recentWork);
+        _tempDocuments = List<dynamic>.from(ctrl.uploadedDocuments);
         _profilePhoto = null;
         _coverPhoto = null;
         setState(() {});
@@ -102,6 +111,11 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
          if (!await controller.removeItemFromProfessionalProfile(field: 'portfolio', value: item)) removalSuccess = false;
        }
     }
+    if (_removedDocuments.isNotEmpty) {
+       for (var item in _removedDocuments) {
+         if (!await controller.removeItemFromProfessionalProfile(field: 'documents', value: item)) removalSuccess = false;
+       }
+    }
 
     if (!removalSuccess) {
       setState(() {
@@ -131,6 +145,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
       newSpecializations: newSpecializations,
       newLanguages: newLanguages,
       newPortfolioFiles: newPortfolioFiles,
+      newDocumentFiles: _tempDocuments.whereType<File>().toList(),
       profilePhoto: _profilePhoto,
       coverPhoto: _coverPhoto,
     );
@@ -143,6 +158,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         _removedSpecializations.clear();
         _removedLanguages.clear();
         _removedPortfolio.clear();
+        _removedDocuments.clear();
         
         // Reload from fresh API data
         _aboutController.text = controller.aboutMe;
@@ -151,6 +167,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
         _tempSpecializations = List<String>.from(controller.specializations);
         _tempLanguages = List<String>.from(controller.languages);
         _tempPortfolio = List<dynamic>.from(controller.recentWork);
+        _tempDocuments = List<dynamic>.from(controller.uploadedDocuments);
         setState(() {});
         
         CustomSnackBar.show(
@@ -216,6 +233,18 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
     }
   }
 
+  Future<void> _pickDocument() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png'],
+    );
+    if (result != null && result.files.single.path != null) {
+      setState(() {
+        _tempDocuments.add(File(result.files.single.path!));
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ProviderProfileController>(
@@ -257,21 +286,21 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                   Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      // Header Image
-                      Container(
-                        height: 220.h,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: _coverPhoto != null
-                                ? FileImage(_coverPhoto!) as ImageProvider
-                                : (profileController.coverPhoto != null 
-                                   ? NetworkImage(profileController.coverPhoto!) as ImageProvider
-                                   : const AssetImage('assets/images/img5.png')),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
+                      // Header Image (Background)
+                      _coverPhoto != null
+                          ? Image.file(
+                              _coverPhoto!,
+                              height: 220.h,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            )
+                          : CustomNetworkImage(
+                              imageUrl: profileController.coverPhoto ?? 'assets/images/img5.png',
+                              height: 220.h,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
+
                       // Gradient Overlay
                       Container(
                         height: 200.h,
@@ -284,6 +313,29 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                               Colors.black.withOpacity(0.4),
                             ],
                           ),
+                        ),
+                      ),
+                      
+                      // Invisible Tap Layer for Cover Photo (Must be above Image and Overlay)
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        height: 220.h,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => FullScreenImageViewer(
+                                  imageUrl: _coverPhoto == null ? profileController.coverPhoto : null,
+                                  filePath: _coverPhoto?.path,
+                                  tag: 'cover_photo_hero',
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
 
@@ -322,6 +374,8 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                         _buildChipsSection('Specializations', true),
                         SizedBox(height: 25.h),
                         _buildChipsSection('Languages', false),
+                        SizedBox(height: 25.h),
+                        _buildDocumentsSection(),
                         SizedBox(height: 25.h),
                         _buildRecentWorkSection(),
                         SizedBox(height: 25.h),
@@ -413,41 +467,59 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Stack(
-                    children: [
-                      Container(
-                        width: 75.r,
-                        height: 75.r,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2.5.w),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => FullScreenImageViewer(
+                            imageUrl: _profilePhoto == null ? controller.profileImage : null,
+                            filePath: _profilePhoto?.path,
+                            tag: 'profile_photo_hero',
+                          ),
                         ),
-                        child: ClipOval(
-                          child: _profilePhoto != null 
-                              ? Image.file(_profilePhoto!, fit: BoxFit.cover, width: 75.r, height: 75.r)
+                      );
+                    },
+                    child: Hero(
+                      tag: 'profile_photo_hero',
+                      child: Stack(
+                        children: [
+                          _profilePhoto != null 
+                              ? Container(
+                                  width: 75.r,
+                                  height: 75.r,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2.5.w),
+                                    image: DecorationImage(
+                                      image: FileImage(_profilePhoto!),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                )
                               : AuthProfileImage(
                                   imageUrl: controller.profileImage,
                                   size: 75.r,
                                 ),
-                        ),
-                      ),
-                      if (_isEditing)
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: _pickProfilePhoto,
-                            child: Container(
-                              padding: EdgeInsets.all(4.w),
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
+                          if (_isEditing)
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: GestureDetector(
+                                onTap: _pickProfilePhoto,
+                                child: Container(
+                                  padding: EdgeInsets.all(4.r),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.blue,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(Icons.camera_alt, color: Colors.white, size: 14.sp),
+                                ),
                               ),
-                              child: Icon(Icons.camera_alt, size: 14.sp, color: Colors.black),
                             ),
-                          ),
-                        ),
-                    ],
+                        ],
+                      ),
+                    ),
                   ),
                   SizedBox(width: 18.w),
                   Expanded(
@@ -489,10 +561,10 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          if (controller.shortBio.isNotEmpty) ...[
+                          if (controller.profileTagline.isNotEmpty) ...[
                             SizedBox(height: 4.h),
                             Text(
-                              controller.shortBio,
+                              controller.profileTagline,
                               style: TextStyle(
                                 fontSize: 12.5.sp,
                                 color: Colors.white.withOpacity(0.9),
@@ -1026,6 +1098,116 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildDocumentsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Documents',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            if (_isEditing)
+              IconButton(
+                onPressed: _pickDocument,
+                icon: Icon(Icons.add_circle_outline, color: Colors.blue, size: 24.sp),
+              ),
+          ],
+        ),
+        SizedBox(height: 10.h),
+        if (_tempDocuments.isEmpty)
+          Text(
+            'No documents added yet.',
+            style: TextStyle(fontSize: 14.sp, color: Colors.grey),
+          )
+        else
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _tempDocuments.length,
+            separatorBuilder: (context, index) => SizedBox(height: 10.h),
+            itemBuilder: (context, index) {
+              final doc = _tempDocuments[index];
+              final isFile = doc is File;
+              final String fileName = isFile ? doc.path.split('/').last : doc.toString().split('/').last;
+
+              return Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8.r),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Icon(
+                        fileName.toLowerCase().endsWith('.pdf') ? Icons.picture_as_pdf : Icons.insert_drive_file,
+                        color: Colors.red.shade400,
+                        size: 22.sp,
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Text(
+                        fileName,
+                        style: TextStyle(fontSize: 14.sp, color: Colors.black87, fontWeight: FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (!_isEditing)
+                      IconButton(
+                        onPressed: () async {
+                          final String urlPath = isFile ? doc.path : doc.toString();
+                          // Ensure we use the formatted network URL if it's not a local file
+                          final String finalUrl = isFile ? urlPath : ProfessionalProfileModel.formatUrl(urlPath) ?? urlPath;
+                          final Uri url = Uri.parse(finalUrl);
+                          
+                          if (await canLaunchUrl(url)) {
+                            await launchUrl(url, mode: LaunchMode.externalApplication);
+                          } else {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text("Could not open document")),
+                              );
+                            }
+                          }
+                        },
+                        icon: Icon(Icons.remove_red_eye_outlined, color: Colors.blue, size: 20.sp),
+                      )
+                    else
+                      IconButton(
+                        onPressed: () {
+                          setState(() {
+                            final removed = _tempDocuments.removeAt(index);
+                            if (removed is String) {
+                              _removedDocuments.add(removed);
+                            }
+                          });
+                        },
+                        icon: Icon(Icons.delete_outline, color: Colors.red, size: 20.sp),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+      ],
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:photopia/core/network/urls.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:photopia/core/widgets/exif_aware_network_image.dart';
 
 class CustomNetworkImage extends StatelessWidget {
   final dynamic imageUrl;
@@ -68,25 +69,11 @@ class CustomNetworkImage extends StatelessWidget {
                 return _buildErrorPlaceholder(width, height);
               },
             )
-          : Image.network(
-              url,
-              width: width,
-              height: height,
+          : ExifAwareNetworkImage(
+              url: url,
+              width: width ?? double.infinity,
+              height: height ?? double.infinity,
               fit: fit,
-              frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-                if (wasSynchronouslyLoaded) return child;
-                if (frame == null) {
-                  return _buildShimmer(width, height);
-                }
-                return child;
-              },
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return _buildShimmer(width, height);
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return _buildErrorPlaceholder(width, height);
-              },
             ),
     );
   }

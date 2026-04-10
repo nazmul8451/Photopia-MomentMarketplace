@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:ui';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/client/widgets/service_card.dart';
@@ -13,6 +14,8 @@ import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/utils/guest_dialog_helper.dart';
 import 'package:photopia/controller/client/favorites_controller.dart';
 import 'package:photopia/core/widgets/subscription_badge.dart';
+import 'package:photopia/core/widgets/full_screen_image_viewer.dart';
+import 'package:photopia/features/client/widgets/auth_profile_image.dart';
 
 class ProviderProfileScreen extends StatefulWidget {
   final Map<String, dynamic> provider;
@@ -43,27 +46,22 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
         rawId = rawId['_id'] ?? rawId['id'];
       }
       
-      // If still null, check if there's a nested providerId object
-      if (rawId == null && widget.provider['providerId'] != null) {
-        final pId = widget.provider['providerId'];
-        if (pId is Map) {
-          rawId = pId['_id'] ?? pId['id'];
-        } else {
-          rawId = pId;
+      // If still null, check if there's a nested providerId/user object
+      if (rawId == null) {
+        if (widget.provider['providerId'] != null) {
+          rawId = widget.provider['providerId'] is Map ? widget.provider['providerId']['_id'] : widget.provider['providerId'];
+        } else if (widget.provider['user'] != null) {
+           rawId = widget.provider['user'] is Map ? widget.provider['user']['_id'] : widget.provider['user'];
         }
       }
       
       final String? providerId = rawId?.toString();
-      debugPrint("🚀 [ProviderProfileScreen] Initializing with ID: $providerId");
+      debugPrint("🚀 [SCREEN] Navigated to Provider: $providerId (Raw Map: ${widget.provider})");
       
       if (providerId != null && providerId.isNotEmpty) {
         context.read<ServiceListController>().getProviderServices(providerId);
-        context.read<ProviderDetailsController>().getProviderDetails(
-          providerId,
-        );
+        context.read<ProviderDetailsController>().getProviderDetails(providerId);
         context.read<ReviewController>().getProviderReviews(providerId);
-      } else {
-        debugPrint("⚠️ [ProviderProfileScreen] No valid provider ID found in widget.provider: ${widget.provider}");
       }
     });
   }
@@ -105,12 +103,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                   }
                   controller.toggleFavorite(
                     providerId: widget.provider['_id'] ?? widget.provider['id'],
-                    optimisticData: {
-                      ...widget.provider,
-                      'isPremium': true,
-                      'category': 'Wedding & Event Photography',
-                      'location': 'Barcelona, Spain',
-                    },
+                    optimisticData: {...widget.provider},
                   );
                 },
               );
@@ -124,29 +117,24 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
         ],
       ),
       body: SingleChildScrollView(
-        physics: const ClampingScrollPhysics(),
         child: Column(
           children: [
             Stack(
               clipBehavior: Clip.none,
               children: [
-                Container(
-                  height: 220.h,
-                  width: double.infinity,
-                  child: Consumer<ProviderDetailsController>(
-                    builder: (context, controller, child) {
-                      final cover = controller.profProfileDetails?.coverPhoto;
-                      return CustomNetworkImage(
-                        imageUrl: cover ?? 'assets/images/img5.png',
-                        height: 220.h,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      );
-                    },
-                  ),
+                Consumer<ProviderDetailsController>(
+                  builder: (context, controller, child) {
+                    final String? cover = controller.profProfileDetails?.coverPhoto;
+                    return CustomNetworkImage(
+                      imageUrl: cover ?? '',
+                      height: 220.h,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    );
+                  },
                 ),
                 Container(
-                  height: 200.h,
+                  height: 220.h,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
@@ -163,9 +151,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                   left: 6.w,
                   right: 6.w,
                   child: Consumer<ProviderDetailsController>(
-                    builder: (context, controller, child) {
-                      return _buildProfileInfo(controller);
-                    },
+                    builder: (context, controller, child) => _buildProfileInfo(controller),
                   ),
                 ),
                 Positioned(
@@ -175,9 +161,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 10.w),
                     child: Consumer<ProviderDetailsController>(
-                      builder: (context, controller, child) {
-                        return _buildStatsRow(controller);
-                      },
+                      builder: (context, controller, child) => _buildStatsRow(controller),
                     ),
                   ),
                 ),
@@ -204,20 +188,13 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
 
   Widget _buildProfileInfo(ProviderDetailsController controller) {
     final providerDetails = controller.providerDetails;
-    final isLoading = controller.isLoading;
-    final avatar = providerDetails?.profile ?? widget.provider['avatar']?.toString();
+    final avatar = providerDetails?.profile ?? widget.provider['avatar'] ?? widget.provider['profile'] ?? '';
     final name = providerDetails?.fullName ?? widget.provider['name']?.toString() ?? 'Provider Name';
-    String categoryDisplay = 'Wedding & Event Photography';
-    final prof = controller.profProfileDetails;
     
-    // Use Bio if available, else use Specialty, else static fallback
-    if (prof?.bio != null && prof!.bio!.isNotEmpty) {
-      categoryDisplay = prof.bio!;
-    } else if (prof?.specialty != null && prof!.specialty!.isNotEmpty) {
-      categoryDisplay = prof.specialty!;
-    } else if (providerDetails?.specialty != null && providerDetails!.specialty!.isNotEmpty) {
-      categoryDisplay = providerDetails.specialty!;
-    }
+    final prof = controller.profProfileDetails;
+    // Use bio from professional profile, fallback to description from user profile
+    String tagline = prof?.bio ?? providerDetails?.description ?? widget.provider['description'] ?? 'Professional Photographer';
+    if (tagline.length > 80) tagline = "${tagline.substring(0, 77)}...";
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(10.r),
@@ -234,56 +211,27 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'Profile',
-                style: TextStyle(
-                  fontSize: AppTypography.h1,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 1,
-                ),
-              ),
+              Text('Profile', style: TextStyle(fontSize: AppTypography.h1, fontWeight: FontWeight.bold, color: Colors.white)),
               SizedBox(height: 8.h),
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Container(
-                    width: 75.r,
-                    height: 75.r,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2.5.w),
-                    ),
-                    child: ClipOval(
-                      child: avatar != null && avatar.toString().isNotEmpty
-                          ? CustomNetworkImage(imageUrl: avatar, fit: BoxFit.cover)
-                          : Image.asset('assets/images/img6.png', fit: BoxFit.cover),
-                    ),
+                  GestureDetector(
+                    onTap: () {
+                      if (avatar.isNotEmpty) {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => FullScreenImageViewer(imageUrl: avatar, tag: 'header_avatar')));
+                      }
+                    },
+                    child: Hero(tag: 'header_avatar', child: AuthProfileImage(imageUrl: avatar, size: 75.r)),
                   ),
                   SizedBox(width: 18.w),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          name,
-                          style: TextStyle(fontSize: 19.sp, fontWeight: FontWeight.bold, color: Colors.white),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        SizedBox(height: 2.h),
-                        if (isLoading)
-                          const ShimmerSkeleton(width: 100, height: 14)
-                        else
-                          Text(categoryDisplay, style: TextStyle(fontSize: 13.sp, color: Colors.white.withOpacity(0.9), fontWeight: FontWeight.w400)),
+                        Text(name, style: TextStyle(fontSize: 19.sp, fontWeight: FontWeight.bold, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
+                        Text(tagline, style: TextStyle(fontSize: 13.sp, color: Colors.white.withOpacity(0.9)), maxLines: 2, overflow: TextOverflow.ellipsis),
                         SizedBox(height: 6.h),
-                        SubscriptionBadge(
-                          isSubscribed: controller.profProfileDetails?.isSubscribed ?? false,
-                          iconSize: 12.sp,
-                          fontSize: 10.5.sp,
-                          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
-                        ),
-                        SizedBox(height: 15.h),
+                        SubscriptionBadge(isSubscribed: prof?.isSubscribed ?? false),
                       ],
                     ),
                   ),
@@ -297,42 +245,29 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
   }
 
   Widget _buildStatsRow(ProviderDetailsController controller) {
-    if (controller.isLoading) {
-      return const StatsRowSkeleton();
-    }
-    
-    // Pull data from professional profile first, then fallback to user details or widget map
+    if (controller.isLoading) return const StatsRowSkeleton();
     final prof = controller.profProfileDetails;
-    final user = controller.providerDetails;
-
-    final rating = prof?.rating?.toString() ?? '0.0';
-    final reviews = prof?.reviewCount?.toString() ?? '0';
-    final responseRate = prof?.responseRate != null ? '${prof!.responseRate}%' : '0%';
-    final projectsCount = prof?.projects?.toString() ?? (user?.id != null ? '0' : '0');
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
-        _buildStatItem(Icons.star_border, rating, 'Rating'),
-        _buildStatItem(Icons.verified_outlined, reviews, 'Reviews'),
-        _buildStatItem(Icons.military_tech_outlined, responseRate, 'Response Rate'),
-        _buildStatItem(Icons.camera_alt_outlined, projectsCount, 'Projects'),
+        _buildStatItem(Icons.star_border, prof?.rating?.toString() ?? '0.0', 'Rating'),
+        _buildStatItem(Icons.verified_outlined, prof?.reviewCount?.toString() ?? '0', 'Reviews'),
+        _buildStatItem(Icons.military_tech_outlined, '${prof?.responseRate ?? 0}%', 'Response'),
+        _buildStatItem(Icons.camera_alt_outlined, prof?.projects?.toString() ?? '0', 'Projects'),
       ],
     );
   }
 
   Widget _buildStatItem(IconData icon, String value, String label) {
     return Container(
-      width: 78.w,
-      height: 90.h,
-      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10).r, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12, offset: const Offset(0, 4))]),
+      width: 78.w, height: 90.h,
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10).r, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12)]),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 22.sp, color: Colors.black87),
-          FittedBox(fit: BoxFit.scaleDown, child: Text(value, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: Colors.black))),
-          Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 11.sp, color: Colors.grey[600], height: 1, fontWeight: FontWeight.w500)),
+          Icon(icon, size: 22.sp),
+          Text(value, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
+          Text(label, style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
         ],
       ),
     );
@@ -344,18 +279,15 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
       decoration: BoxDecoration(color: const Color(0xFFF5F5F7), borderRadius: BorderRadius.circular(30).r),
       child: TabBar(
         controller: _tabController,
-        padding: EdgeInsets.all(4.w),
         indicator: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(30).r),
         labelColor: Colors.white,
         unselectedLabelColor: const Color(0xFF455A64),
-        labelStyle: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w500),
         indicatorSize: TabBarIndicatorSize.tab,
         dividerColor: Colors.transparent,
         tabs: [
-          Tab(child: FittedBox(fit: BoxFit.scaleDown, child: Text('Portfolio'))),
-          Tab(child: FittedBox(fit: BoxFit.scaleDown, child: Consumer<ReviewController>(builder: (context, controller, child) => Text('Reviews (${controller.reviews.length})')))),
-          Tab(child: FittedBox(fit: BoxFit.scaleDown, child: Text('About'))),
+          const Tab(text: 'Portfolio'),
+          Tab(child: Consumer<ReviewController>(builder: (context, c, _) => Text('Reviews (${c.reviews.length})'))),
+          const Tab(text: 'About'),
         ],
       ),
     );
@@ -374,71 +306,77 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
       builder: (context, serviceController, detailsController, child) {
         final isLoading = serviceController.isLoading;
         final services = serviceController.services;
-
-        // Get portfolio images from professional profile
-        final portfolioImages = detailsController.profProfileDetails?.portfolio
-            ?.map((e) => e.toString())
-            .where((url) => url.isNotEmpty)
-            .toList() ?? [];
+        final prof = detailsController.profProfileDetails;
+        final portfolioImages = prof?.portfolio?.map((e) => e.toString()).where((s) => s.isNotEmpty).toList() ?? [];
+        final documents = prof?.documents?.map((e) => e.toString()).where((s) => s.isNotEmpty).toList() ?? [];
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Services Offered', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
-            SizedBox(height: 15.h),
-            if (isLoading)
-              GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 15, crossAxisSpacing: 15, childAspectRatio: 0.55), itemCount: 2, itemBuilder: (context, index) => const ServiceCardSkeleton())
-            else if (services.isEmpty)
-              const Center(child: Padding(padding: EdgeInsets.symmetric(vertical: 20), child: Text('No services found.')))
-            else
+            if (services.isNotEmpty) ...[
+              Text('Services Offered', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+              SizedBox(height: 12.h),
               GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 15, crossAxisSpacing: 15, childAspectRatio: 0.55),
                 itemCount: services.length,
                 itemBuilder: (context, index) {
-                  final service = services[index];
+                  final s = services[index];
                   return ServiceCard(
-                    id: service.sId ?? '',
-                    title: service.title ?? 'Service',
-                    subtitle: widget.provider['name'] ?? 'Provider',
-                    imageUrl: service.coverMedia ?? '',
-                    rating: service.rating ?? 0.0,
-                    reviews: service.reviews ?? 0,
-                    priceRange: '€${service.price ?? 0}',
-                    tags: const [],
-                    isPremium: detailsController.profProfileDetails?.isSubscribed ?? false,
+                    id: s.sId ?? '', title: s.title ?? 'Service', subtitle: widget.provider['name'] ?? 'Provider',
+                    imageUrl: s.coverMedia ?? '', rating: s.rating ?? 0.0, reviews: s.reviews ?? 0, priceRange: '€${s.price ?? 0}',
+                    tags: const [], isPremium: prof?.isSubscribed ?? false, 
                     providerId: widget.provider['_id'] ?? widget.provider['id'],
                   );
                 },
               ),
-
-            // Portfolio images from professional profile
-            if (portfolioImages.isNotEmpty) ...[
-              SizedBox(height: 30.h),
-              Text('Portfolio', style: TextStyle(fontSize: AppTypography.h2, fontWeight: FontWeight.bold)),
-              SizedBox(height: 15.h),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 12.h,
-                  crossAxisSpacing: 12.w,
-                  childAspectRatio: 1,
-                ),
-                itemCount: portfolioImages.length,
-                itemBuilder: (context, index) {
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(12).r,
-                    child: CustomNetworkImage(
-                      imageUrl: portfolioImages[index],
-                      fit: BoxFit.cover,
-                    ),
-                  );
-                },
-              ),
+              SizedBox(height: 24.h),
             ],
+
+            if (portfolioImages.isNotEmpty) ...[
+              Text('Portfolio Images', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+              SizedBox(height: 12.h),
+              GridView.builder(
+                shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 10, crossAxisSpacing: 10),
+                itemCount: portfolioImages.length,
+                itemBuilder: (context, index) => GestureDetector(
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => FullScreenImageViewer(imageUrl: portfolioImages[index], tag: 'portfolio_$index'))),
+                  child: Hero(tag: 'portfolio_$index', child: ClipRRect(borderRadius: BorderRadius.circular(8.r), child: CustomNetworkImage(imageUrl: portfolioImages[index], fit: BoxFit.cover))),
+                ),
+              ),
+              SizedBox(height: 24.h),
+            ],
+
+            if (documents.isNotEmpty) ...[
+              Text('Documents', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+              SizedBox(height: 12.h),
+              ...documents.map((docUrl) {
+                final fileName = docUrl.split('/').last;
+                return Container(
+                  margin: EdgeInsets.only(bottom: 10.h),
+                  padding: EdgeInsets.all(12.r),
+                  decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8.r)),
+                  child: Row(
+                    children: [
+                      Icon(Icons.description, color: Colors.blue),
+                      SizedBox(width: 12.w),
+                      Expanded(child: Text(fileName, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                      IconButton(
+                        icon: Icon(Icons.remove_red_eye_outlined, color: Colors.blue),
+                        onPressed: () async {
+                          final uri = Uri.parse(docUrl);
+                          if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ],
+            
+            if (!isLoading && services.isEmpty && portfolioImages.isEmpty && documents.isEmpty)
+              const Center(child: Padding(padding: EdgeInsets.symmetric(vertical: 40), child: Text('No content available'))),
           ],
         );
       },
@@ -449,32 +387,25 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
     return Consumer<ReviewController>(
       builder: (context, controller, child) {
         if (controller.isLoading) return const ReviewListSkeleton();
-        final reviews = controller.reviews;
-        if (reviews.isEmpty) return const Center(child: Text('No reviews yet'));
+        if (controller.reviews.isEmpty) return const Center(child: Text('No reviews yet'));
         return Column(
-          children: reviews.map((review) => Padding(
+          children: controller.reviews.map((r) => Padding(
             padding: EdgeInsets.only(bottom: 20.h),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    CircleAvatar(
-                      radius: 20.r,
-                      backgroundColor: Colors.grey[200],
-                      backgroundImage: review.user?.profile != null
-                          ? NetworkImage(review.user!.profile!) as ImageProvider
-                          : const AssetImage('assets/images/img7.jpg'),
-                    ),
+                    CircleAvatar(radius: 20.r, backgroundImage: r.user?.profile != null ? NetworkImage(r.user!.profile!) : const AssetImage('assets/images/img7.jpg')),
                     SizedBox(width: 12.w),
                     Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text(review.user?.name ?? 'Anonymous', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold)),
-                      Row(children: List.generate(5, (i) => Icon(Icons.star, color: i < (review.rating ?? 0) ? Colors.orange : Colors.grey[300], size: 14.sp))),
+                      Text(r.user?.name ?? 'User', style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Row(children: List.generate(5, (i) => Icon(Icons.star, color: i < (r.rating ?? 0) ? Colors.orange : Colors.grey[300], size: 14.sp))),
                     ]),
                   ],
                 ),
-                SizedBox(height: 10.h),
-                Text(review.comment ?? '', style: TextStyle(fontSize: 13.sp, color: Colors.black87)),
+                SizedBox(height: 8.h),
+                Text(r.comment ?? '', style: TextStyle(fontSize: 13.sp, color: Colors.black87)),
               ],
             ),
           )).toList(),
@@ -486,102 +417,31 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
   Widget _buildAboutContent() {
     return Consumer<ProviderDetailsController>(
       builder: (context, controller, child) {
-        // Data sources
-        final userProfile = controller.providerDetails;
-        final profProfile = controller.profProfileDetails;
-
-        // Description priority
-        final description = 
-            profProfile?.user?.description ??
-            userProfile?.description ?? 
-            widget.provider['description']?.toString() ??
-            "";
+        final prof = controller.profProfileDetails;
+        final user = controller.providerDetails;
+        // Correct hierarchy for description
+        final description = prof?.user?.description ?? user?.description ?? widget.provider['description'] ?? 'No description available.';
         
-        // Member since from createdAt
-        String memberSince = "";
-        if (userProfile?.createdAt != null) {
-          try {
-            final date = DateTime.parse(userProfile!.createdAt!);
-            memberSince = "Member since ${date.year}";
-          } catch (_) {}
-        }
-
-        // Combine languages and specializations from both models
-        final List<String> languages = [
-          ...?(userProfile?.languages),
-          ...?(profProfile?.language?.map((e) => e.toString())),
-        ].toSet().where((e) => e.isNotEmpty).toList();
-
-        final List<String> specializations = [
-          if (userProfile?.specialty != null && userProfile!.specialty!.isNotEmpty) userProfile.specialty!,
-          ...?(profProfile?.specialties?.map((e) => e.toString())),
-        ].toSet().where((e) => e.isNotEmpty).toList();
+        final List<String> languages = (prof?.language?.map((e) => e.toString()).toList() ?? []) + (user?.languages ?? []);
+        final List<String> specializations = (prof?.specialties?.map((e) => e.toString()).toList() ?? []) + (prof?.specialty != null ? [prof!.specialty!] : []) + (user?.specialty != null ? [user!.specialty!] : []);
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'About Me',
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
+            Text('About Me', style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold)),
             SizedBox(height: 12.h),
-            Text(
-              description.isEmpty ? "No description available." : description,
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: const Color(0xFF455A64),
-                height: 1.6,
-              ),
-            ),
-            if (memberSince.isNotEmpty) ...[
-              SizedBox(height: 10.h),
-              Text(
-                memberSince,
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  color: const Color(0xFF90A4AE),
-                ),
-              ),
-            ],
-            
+            Text(description, style: TextStyle(fontSize: 14.sp, color: Colors.black54, height: 1.5)),
             if (languages.isNotEmpty) ...[
-              SizedBox(height: 25.h),
-              Text(
-                'Languages',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(height: 12.h),
-              Wrap(
-                spacing: 10.w,
-                runSpacing: 10.h,
-                children: languages.map((item) => _buildReadOnlyChip(item)).toList(),
-              ),
+              SizedBox(height: 20.h),
+              Text('Languages', style: const TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 8.h),
+              Wrap(spacing: 8, children: languages.toSet().where((l) => l.isNotEmpty).map((l) => _buildChip(l)).toList()),
             ],
-
             if (specializations.isNotEmpty) ...[
-              SizedBox(height: 25.h),
-              Text(
-                'Specializations',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(height: 12.h),
-              Wrap(
-                spacing: 10.w,
-                runSpacing: 10.h,
-                children: specializations.map((item) => _buildReadOnlyChip(item)).toList(),
-              ),
+              SizedBox(height: 20.h),
+              Text('Specializations', style: const TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 8.h),
+              Wrap(spacing: 8, children: specializations.toSet().where((s) => s.isNotEmpty).map((s) => _buildChip(s)).toList()),
             ],
           ],
         );
@@ -589,22 +449,7 @@ class _ProviderProfileScreenState extends State<ProviderProfileScreen>
     );
   }
 
-  Widget _buildReadOnlyChip(String label) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F7F9),
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: const Color(0xFFECEFF1)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 13.sp, 
-          color: const Color(0xFF455A64),
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
+  Widget _buildChip(String label) {
+    return Chip(label: Text(label, style: TextStyle(fontSize: 12.sp)), backgroundColor: Colors.grey[100], side: BorderSide.none);
   }
 }

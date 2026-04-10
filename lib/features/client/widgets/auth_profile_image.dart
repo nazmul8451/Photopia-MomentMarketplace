@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/network/urls.dart';
 
@@ -80,9 +81,24 @@ class _AuthProfileImageState extends State<AuthProfileImage> {
       );
 
       if (response.statusCode == 200) {
+        // Correct EXIF orientation using flutter_image_compress (Native & Robust)
+        Uint8List bytes = response.bodyBytes;
+        try {
+          // Native compression bypasses many Dart-level EXIF bugs
+          final result = await FlutterImageCompress.compressWithList(
+            bytes,
+            quality: 95,
+            rotate: 0, // 0 = Auto-rotate based on EXIF
+            keepExif: false, // Bake the orientation permanently into bytes
+          );
+          bytes = Uint8List.fromList(result);
+        } catch (e) {
+          debugPrint("Critical Orientation Fix Failed: $e");
+        }
+
         if (!mounted) return;
         setState(() {
-          _imageBytes = response.bodyBytes;
+          _imageBytes = bytes;
           _loading = false;
         });
       } else {

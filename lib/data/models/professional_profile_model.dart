@@ -18,6 +18,7 @@ class ProfessionalProfileModel {
   final Statistics? statistics;
   final bool isSubscribed;
   final String? subscriptionStatus;
+  final List<dynamic>? documents;
 
   ProfessionalProfileModel({
     this.profileViews,
@@ -37,6 +38,7 @@ class ProfessionalProfileModel {
     this.statistics,
     this.isSubscribed = false,
     this.subscriptionStatus,
+    this.documents,
   });
 
   factory ProfessionalProfileModel.fromJson(Map<String, dynamic> json) {
@@ -58,16 +60,26 @@ class ProfessionalProfileModel {
       statistics: json['statistics'] != null
           ? Statistics.fromJson(json['statistics'])
           : null,
-      isSubscribed: json['subscription'] != null || json['isSubscribed'] == true,
+      isSubscribed: json['isStripeConnected'] == true || json['isVerified'] == true || json['isSubscribed'] == true,
       subscriptionStatus: json['subscriptionStatus']?.toString(),
+      documents: (json['documents'] as List?)?.map((e) => formatUrl(e)).toList(),
     );
   }
 
   static String? formatUrl(dynamic url) {
     if (url == null) return null;
     String urlString = url.toString();
-    if (urlString.startsWith('http')) return urlString;
-    return '${Urls.baseUrl}$urlString';
+    if (urlString.isEmpty) return null;
+    if (urlString.startsWith('http') || urlString.startsWith('assets/')) return urlString;
+    
+    final String base = Urls.baseUrl.endsWith('/') 
+        ? Urls.baseUrl.substring(0, Urls.baseUrl.length - 1) 
+        : Urls.baseUrl;
+    
+    // Most backends serve static files at /uploads/ or directly. 
+    // Based on your JSON, it starts with /images, /portfolio, etc.
+    final String path = urlString.startsWith('/') ? urlString : '/$urlString';
+    return "$base$path";
   }
 }
 

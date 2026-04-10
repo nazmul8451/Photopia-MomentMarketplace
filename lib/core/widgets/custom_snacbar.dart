@@ -17,7 +17,6 @@ class CustomSnackBar {
       padding: EdgeInsets.zero,
       duration: const Duration(seconds: 4),
       content: Container(
-        margin: EdgeInsets.only(bottom: 12.h, left: 16.w, right: 16.w),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(
             20.r,

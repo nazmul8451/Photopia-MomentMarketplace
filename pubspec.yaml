@@ -61,6 +61,9 @@ dependencies:
   socket_io_client: ^3.1.4
   mime: ^1.0.6
   flutter_stripe: any
+  file_picker: ^8.1.2
+  syncfusion_flutter_pdfviewer: ^33.1.47
+  device_info_plus: ^12.4.0
 
 
 

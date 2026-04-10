@@ -180,11 +180,13 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                     ),
                     SizedBox(height: 4.h),
                     Text(
-                      controller.specialty,
+                      controller.profileTagline,
                       style: TextStyle(
                         fontSize: 13.sp.clamp(12, 14),
                         color: Colors.grey[600],
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 6.h),
                     SubscriptionBadge(

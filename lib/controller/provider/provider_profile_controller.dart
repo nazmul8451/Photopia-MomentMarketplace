@@ -8,6 +8,9 @@ import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/data/models/user_profile_model.dart';
 import 'package:photopia/data/models/professional_profile_model.dart';
 import 'package:photopia/data/models/review_model.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
 
 class ProviderProfileController extends ChangeNotifier {
   bool _inProgress = false;
@@ -28,8 +31,18 @@ class ProviderProfileController extends ChangeNotifier {
       _professionalProfile?.user?.description ??
       _userProfile?.description ??
       'Professional wedding and event photographer with 10+ years of experience.';
-  String get shortBio =>
-      _professionalProfile?.bio ?? '';
+  String get profileTagline {
+    if (_professionalProfile?.bio != null && _professionalProfile!.bio!.isNotEmpty) {
+      return _professionalProfile!.bio!;
+    }
+    if (_userProfile?.specialty != null && _userProfile!.specialty!.isNotEmpty) {
+      return _userProfile!.specialty!;
+    }
+    return 'Professional Photographer';
+  }
+
+  String get shortBio => _professionalProfile?.bio ?? '';
+
   String get specialty =>
       _userProfile?.specialty ??
       'Professional Photographer';
@@ -52,6 +65,7 @@ class ProviderProfileController extends ChangeNotifier {
   List<String> get specializations => _professionalProfile?.specialties?.map((e) => e.toString()).toList() ?? [];
   List<String> get languages => _professionalProfile?.language?.map((e) => e.toString()).toList() ?? [];
   List<dynamic> get recentWork => _professionalProfile?.portfolio?.toList() ?? [];
+  List<String> get uploadedDocuments => _professionalProfile?.documents?.map((e) => e.toString()).toList() ?? [];
 
   Future<bool> getProviderProfile() async {
     _inProgress = true;
@@ -64,6 +78,11 @@ class ProviderProfileController extends ChangeNotifier {
 
     debugPrint("🔍 User Profile Response: ${userProfileResponse.isSuccess} - ${userProfileResponse.body}");
     debugPrint("🔍 Prof Profile Response: ${professionalProfileResponse.isSuccess} - ${professionalProfileResponse.body}");
+    
+    if (professionalProfileResponse.isSuccess) {
+      final documentsFromServer = professionalProfileResponse.body?['data']?['documents'];
+      debugPrint("📄 [DEBUG] Documents from Database: $documentsFromServer");
+    }
 
     _inProgress = false;
     
@@ -116,6 +135,7 @@ class ProviderProfileController extends ChangeNotifier {
     List<String>? newSpecializations,
     List<String>? newLanguages,
     List<File>? newPortfolioFiles,
+    List<File>? newDocumentFiles,
     File? profilePhoto,
     File? coverPhoto,
   }) async {
@@ -130,6 +150,7 @@ class ProviderProfileController extends ChangeNotifier {
                             (newSpecializations != null && newSpecializations.isNotEmpty) || 
                             (newLanguages != null && newLanguages.isNotEmpty) || 
                             (newPortfolioFiles != null && newPortfolioFiles.isNotEmpty) ||
+                            (newDocumentFiles != null && newDocumentFiles.isNotEmpty) ||
                             coverPhoto != null;
 
       if (hasProfChanges) {
@@ -147,16 +168,28 @@ class ProviderProfileController extends ChangeNotifier {
         
         // Add cover photo if present
         if (coverPhoto != null) {
-          final fileStream = http.ByteStream(coverPhoto.openRead());
-          final length = await coverPhoto.length();
-          final multipartFile = http.MultipartFile(
-            'coverPhoto',
-            fileStream,
-            length,
-            filename: coverPhoto.path.split('/').last,
-            contentType: MediaType('image', 'jpeg'),
+          final tempDir = await getTemporaryDirectory();
+          final targetPath = p.join(tempDir.path, "temp_cover_${DateTime.now().millisecondsSinceEpoch}.jpg");
+          
+          final compressedFile = await FlutterImageCompress.compressAndGetFile(
+            coverPhoto.absolute.path,
+            targetPath,
+            quality: 80,
+            keepExif: false, // This strips buggy EXIF and bakes orientation
           );
-          request.files.add(multipartFile);
+
+          if (compressedFile != null) {
+            final fileStream = http.ByteStream(File(compressedFile.path).openRead());
+            final length = await File(compressedFile.path).length();
+            final multipartFile = http.MultipartFile(
+              'coverPhoto',
+              fileStream,
+              length,
+              filename: 'cover_photo.jpg',
+              contentType: MediaType('image', 'jpeg'),
+            );
+            request.files.add(multipartFile);
+          }
         }
         
         // Add only NEW specialties as repeated keys
@@ -188,6 +221,22 @@ class ProviderProfileController extends ChangeNotifier {
           }
         }
 
+        // Add ONLY new files to documents
+        if (newDocumentFiles != null) {
+          for (var file in newDocumentFiles) {
+            final fileStream = http.ByteStream(file.openRead());
+            final length = await file.length();
+            final multipartFile = http.MultipartFile(
+              'documents',
+              fileStream,
+              length,
+              filename: file.path.split('/').last,
+              contentType: MediaType('application', 'octet-stream'),
+            );
+            request.files.add(multipartFile);
+          }
+        }
+
         try {
           final streamedResponse = await request.send().timeout(const Duration(seconds: 60));
           final response = await http.Response.fromStream(streamedResponse);
@@ -207,39 +256,75 @@ class ProviderProfileController extends ChangeNotifier {
 
       bool userProfileSuccess = true;
       if (description != null || name != null || profilePhoto != null) {
-        debugPrint('👔 Updating User Profile: name=$name');
-        String? token = AuthController.accessToken;
-        final Uri uri = Uri.parse(Urls.updateUserProfile);
-        final request = http.MultipartRequest('PATCH', uri);
-
-        if (token != null && token.isNotEmpty) {
-          request.headers['Authorization'] = token.startsWith('Bearer ') ? token : 'Bearer $token';
-        }
-        request.headers['Accept'] = 'application/json';
-
-        if (name != null) request.fields['name'] = name;
-        if (description != null) request.fields['description'] = description;
+        debugPrint('👔 Updating User Profile: name=$name, profilePhoto=${profilePhoto != null}');
 
         if (profilePhoto != null) {
-          final fileStream = http.ByteStream(profilePhoto.openRead());
-          final length = await profilePhoto.length();
-          final multipartFile = http.MultipartFile(
-            'profile',
-            fileStream,
-            length,
-            filename: profilePhoto.path.split('/').last,
-            contentType: MediaType('image', 'jpeg'),
-          );
-          request.files.add(multipartFile);
-        }
+          // Multipart request only when uploading a photo
+          String? token = AuthController.accessToken;
+          final Uri uri = Uri.parse(Urls.updateUserProfile);
+          final request = http.MultipartRequest('PATCH', uri);
 
-        try {
-          final streamedResponse = await request.send().timeout(const Duration(seconds: 60));
-          final response = await http.Response.fromStream(streamedResponse);
-          userProfileSuccess = (response.statusCode >= 200 && response.statusCode < 300);
-        } catch (e) {
-          debugPrint('❌ Avatar update failed: $e');
-          userProfileSuccess = false;
+          if (token != null && token.isNotEmpty) {
+            request.headers['Authorization'] = token.startsWith('Bearer ') ? token : 'Bearer $token';
+          }
+          request.headers['Accept'] = 'application/json';
+
+          if (name != null) request.fields['name'] = name;
+          if (description != null) request.fields['description'] = description;
+
+          final tempDir = await getTemporaryDirectory();
+          final targetPath = p.join(tempDir.path, "temp_profile_${DateTime.now().millisecondsSinceEpoch}.jpg");
+          
+          final compressedFile = await FlutterImageCompress.compressAndGetFile(
+            profilePhoto.absolute.path,
+            targetPath,
+            quality: 80,
+            keepExif: false, // Bakes orientation 
+          );
+
+          if (compressedFile != null) {
+            final fileStream = http.ByteStream(File(compressedFile.path).openRead());
+            final length = await File(compressedFile.path).length();
+            final multipartFile = http.MultipartFile(
+              'images',
+              fileStream,
+              length,
+              filename: 'profile_photo.jpg',
+              contentType: MediaType('image', 'jpeg'),
+            );
+            request.files.add(multipartFile);
+          }
+
+          try {
+            final streamedResponse = await request.send().timeout(const Duration(seconds: 60));
+            final response = await http.Response.fromStream(streamedResponse);
+            debugPrint('👤 User Profile Multipart Status: ${response.statusCode}');
+            debugPrint('👤 User Profile Multipart Body: ${response.body}');
+            userProfileSuccess = (response.statusCode >= 200 && response.statusCode < 300);
+            if (!userProfileSuccess) {
+              _errorMessage = 'Server error ${response.statusCode}: ${response.body}';
+            }
+          } catch (e) {
+            debugPrint('❌ Profile photo upload failed: $e');
+            _errorMessage = 'Connection error: $e';
+            userProfileSuccess = false;
+          }
+        } else {
+          // Text-only update → use JSON PATCH via NetworkCaller
+          final body = <String, dynamic>{};
+          if (name != null) body['name'] = name;
+          if (description != null) body['description'] = description;
+
+          debugPrint('👤 Sending JSON PATCH for user profile: $body');
+          final response = await NetworkCaller.patchRequest(
+            url: Urls.updateUserProfile,
+            body: body,
+          );
+          debugPrint('👤 JSON PATCH response: ${response.statusCode} - ${response.body}');
+          userProfileSuccess = response.isSuccess;
+          if (!userProfileSuccess) {
+            _errorMessage = response.errorMessage ?? 'Failed to update user profile.';
+          }
         }
       }
 
