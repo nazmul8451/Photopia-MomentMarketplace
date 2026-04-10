@@ -10,6 +10,8 @@ import 'package:photopia/controller/client/log_out_controller.dart';
 import 'package:photopia/controller/client/user_profile_controller.dart';
 import 'package:photopia/controller/location_controller.dart';
 import 'package:photopia/features/client/widgets/auth_profile_image.dart';
+import 'package:photopia/features/provider/screen/provider_profile_screen.dart'
+    as provider_view;
 import 'package:photopia/core/widgets/full_screen_image_viewer.dart';
 
 class UserProfileScreen extends StatefulWidget {
@@ -49,13 +51,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ),
         actions: [
           IconButton(
-            icon: Icon(
-              Icons.settings_outlined,
-              color: Colors.black,
-              size: 24.sp,
-            ),
+            icon: Icon(Icons.edit_note, color: Colors.black, size: 28.sp),
             onPressed: () {
-              // Navigate to settings
+              Navigator.pushNamed(context, AppRoutes.edit_profile);
             },
           ),
           SizedBox(width: 10.w),
@@ -142,10 +140,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           SizedBox(height: 8.h),
           Consumer<LocationController>(
             builder: (context, locationController, _) {
-              final displayLocation = locationController.currentAddress != "Detecting location..." 
-                  ? locationController.currentAddress 
-                  : (user?.location?.isNotEmpty ?? false ? user!.location! : "Custom Location");
-              
+              final displayLocation =
+                  locationController.currentAddress != "Detecting location..."
+                  ? locationController.currentAddress
+                  : (user?.location?.isNotEmpty ?? false
+                        ? user!.location!
+                        : "Custom Location");
+
               return Container(
                 padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                 decoration: BoxDecoration(
@@ -161,7 +162,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         height: 12.w,
                         child: const CircularProgressIndicator(strokeWidth: 2),
                       )
-                    else 
+                    else
                       Icon(
                         Icons.location_on_outlined,
                         color: Colors.blue,
@@ -184,10 +185,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           SizedBox(height: 20.h),
           GestureDetector(
             onTap: () {
-              Navigator.of(
+              Navigator.push(
                 context,
-                rootNavigator: true,
-              ).pushNamed(AppRoutes.view_profile);
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const provider_view.ProviderProfileScreen(),
+                ),
+              );
             },
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 25.w, vertical: 10.h),
@@ -357,7 +361,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const NotificationScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationScreen(),
+                  ),
                 );
               },
             ),
@@ -489,8 +495,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(20.r),
                             ),
-                            contentPadding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, 8.h),
-                            actionsPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                            contentPadding: EdgeInsets.fromLTRB(
+                              24.w,
+                              16.h,
+                              24.w,
+                              8.h,
+                            ),
+                            actionsPadding: EdgeInsets.fromLTRB(
+                              16.w,
+                              0,
+                              16.w,
+                              16.h,
+                            ),
                             title: Column(
                               children: [
                                 Container(
@@ -530,12 +546,19 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 children: [
                                   Expanded(
                                     child: OutlinedButton(
-                                      onPressed: () => Navigator.pop(ctx, false),
+                                      onPressed: () =>
+                                          Navigator.pop(ctx, false),
                                       style: OutlinedButton.styleFrom(
-                                        padding: EdgeInsets.symmetric(vertical: 12.h),
-                                        side: BorderSide(color: Colors.grey[300]!),
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 12.h,
+                                        ),
+                                        side: BorderSide(
+                                          color: Colors.grey[300]!,
+                                        ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12.r),
+                                          borderRadius: BorderRadius.circular(
+                                            12.r,
+                                          ),
                                         ),
                                       ),
                                       child: Text(
@@ -556,9 +579,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                         backgroundColor: Colors.black,
                                         foregroundColor: Colors.white,
                                         elevation: 0,
-                                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 12.h,
+                                        ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12.r),
+                                          borderRadius: BorderRadius.circular(
+                                            12.r,
+                                          ),
                                         ),
                                       ),
                                       child: Text(
@@ -583,7 +610,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
                         if (!result) {
                           debugPrint(
-                              '⚠️ Server logout failed, but clearing local state anyway.');
+                            '⚠️ Server logout failed, but clearing local state anyway.',
+                          );
                         }
 
                         // ALWAYS clear local state and navigate to home
