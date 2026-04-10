@@ -460,8 +460,106 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 onTap: logOutController.inProgress
                     ? null
                     : () async {
-                        debugPrint('🚪 Logout initiated...');
-                        // Attempt API logout
+                        // Show confirmation dialog first
+                        final confirmed = await showDialog<bool>(
+                          context: context,
+                          barrierDismissible: true,
+                          builder: (ctx) => AlertDialog(
+                            backgroundColor: Colors.white,
+                            surfaceTintColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20.r),
+                            ),
+                            contentPadding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, 8.h),
+                            actionsPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                            title: Column(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(14.w),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFF5F5F5),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.logout_rounded,
+                                    color: Colors.black,
+                                    size: 26.sp,
+                                  ),
+                                ),
+                                SizedBox(height: 12.h),
+                                Text(
+                                  'Log Out',
+                                  style: TextStyle(
+                                    fontSize: 18.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            content: Text(
+                              'Are you sure you want to log out of your account?',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13.sp,
+                                color: Colors.grey[600],
+                                height: 1.4,
+                              ),
+                            ),
+                            actions: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton(
+                                      onPressed: () => Navigator.pop(ctx, false),
+                                      style: OutlinedButton.styleFrom(
+                                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                                        side: BorderSide(color: Colors.grey[300]!),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12.r),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Cancel',
+                                        style: TextStyle(
+                                          color: Colors.grey[700],
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 13.sp,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 12.w),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      onPressed: () => Navigator.pop(ctx, true),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.black,
+                                        foregroundColor: Colors.white,
+                                        elevation: 0,
+                                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12.r),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Log Out',
+                                        style: TextStyle(
+                                          fontSize: 13.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirmed != true) return;
+
+                        debugPrint('🚪 Logout confirmed...');
                         final result = await logOutController.logOut();
 
                         if (!result) {
@@ -469,7 +567,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               '⚠️ Server logout failed, but clearing local state anyway.');
                         }
 
-                        // 2. ALWAYS clear local state and navigate to login
+                        // ALWAYS clear local state and navigate to home
                         await AuthController.forceLogout();
                       },
                 child: Container(
@@ -478,7 +576,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(15).r,
-                    border: Border.all(color: Colors.red.withAlpha(25)),
+                    border: Border.all(color: Colors.red.withAlpha(80)),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,

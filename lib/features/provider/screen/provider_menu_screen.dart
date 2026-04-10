@@ -533,7 +533,106 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
             onPressed: logOutController.inProgress
                 ? null
                 : () async {
-                    debugPrint('🚪 Provider Logout initiated...');
+                    // Show confirmation dialog first
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      barrierDismissible: true,
+                      builder: (ctx) => AlertDialog(
+                        backgroundColor: Colors.white,
+                        surfaceTintColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.r),
+                        ),
+                        contentPadding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, 8.h),
+                        actionsPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                        title: Column(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(14.w),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFF5F5F5),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.logout_rounded,
+                                color: Colors.black,
+                                size: 26.sp,
+                              ),
+                            ),
+                            SizedBox(height: 12.h),
+                            Text(
+                              'Sign Out',
+                              style: TextStyle(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                        content: Text(
+                          'Are you sure you want to sign out of your account?',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            color: Colors.grey[600],
+                            height: 1.4,
+                          ),
+                        ),
+                        actions: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  style: OutlinedButton.styleFrom(
+                                    padding: EdgeInsets.symmetric(vertical: 12.h),
+                                    side: BorderSide(color: Colors.grey[300]!),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12.r),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Cancel',
+                                    style: TextStyle(
+                                      color: Colors.grey[700],
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 13.sp,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.black,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: EdgeInsets.symmetric(vertical: 12.h),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12.r),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Sign Out',
+                                    style: TextStyle(
+                                      fontSize: 13.sp,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (confirmed != true) return;
+
+                    debugPrint('🚪 Provider Logout confirmed...');
 
                     // 1. Attempt API logout (optional server-side cleanup)
                     final result = await logOutController.logOut();
@@ -545,12 +644,14 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                         );
                       }
 
-                      // 2. ALWAYS clear local state and navigate to login
+                      // 2. ALWAYS clear local state and navigate to home
                       await AuthController.forceLogout(context);
                     }
                   },
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Colors.red, width: 1.5),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              foregroundColor: Colors.white,
+              elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.r),
               ),
@@ -560,21 +661,21 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                     height: 18.sp,
                     width: 18.sp,
                     child: const CircularProgressIndicator(
-                      color: Colors.black,
+                      color: Colors.white,
                       strokeWidth: 2,
                     ),
                   )
                 : Icon(
-                    Icons.logout,
+                    Icons.logout_rounded,
                     size: 20.sp.clamp(18, 22),
-                    color: Colors.red,
+                    color: Colors.white,
                   ),
             label: Text(
               logOutController.inProgress ? 'Signing out...' : 'Sign Out',
               style: TextStyle(
                 fontSize: 15.sp.clamp(14, 16),
                 fontWeight: FontWeight.w600,
-                color: Colors.red,
+                color: Colors.white,
               ),
             ),
           ),

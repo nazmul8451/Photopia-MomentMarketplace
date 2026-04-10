@@ -116,9 +116,9 @@ class AuthController extends ChangeNotifier {
       userId = null;
       debugPrint('🔐 Token expired. Forcing logout...');
       
-      // Navigate to the sign-in screen globally using the navigatorKey
+      // Navigate to the bottom navigation screen globally using the navigatorKey
       navigatorKey.currentState?.pushNamedAndRemoveUntil(
-        AppRoutes.log_in,
+        AppRoutes.bottom_navigation,
         (route) => false,
       );
     } finally {
