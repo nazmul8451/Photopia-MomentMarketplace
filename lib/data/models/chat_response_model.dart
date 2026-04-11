@@ -60,11 +60,18 @@ class ChatRoom {
         participants!.add(ChatParticipant.fromJson(v));
       });
     }
-    final latestMsgData = json['latestMessage'] ?? json['lastMessage'] ?? json['message'] ?? json['latest_message'] ?? json['last_message'];
-    
+    final latestMsgData =
+        json['latestMessage'] ??
+        json['lastMessage'] ??
+        json['message'] ??
+        json['latest_message'] ??
+        json['last_message'];
+
     if (latestMsgData != null) {
       if (latestMsgData is Map) {
-        latestMessage = LatestMessage.fromJson(latestMsgData as Map<String, dynamic>);
+        latestMessage = LatestMessage.fromJson(
+          latestMsgData as Map<String, dynamic>,
+        );
       } else if (latestMsgData is String) {
         latestMessage = LatestMessage(content: latestMsgData);
       }
@@ -80,8 +87,14 @@ class ChatRoom {
       orElse: () => participants?.first ?? ChatParticipant(),
     );
 
+    String displayName = otherParticipant?.name ?? 'Unknown';
+    if (otherParticipant?.role == 'admin' ||
+        displayName.toLowerCase() == 'admin') {
+      displayName = 'Admin Support';
+    }
+
     final bool isLastMessageFromMe = latestMessage?.sender == currentUserId;
-    
+
     MessageStatus resolveStatus() {
       if (latestMessage?.isSeen == true || latestMessage?.status == 'read') {
         return MessageStatus.read;
@@ -94,10 +107,12 @@ class ChatRoom {
 
     return Conversation(
       id: sId ?? '',
-      name: otherParticipant?.name ?? 'Unknown',
+      name: displayName,
       lastMessage: latestMessage?.content ?? '',
       avatarUrl: otherParticipant?.profile ?? '',
-      lastMessageTime: (DateTime.tryParse(latestMessage?.createdAt ?? '') ?? DateTime.now()).toLocal(),
+      lastMessageTime:
+          (DateTime.tryParse(latestMessage?.createdAt ?? '') ?? DateTime.now())
+              .toLocal(),
       unreadCount: unreadCount ?? 0,
       isOnline: false,
       status: resolveStatus(),
@@ -112,13 +127,15 @@ class ChatParticipant {
   String? name;
   String? email;
   String? profile;
+  String? role;
 
-  ChatParticipant({this.sId, this.name, this.email, this.profile});
+  ChatParticipant({this.sId, this.name, this.email, this.profile, this.role});
 
   ChatParticipant.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     name = json['name'];
     email = json['email'];
+    role = json['role'];
     profile = ProfessionalProfileModel.formatUrl(json['profile']);
   }
 }
@@ -131,15 +148,29 @@ class LatestMessage {
   bool isSeen = false;
   String? status;
 
-  LatestMessage({this.sId, this.content, this.sender, this.createdAt, this.isSeen = false, this.status});
+  LatestMessage({
+    this.sId,
+    this.content,
+    this.sender,
+    this.createdAt,
+    this.isSeen = false,
+    this.status,
+  });
 
   LatestMessage.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
-    
-    final String text = (json['text'] ?? json['message'] ?? json['content'] ?? json['body'] ?? '').toString();
+
+    final String text =
+        (json['text'] ??
+                json['message'] ??
+                json['content'] ??
+                json['body'] ??
+                '')
+            .toString();
     final String? image = json['image']?.toString();
     final String? video = json['video']?.toString();
-    final String? file = json['file']?.toString() ?? json['fileUrl']?.toString();
+    final String? file =
+        json['file']?.toString() ?? json['fileUrl']?.toString();
 
     if (image != null && image.isNotEmpty) {
       content = text.isNotEmpty ? "📷 $text" : "📷 Photo";
@@ -150,11 +181,17 @@ class LatestMessage {
     } else {
       content = text;
     }
-    
+
     if (json['senderId'] is Map) {
-      sender = json['senderId']['_id']?.toString() ?? json['senderId']['id']?.toString() ?? '';
+      sender =
+          json['senderId']['_id']?.toString() ??
+          json['senderId']['id']?.toString() ??
+          '';
     } else if (json['sender'] is Map) {
-      sender = json['sender']['_id']?.toString() ?? json['sender']['id']?.toString() ?? '';
+      sender =
+          json['sender']['_id']?.toString() ??
+          json['sender']['id']?.toString() ??
+          '';
     } else {
       sender = json['senderId']?.toString() ?? json['sender']?.toString();
     }

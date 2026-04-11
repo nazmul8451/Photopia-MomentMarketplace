@@ -215,9 +215,15 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           CircleAvatar(
             radius: 20.r,
-            backgroundImage: widget.conversation.avatarUrl.startsWith('assets/')
-                ? AssetImage(widget.conversation.avatarUrl) as ImageProvider
-                : NetworkImage(widget.conversation.avatarUrl),
+            backgroundColor: Colors.grey[200],
+            backgroundImage: widget.conversation.avatarUrl.isNotEmpty
+                ? (widget.conversation.avatarUrl.startsWith('assets/')
+                    ? AssetImage(widget.conversation.avatarUrl) as ImageProvider
+                    : NetworkImage(widget.conversation.avatarUrl))
+                : null,
+            child: widget.conversation.avatarUrl.isEmpty
+                ? Icon(Icons.person, color: Colors.grey[400], size: 24.sp)
+                : null,
           ),
           SizedBox(width: 12.w),
           Column(

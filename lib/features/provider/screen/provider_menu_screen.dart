@@ -13,6 +13,10 @@ import 'package:photopia/features/provider/screen/provider_statistics_screen.dar
 import 'package:photopia/features/provider/screen/provider_notification_screen.dart';
 import 'package:photopia/features/provider/screen/provider_profile_screen.dart';
 import 'package:photopia/core/widgets/subscription_badge.dart';
+import 'package:photopia/controller/client/chat_controller.dart';
+import 'package:photopia/features/client/chat_screen.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
+import 'package:photopia/data/models/conversation_model.dart';
 
 class ProviderMenuScreen extends StatefulWidget {
   const ProviderMenuScreen({super.key});
@@ -114,7 +118,47 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                     _buildMenuItem(
                       icon: Icons.help_outline,
                       title: 'Help & Support',
-                      onTap: () {},
+                      onTap: () async {
+                        final chatController = context.read<ChatController>();
+                        final chatId = await chatController.contactAdmin();
+
+                        if (chatId != null && mounted) {
+                          // Try to find the real conversation from the updated list
+                          Conversation? conversation;
+                          try {
+                            final chatRoom = chatController.chats.firstWhere(
+                              (c) => c.sId == chatId,
+                            );
+                            conversation = chatRoom.toConversation(
+                              AuthController.userId,
+                            );
+                          } catch (_) {
+                            // Fallback if not found yet (race condition)
+                            conversation = Conversation(
+                              id: chatId,
+                              name: 'Admin Support',
+                              lastMessage: '',
+                              avatarUrl: '',
+                              lastMessageTime: DateTime.now(),
+                            );
+                          }
+
+                          Navigator.of(context, rootNavigator: true).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ChatScreen(conversation: conversation!),
+                            ),
+                          );
+                        } else if (mounted) {
+                          CustomSnackBar.show(
+                            context: context,
+                            message: chatController.errorMessage.isNotEmpty
+                                ? chatController.errorMessage
+                                : 'Failed to contact admin',
+                            isError: true,
+                          );
+                        }
+                      },
                     ),
                     SizedBox(height: 24.h.clamp(20, 28)),
 
@@ -487,39 +531,38 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
   }
 
   Widget _buildSwitchButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: 48.h.clamp(44, 52),
-      child: ElevatedButton.icon(
-        onPressed: () {
-          Navigator.of(context, rootNavigator: true).push(
-            MaterialPageRoute(
-              builder: (context) => const ModeTransitionScreen(
-                targetRole: 'user',
-                targetRoute: AppRoutes.bottom_navigation,
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context, rootNavigator: true).push(
+          MaterialPageRoute(
+            builder: (context) => const ModeTransitionScreen(
+              targetRole: 'user',
+              targetRoute: AppRoutes.bottom_navigation,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        height: 55.h,
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A1A1A),
+          borderRadius: BorderRadius.circular(15).r,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.camera_alt_outlined, color: Colors.white, size: 20.sp),
+            SizedBox(width: 12.w),
+            Text(
+              'Switch to Client',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          );
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          elevation: 0,
-        ),
-        icon: Icon(
-          Icons.camera_alt,
-          size: 20.sp.clamp(18, 22),
-          color: Colors.white,
-        ),
-        label: Text(
-          'Switch to Client',
-          style: TextStyle(
-            fontSize: 15.sp.clamp(14, 16),
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
+          ],
         ),
       ),
     );
@@ -528,157 +571,161 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
   Widget _buildSignOutButton(BuildContext context) {
     return Consumer<LogOutController>(
       builder: (context, logOutController, child) {
-        return SizedBox(
-          width: double.infinity,
-          height: 48.h.clamp(44, 52),
-          child: OutlinedButton.icon(
-            onPressed: logOutController.inProgress
-                ? null
-                : () async {
-                    // Show confirmation dialog first
-                    final confirmed = await showDialog<bool>(
-                      context: context,
-                      barrierDismissible: true,
-                      builder: (ctx) => AlertDialog(
-                        backgroundColor: Colors.white,
-                        surfaceTintColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20.r),
+        return GestureDetector(
+          onTap: logOutController.inProgress
+              ? null
+              : () async {
+                  // Show confirmation dialog first
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    barrierDismissible: true,
+                    builder: (ctx) => AlertDialog(
+                      backgroundColor: Colors.white,
+                      surfaceTintColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.r),
+                      ),
+                      contentPadding: EdgeInsets.fromLTRB(
+                        24.w,
+                        16.h,
+                        24.w,
+                        8.h,
+                      ),
+                      actionsPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+                      title: Column(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(14.w),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF5F5F5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.logout_rounded,
+                              color: Colors.black,
+                              size: 26.sp,
+                            ),
+                          ),
+                          SizedBox(height: 12.h),
+                          Text(
+                            'Log Out',
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                      content: Text(
+                        'Are you sure you want to log out of your account?',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          color: Colors.grey[600],
+                          height: 1.4,
                         ),
-                        contentPadding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, 8.h),
-                        actionsPadding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
-                        title: Column(
+                      ),
+                      actions: [
+                        Row(
                           children: [
-                            Container(
-                              padding: EdgeInsets.all(14.w),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFF5F5F5),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.logout_rounded,
-                                color: Colors.black,
-                                size: 26.sp,
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                style: OutlinedButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                                  side: BorderSide(color: Colors.grey[300]!),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12.r),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Cancel',
+                                  style: TextStyle(
+                                    color: Colors.grey[700],
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13.sp,
+                                  ),
+                                ),
                               ),
                             ),
-                            SizedBox(height: 12.h),
-                            Text(
-                              'Sign Out',
-                              style: TextStyle(
-                                fontSize: 18.sp,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.black,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12.r),
+                                  ),
+                                ),
+                                child: Text(
+                                  'Log Out',
+                                  style: TextStyle(
+                                    fontSize: 13.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
                         ),
-                        content: Text(
-                          'Are you sure you want to sign out of your account?',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 13.sp,
-                            color: Colors.grey[600],
-                            height: 1.4,
-                          ),
-                        ),
-                        actions: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  onPressed: () => Navigator.pop(ctx, false),
-                                  style: OutlinedButton.styleFrom(
-                                    padding: EdgeInsets.symmetric(vertical: 12.h),
-                                    side: BorderSide(color: Colors.grey[300]!),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12.r),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Cancel',
-                                    style: TextStyle(
-                                      color: Colors.grey[700],
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13.sp,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 12.w),
-                              Expanded(
-                                child: ElevatedButton(
-                                  onPressed: () => Navigator.pop(ctx, true),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.black,
-                                    foregroundColor: Colors.white,
-                                    elevation: 0,
-                                    padding: EdgeInsets.symmetric(vertical: 12.h),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12.r),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Sign Out',
-                                    style: TextStyle(
-                                      fontSize: 13.sp,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                      ],
+                    ),
+                  );
+
+                  if (confirmed != true) return;
+
+                  debugPrint('🚪 Provider Logout confirmed...');
+
+                  // 1. Attempt API logout
+                  final result = await logOutController.logOut();
+
+                  if (!result) {
+                    debugPrint(
+                      '⚠️ Server logout failed, but clearing local state.',
                     );
+                  }
 
-                    if (confirmed != true) return;
-
-                    debugPrint('🚪 Provider Logout confirmed...');
-
-                    // 1. Attempt API logout (optional server-side cleanup)
-                    final result = await logOutController.logOut();
-
-                    if (context.mounted) {
-                      if (!result) {
-                        debugPrint(
-                          '⚠️ Server logout failed/refused (403), but clearing local state.',
-                        );
-                      }
-
-                      // 2. ALWAYS clear local state and navigate to home
-                      await AuthController.forceLogout(context);
-                    }
-                  },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
+                  // 2. ALWAYS clear local state and navigate to home
+                  await AuthController.forceLogout();
+                },
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(vertical: 15.h),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15).r,
+              border: Border.all(color: Colors.red.withAlpha(80)),
             ),
-            icon: logOutController.inProgress
-                ? SizedBox(
-                    height: 18.sp,
-                    width: 18.sp,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (logOutController.inProgress)
+                  SizedBox(
+                    height: 20.h,
+                    width: 20.h,
                     child: const CircularProgressIndicator(
-                      color: Colors.white,
+                      color: Colors.red,
                       strokeWidth: 2,
                     ),
                   )
-                : Icon(
-                    Icons.logout_rounded,
-                    size: 20.sp.clamp(18, 22),
-                    color: Colors.white,
+                else ...[
+                  Icon(Icons.logout, color: Colors.red, size: 20.sp),
+                  SizedBox(width: 10.w),
+                  Text(
+                    'Log Out',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-            label: Text(
-              logOutController.inProgress ? 'Signing out...' : 'Sign Out',
-              style: TextStyle(
-                fontSize: 15.sp.clamp(14, 16),
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
+                ],
+              ],
             ),
           ),
         );

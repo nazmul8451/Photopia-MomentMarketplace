@@ -18,6 +18,10 @@ import 'package:photopia/data/models/booking_model.dart';
 import 'package:photopia/features/client/privacy_policy_screen.dart';
 import 'package:photopia/features/client/order_history_screen.dart';
 import 'package:photopia/features/client/edit_profile_screen.dart';
+import 'package:photopia/features/client/chat_screen.dart';
+import 'package:photopia/controller/client/chat_controller.dart';
+import 'package:photopia/core/widgets/custom_snacbar.dart';
+import 'package:photopia/data/models/conversation_model.dart';
 import 'package:photopia/features/provider/screen/provider_profile_screen.dart'
     as provider_view;
 import 'package:photopia/core/widgets/full_screen_image_viewer.dart';
@@ -489,6 +493,51 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   Icons.language_outlined,
                   'Language',
                   value: 'English',
+                ),
+                _buildMenuItem(
+                  Icons.help_outline,
+                  'Help & Support',
+                  onTap: () async {
+                    final chatController = context.read<ChatController>();
+                    final chatId = await chatController.contactAdmin();
+
+                    if (chatId != null && mounted) {
+                      // Try to find the real conversation from the updated list
+                      Conversation? conversation;
+                      try {
+                        final chatRoom = chatController.chats.firstWhere(
+                          (c) => c.sId == chatId,
+                        );
+                        conversation = chatRoom.toConversation(
+                          AuthController.userId,
+                        );
+                      } catch (_) {
+                        // Fallback if not found yet (race condition)
+                        conversation = Conversation(
+                          id: chatId,
+                          name: 'Admin Support',
+                          lastMessage: '',
+                          avatarUrl: '',
+                          lastMessageTime: DateTime.now(),
+                        );
+                      }
+
+                      Navigator.of(context, rootNavigator: true).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ChatScreen(conversation: conversation!),
+                        ),
+                      );
+                    } else if (mounted) {
+                      CustomSnackBar.show(
+                        context: context,
+                        message: chatController.errorMessage.isNotEmpty
+                            ? chatController.errorMessage
+                            : 'Failed to contact admin',
+                        isError: true,
+                      );
+                    }
+                  },
                 ),
                 _buildMenuItem(
                   Icons.settings_outlined,

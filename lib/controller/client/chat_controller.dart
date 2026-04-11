@@ -42,13 +42,17 @@ class ChatController extends ChangeNotifier {
     final String token = AuthController.accessToken ?? '';
     if (token.isEmpty) return;
 
-    print('!!! [SOCKET_DEBUG] RECOVERY: Attempting to fetch profile to recover userId...');
+    print(
+      '!!! [SOCKET_DEBUG] RECOVERY: Attempting to fetch profile to recover userId...',
+    );
     try {
-      // We create a temporary instance to fetch the profile and trigger stay-sync logic 
+      // We create a temporary instance to fetch the profile and trigger stay-sync logic
       // recently added to UserProfileController.
       final profileController = UserProfileController();
       await profileController.getUserProfile();
-      print('!!! [SOCKET_DEBUG] RECOVERY: Profile fetch complete. New UserId: ${AuthController.userId}');
+      print(
+        '!!! [SOCKET_DEBUG] RECOVERY: Profile fetch complete. New UserId: ${AuthController.userId}',
+      );
     } catch (e) {
       print('!!! [SOCKET_DEBUG] RECOVERY: Failed to recover userId: $e');
     }
@@ -65,8 +69,13 @@ class ChatController extends ChangeNotifier {
 
     String userId = AuthController.userId ?? '';
     if (userId.isEmpty) {
-      final cachedProfile = GetStorage().read<Map<String, dynamic>>('cached_user_profile');
-      userId = cachedProfile?['id']?.toString() ?? cachedProfile?['_id']?.toString() ?? '';
+      final cachedProfile = GetStorage().read<Map<String, dynamic>>(
+        'cached_user_profile',
+      );
+      userId =
+          cachedProfile?['id']?.toString() ??
+          cachedProfile?['_id']?.toString() ??
+          '';
     }
 
     // Try active recovery if still empty
@@ -74,7 +83,7 @@ class ChatController extends ChangeNotifier {
       await _recoverUserId();
       userId = AuthController.userId ?? '';
     }
-    
+
     final String token = AuthController.accessToken ?? '';
 
     print('!!! [SOCKET_DEBUG] Attempting connection...');
@@ -84,18 +93,23 @@ class ChatController extends ChangeNotifier {
 
     if (userId.isEmpty) {
       print('!!! [SOCKET_DEBUG] ABORTING: UserId is empty!');
-      return; 
+      return;
     }
 
     _socket = IO.io(Urls.baseUrl, <String, dynamic>{
-      'transports': ['websocket', 'polling'], // Added polling back as a fallback for Android Emulators
+      'transports': [
+        'websocket',
+        'polling',
+      ], // Added polling back as a fallback for Android Emulators
       'autoConnect': false,
       'forceNew': true,
       'query': {'token': token},
     });
 
     _socket?.onConnect((_) {
-      print('!!! [SOCKET_DEBUG] SUCCESS: Realtime Socket Connected Successfully');
+      print(
+        '!!! [SOCKET_DEBUG] SUCCESS: Realtime Socket Connected Successfully',
+      );
     });
 
     _socket?.onConnectError((data) {
@@ -180,8 +194,7 @@ class ChatController extends ChangeNotifier {
     _errorMessage = '';
 
     connectSocket(); // Ensure socket connection when navigating directly
-    
-    
+
     if (chatId.isEmpty) {
       _messages = [];
       _currentActiveChatId = null;
@@ -189,7 +202,7 @@ class ChatController extends ChangeNotifier {
       notifyListeners();
       return true;
     }
-    
+
     notifyListeners();
 
     // Socket Room Switching Strategy
@@ -209,12 +222,14 @@ class ChatController extends ChangeNotifier {
     }
 
     try {
-      final response = await NetworkCaller.getRequest(url: Urls.getMessages(chatId));
+      final response = await NetworkCaller.getRequest(
+        url: Urls.getMessages(chatId),
+      );
       if (response.isSuccess) {
         final messageResponse = MessageResponse.fromJson(
-          response.body ?? {}, 
-          AuthController.userId ?? '', 
-          roomReceiverId: receiverId
+          response.body ?? {},
+          AuthController.userId ?? '',
+          roomReceiverId: receiverId,
         );
         _messages = messageResponse.data;
         // Sort newest first for reverse ListView compatibility
@@ -236,7 +251,7 @@ class ChatController extends ChangeNotifier {
     if (data != null) {
       try {
         Map<String, dynamic> msgData = {};
-        
+
         if (data is String) {
           try {
             msgData = jsonDecode(data);
@@ -249,14 +264,17 @@ class ChatController extends ChangeNotifier {
         if (msgData.containsKey('data') && msgData['data'] is Map) {
           msgData = Map<String, dynamic>.from(msgData['data']);
         }
-        
+
         if (msgData.isEmpty) {
           debugPrint('Socket message discarded: payload was not a valid Map.');
           return;
         }
 
-        final ChatMessage newMsg = ChatMessage.fromJson(msgData, AuthController.userId ?? '');
-        
+        final ChatMessage newMsg = ChatMessage.fromJson(
+          msgData,
+          AuthController.userId ?? '',
+        );
+
         if (newMsg.id.isEmpty) {
           debugPrint('Socket message discarded: id was mysteriously empty.');
           return;
@@ -264,19 +282,24 @@ class ChatController extends ChangeNotifier {
 
         // --- De-duplication Strategy ---
         // 1. Check if ID already exists
-        final existingIndexById = _messages.indexWhere((m) => m.id == newMsg.id);
+        final existingIndexById = _messages.indexWhere(
+          (m) => m.id == newMsg.id,
+        );
         if (existingIndexById != -1) return;
 
         // 2. If it's from me, check for a matching "sending" message (temp ID)
         if (newMsg.isMe) {
-          final tempMsgIndex = _messages.indexWhere((m) => 
-            m.isLocal && 
-            m.text.trim() == newMsg.text.trim() && 
-            m.status == MessageStatus.sending
+          final tempMsgIndex = _messages.indexWhere(
+            (m) =>
+                m.isLocal &&
+                m.text.trim() == newMsg.text.trim() &&
+                m.status == MessageStatus.sending,
           );
-          
+
           if (tempMsgIndex != -1) {
-            debugPrint('Socket: Matching local message found. Replacing temp ID with server ID.');
+            debugPrint(
+              'Socket: Matching local message found. Replacing temp ID with server ID.',
+            );
             _messages[tempMsgIndex] = newMsg;
             notifyListeners();
             return;
@@ -285,11 +308,11 @@ class ChatController extends ChangeNotifier {
 
         // 3. Normal insert for new unique messages
         _messages.insert(0, newMsg);
-        
+
         if (_currentActiveChatId != null) {
           _updateChatPreviewLocal(newMsg, _currentActiveChatId!);
         }
-        
+
         notifyListeners();
       } catch (e) {
         debugPrint('Socket format error: $e');
@@ -297,7 +320,11 @@ class ChatController extends ChangeNotifier {
     }
   }
 
-  Future<bool> sendMessage(String chatId, String text, {String? receiverId}) async {
+  Future<bool> sendMessage(
+    String chatId,
+    String text, {
+    String? receiverId,
+  }) async {
     final String tempId = "temp_${DateTime.now().millisecondsSinceEpoch}";
     final ChatMessage tempMsg = ChatMessage(
       id: tempId,
@@ -328,19 +355,28 @@ class ChatController extends ChangeNotifier {
       );
 
       if (response.isSuccess) {
-        final realMsg = ChatMessage.fromJson(response.body?['data'], AuthController.userId ?? '');
-        
+        final realMsg = ChatMessage.fromJson(
+          response.body?['data'],
+          AuthController.userId ?? '',
+        );
+
         // --- DE-DUPLICATION CHECK ---
         // If the socket message already arrived and added itself via real ID,
         // we just need to remove the temporary message.
-        final int indexOfRealMsg = _messages.indexWhere((m) => m.id == realMsg.id);
+        final int indexOfRealMsg = _messages.indexWhere(
+          (m) => m.id == realMsg.id,
+        );
         final int indexOfTempMsg = _messages.indexWhere((m) => m.id == tempId);
 
         if (indexOfRealMsg != -1 && indexOfTempMsg != -1) {
-          debugPrint('HTTP Success: Real message already present in list (likely via Socket). Removing temp message.');
+          debugPrint(
+            'HTTP Success: Real message already present in list (likely via Socket). Removing temp message.',
+          );
           _messages.removeAt(indexOfTempMsg);
         } else if (indexOfTempMsg != -1) {
-          debugPrint('HTTP Success: Replacing temp message with confirmed server message.');
+          debugPrint(
+            'HTTP Success: Replacing temp message with confirmed server message.',
+          );
           _messages[indexOfTempMsg] = realMsg;
         }
 
@@ -350,17 +386,21 @@ class ChatController extends ChangeNotifier {
         getChats();
         return true;
       }
-      
+
       // 3. Error Update
       final int errIndex = _messages.indexWhere((m) => m.id == tempId);
       if (errIndex != -1) {
-        _messages[errIndex] = _messages[errIndex].copyWith(status: MessageStatus.error);
+        _messages[errIndex] = _messages[errIndex].copyWith(
+          status: MessageStatus.error,
+        );
       }
       _errorMessage = response.errorMessage ?? 'Failed to send message';
     } catch (e) {
       final int errIndex = _messages.indexWhere((m) => m.id == tempId);
       if (errIndex != -1) {
-        _messages[errIndex] = _messages[errIndex].copyWith(status: MessageStatus.error);
+        _messages[errIndex] = _messages[errIndex].copyWith(
+          status: MessageStatus.error,
+        );
       }
       _errorMessage = 'An error occurred: $e';
     }
@@ -370,7 +410,7 @@ class ChatController extends ChangeNotifier {
 
   void _updateChatPreviewLocal(ChatMessage msg, String chatId) {
     if (_chatData?.chats == null) return;
-    
+
     final int chatIndex = _chatData!.chats!.indexWhere((c) => c.sId == chatId);
     if (chatIndex != -1) {
       final chat = _chatData!.chats![chatIndex];
@@ -382,18 +422,23 @@ class ChatController extends ChangeNotifier {
         isSeen: msg.status == MessageStatus.read,
         status: msg.status.name, // sent, delivered, read
       );
-      
+
       // Move this chat to the top of the list
       _chatData!.chats!.removeAt(chatIndex);
       _chatData!.chats!.insert(0, chat);
     }
   }
 
-  Future<bool> sendMediaMessage(String chatId, String filePath, {String? receiverId, String? text}) async {
+  Future<bool> sendMediaMessage(
+    String chatId,
+    String filePath, {
+    String? receiverId,
+    String? text,
+  }) async {
     _errorMessage = '';
     final String tempId = "temp_${DateTime.now().millisecondsSinceEpoch}";
     final extension = p.extension(filePath).toLowerCase();
-    
+
     ChatMessageType msgType = ChatMessageType.image;
     if (['.mp4', '.mov', '.avi'].contains(extension)) {
       msgType = ChatMessageType.video;
@@ -423,8 +468,11 @@ class ChatController extends ChangeNotifier {
       // Orientation & Compress for Images
       if (['.jpg', '.jpeg', '.png', '.heic'].contains(extension)) {
         final tempDir = await getTemporaryDirectory();
-        final targetPath = p.join(tempDir.path, "temp_${DateTime.now().millisecondsSinceEpoch}$extension");
-        
+        final targetPath = p.join(
+          tempDir.path,
+          "temp_${DateTime.now().millisecondsSinceEpoch}$extension",
+        );
+
         final result = await FlutterImageCompress.compressAndGetFile(
           filePath,
           targetPath,
@@ -439,9 +487,7 @@ class ChatController extends ChangeNotifier {
         }
       }
 
-      final Map<String, String> fields = {
-        'chatId': chatId,
-      };
+      final Map<String, String> fields = {'chatId': chatId};
       if (receiverId != null) {
         fields['receiver'] = receiverId;
       }
@@ -458,17 +504,26 @@ class ChatController extends ChangeNotifier {
       );
 
       if (response.isSuccess) {
-        final realMsg = ChatMessage.fromJson(response.body?['data'], AuthController.userId ?? '');
+        final realMsg = ChatMessage.fromJson(
+          response.body?['data'],
+          AuthController.userId ?? '',
+        );
 
         // --- DE-DUPLICATION CHECK ---
-        final int indexOfRealMsg = _messages.indexWhere((m) => m.id == realMsg.id);
+        final int indexOfRealMsg = _messages.indexWhere(
+          (m) => m.id == realMsg.id,
+        );
         final int indexOfTempMsg = _messages.indexWhere((m) => m.id == tempId);
 
         if (indexOfRealMsg != -1 && indexOfTempMsg != -1) {
-          debugPrint('HTTP Success (Media): Real message already present in list (likely via Socket). Removing temp message.');
+          debugPrint(
+            'HTTP Success (Media): Real message already present in list (likely via Socket). Removing temp message.',
+          );
           _messages.removeAt(indexOfTempMsg);
         } else if (indexOfTempMsg != -1) {
-          debugPrint('HTTP Success (Media): Replacing temp message with confirmed server message.');
+          debugPrint(
+            'HTTP Success (Media): Replacing temp message with confirmed server message.',
+          );
           _messages[indexOfTempMsg] = realMsg;
         }
 
@@ -478,30 +533,39 @@ class ChatController extends ChangeNotifier {
         getChats();
         return true;
       }
-      
+
       // 3. Error Update
       final int errIndex = _messages.indexWhere((m) => m.id == tempId);
       if (errIndex != -1) {
-        _messages[errIndex] = _messages[errIndex].copyWith(status: MessageStatus.error);
+        _messages[errIndex] = _messages[errIndex].copyWith(
+          status: MessageStatus.error,
+        );
       }
       _errorMessage = response.errorMessage ?? 'Failed to send media';
     } catch (e) {
       final int errIndex = _messages.indexWhere((m) => m.id == tempId);
       if (errIndex != -1) {
-        _messages[errIndex] = _messages[errIndex].copyWith(status: MessageStatus.error);
+        _messages[errIndex] = _messages[errIndex].copyWith(
+          status: MessageStatus.error,
+        );
       }
       _errorMessage = 'An error occurred: $e';
     } finally {
       // Cleanup temp physical file
       if (tempFile != null && await tempFile.exists()) {
-        try { await tempFile.delete(); } catch (_) {}
+        try {
+          await tempFile.delete();
+        } catch (_) {}
       }
       notifyListeners();
     }
     return false;
   }
 
-  Future<String?> createChatAndSendMessage(String otherUserId, String text) async {
+  Future<String?> createChatAndSendMessage(
+    String otherUserId,
+    String text,
+  ) async {
     _isLoading = true;
     _errorMessage = '';
     notifyListeners();
@@ -531,6 +595,49 @@ class ChatController extends ChangeNotifier {
         _isLoading = false;
         notifyListeners();
       }
+    }
+    return null;
+  }
+
+  Future<String?> contactAdmin() async {
+    // Check if we already have an admin chat in the list
+    if (_chatData?.chats != null) {
+      for (var chat in _chatData!.chats!) {
+        final isAdmin =
+            chat.participants?.any(
+              (p) => p.role == 'admin' || p.name?.toLowerCase() == 'admin',
+            ) ??
+            false;
+        if (isAdmin) {
+          return chat.sId;
+        }
+      }
+    }
+
+    _isLoading = true;
+    _errorMessage = '';
+    notifyListeners();
+
+    try {
+      final response = await NetworkCaller.postRequest(
+        url: Urls.contactAdmin,
+        body: {},
+      );
+
+      if (response.isSuccess) {
+        final Map<String, dynamic> data = response.body?['data'] ?? {};
+        final String chatId = (data['_id'] ?? data['id'] ?? '').toString();
+        if (chatId.isNotEmpty) {
+          await getChats(); // Refresh chat list to include the new admin chat
+          return chatId;
+        }
+      }
+      _errorMessage = response.errorMessage ?? 'Failed to contact admin';
+    } catch (e) {
+      _errorMessage = 'An error occurred: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
     return null;
   }
