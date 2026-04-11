@@ -134,44 +134,6 @@ class _SearchFilterScreenState extends State<SearchFilterScreen> {
             ),
             SizedBox(height: 25.h),
 
-            _buildSectionTitle('Other Filters'),
-            SizedBox(height: 10.h),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.favorite, color: Colors.red, size: 20.sp),
-                      SizedBox(width: 10.w),
-                      Text(
-                        'Show Favorites Only',
-                        style: TextStyle(
-                          fontSize: 14.sp.clamp(14, 16),
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Switch(
-                    value: _showFavoritesOnly,
-                    onChanged: (val) =>
-                        setState(() => _showFavoritesOnly = val),
-                    activeColor: Colors.black,
-                    activeTrackColor: Colors.black12,
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 25.h),
-
             _buildSectionTitle('Type of Service'),
             SizedBox(height: 10.h),
             Wrap(
