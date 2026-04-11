@@ -322,7 +322,11 @@ class ServiceController extends ChangeNotifier {
     }
   }
 
+  List<Category> _categories = [];
+  List<Category> get categories => _categories;
+
   Future<List<Category>> getCategories() async {
+    if (_categories.isNotEmpty) return _categories;
     try {
       final NetworkResponse response = await NetworkCaller.getRequest(
         url: Urls.categories,
@@ -342,7 +346,9 @@ class ServiceController extends ChangeNotifier {
         if (listData.isNotEmpty) {
           debugPrint('✅ Fetched ${listData.length} categories from API');
         }
-        return listData.map((json) => Category.fromJson(json)).toList();
+        _categories = listData.map((json) => Category.fromJson(json)).toList();
+        notifyListeners();
+        return _categories;
       }
 
       debugPrint(
@@ -354,7 +360,7 @@ class ServiceController extends ChangeNotifier {
     }
 
     // Fallback categories with the working ID provided by the user
-    return [
+    _categories = [
       Category(
         sId: "6967f8313c7a3a49e02c1fde",
         name: "Photography",
@@ -362,6 +368,8 @@ class ServiceController extends ChangeNotifier {
       Category(sId: "65e8a5b4f1a2b3c4d5e6f702", name: "Videography"),
       Category(sId: "65e8a5b4f1a2b3c4d5e6f703", name: "Video Editing"),
     ];
+    notifyListeners();
+    return _categories;
   }
 
   Future<bool> deleteService(String id) async {
