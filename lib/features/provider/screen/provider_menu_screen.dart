@@ -93,13 +93,6 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                     SizedBox(height: 12.h.clamp(8, 16)),
 
                     _buildMenuItem(
-                      icon: Icons.settings,
-                      title: 'Account Settings',
-                      onTap: () {},
-                    ),
-                    SizedBox(height: 12.h.clamp(8, 16)),
-
-                    _buildMenuItem(
                       icon: Icons.notifications_outlined,
                       title: 'Notifications',
                       hasNotification: true,
