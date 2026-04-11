@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/features/client/notification_screen.dart';
+import 'package:photopia/features/common/category_selection_screen.dart';
 import 'package:photopia/features/common/mode_transition_screen.dart';
 import 'package:photopia/core/routes/app_routes.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/log_out_controller.dart';
 import 'package:photopia/controller/client/user_profile_controller.dart';
+import 'package:photopia/controller/provider/provider_profile_controller.dart';
 import 'package:photopia/controller/location_controller.dart';
 import 'package:photopia/features/client/widgets/auth_profile_image.dart';
 import 'package:photopia/controller/client/notification_controller.dart';
@@ -565,15 +567,45 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       child: Column(
         children: [
           GestureDetector(
-            onTap: () {
-              Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute(
-                  builder: (context) => const ModeTransitionScreen(
-                    targetRole: 'professional',
-                    targetRoute: AppRoutes.provider_bottom_navigation,
+            onTap: () async {
+              final userProfileController = context
+                  .read<UserProfileController>();
+              final userProfile = userProfileController.userProfile;
+
+              // We check both UserProfile's specialty AND fetch Professional Profile to be sure
+              bool hasInterests = false;
+
+              if (userProfile?.specialty != null &&
+                  userProfile!.specialty!.isNotEmpty) {
+                hasInterests = true;
+              } else {
+                // If not in user profile, check professional profile specialties
+                final profController = context
+                    .read<ProviderProfileController>();
+                await profController.getProviderProfile();
+                if (profController.specializations.isNotEmpty) {
+                  hasInterests = true;
+                }
+              }
+
+              if (hasInterests && mounted) {
+                // Skip selection if interests already exist
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ModeTransitionScreen(
+                      targetRole: 'professional',
+                      targetRoute: AppRoutes.provider_bottom_navigation,
+                    ),
                   ),
-                ),
-              );
+                );
+              } else if (mounted) {
+                // Go to category selection if interests are missing
+                Navigator.of(context, rootNavigator: true).push(
+                  MaterialPageRoute(
+                    builder: (context) => const CategorySelectionScreen(),
+                  ),
+                );
+              }
             },
             child: Container(
               width: double.infinity,
