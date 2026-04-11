@@ -38,7 +38,7 @@ class _ProviderBottomNavigationScreenState
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<BottomNavController>().setIndex(widget.initialIndex);
       // Initialize notification service
-      NotificationService.instance.init(context);
+      NotificationService.instance.init();
     });
   }
 

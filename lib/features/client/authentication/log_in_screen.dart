@@ -183,7 +183,7 @@ class _LogInScreenState extends State<LogInScreen> {
                             );
 
                             // Sync FCM token after login
-                            NotificationService.instance.getTokenAndSendToBackend(context);
+                            NotificationService.instance.getTokenAndSendToBackend();
 
                             if (activeRole == 'professional') {
                               Navigator.pushNamedAndRemoveUntil(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:photopia/core/network/Api_service/network_caller.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/network/urls.dart';
+import 'package:photopia/core/notification/notification_service.dart';
 
 class SignInController extends ChangeNotifier {
   bool _inProgress = false;
@@ -30,12 +31,13 @@ class SignInController extends ChangeNotifier {
         final body = response.body!;
         final token = body['data']?['accessToken'];
         final role = body['data']?['user']?['activeRole'];
-        final userId = body['data']?['user']?['_id'] ?? 
-                       body['data']?['user']?['id'] ?? 
-                       body['data']?['user']?['userId'] ??
-                       body['data']?['_id'] ?? 
-                       body['data']?['id'] ??
-                       body['data']?['userId'];
+        final userId =
+            body['data']?['user']?['_id'] ??
+            body['data']?['user']?['id'] ??
+            body['data']?['user']?['userId'] ??
+            body['data']?['_id'] ??
+            body['data']?['id'] ??
+            body['data']?['userId'];
 
         if (token != null) {
           await AuthController.saveUserToken(token);
@@ -47,10 +49,12 @@ class SignInController extends ChangeNotifier {
           await AuthController.saveUserId(userId);
         }
 
-        // Capture the Set-Cookie header if provided (though NetworkCaller uses JSON body usually)
-        // Note: NetworkCaller doesn't return headers currently, but most backends 
-        // return the token in the body 'data' field which we handle above.
-        
+        // Trigger push notification token sync after login
+        // Use post-frame callback to ensure any state updates from login have settled
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          NotificationService.instance.getTokenAndSendToBackend();
+        });
+
         notifyListeners();
         return true;
       } else {

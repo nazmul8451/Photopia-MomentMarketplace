@@ -161,32 +161,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   child: AuthProfileImage(imageUrl: imageUrl, size: 90.w),
                 ),
               ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditProfileScreen(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: EdgeInsets.all(6.w),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF1A1A1A),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.camera_alt,
-                      color: Colors.white,
-                      size: 16.sp,
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
           SizedBox(height: 10.h),

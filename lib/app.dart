@@ -45,6 +45,15 @@ class Photopia extends StatefulWidget {
 
 class _PhotopiaState extends State<Photopia> {
   @override
+  void initState() {
+    super.initState();
+    // Initialize notification service after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationService.instance.init();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
       designSize: const Size(360, 690),
@@ -98,11 +107,6 @@ class _PhotopiaState extends State<Photopia> {
               ),
             ),
             builder: (context, child) {
-              // Initialize notification service once context has access to Providers
-              // We use a post frame callback to ensure this happens after the first build
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                NotificationService.instance.init(context);
-              });
               return child!;
             },
             routes: AppRoutes.routes,

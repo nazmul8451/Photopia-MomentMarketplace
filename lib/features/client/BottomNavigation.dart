@@ -30,7 +30,7 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
     super.initState();
     // Initialize notification service
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      NotificationService.instance.init(context);
+      NotificationService.instance.init();
     });
   }
 
@@ -96,25 +96,22 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
         ],
       ),
       bottomNavigationBar: isKeyboardVisible
-          ? const SizedBox.shrink() // Completely hide when keyboard is open
+          ? const SizedBox.shrink()
           : Container(
-              color: Colors.white,
-              child: SafeArea(
-                bottom: true,
-                child: Container(
-                  height: 70,
-                  clipBehavior: Clip.none,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.3),
-                        blurRadius: 10,
-                        spreadRadius: 1,
-                        offset: const Offset(0, -2),
-                      ),
-                    ],
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -5),
                   ),
+                ],
+              ),
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  height: 65.h,
                   child: Row(
                     children: [
                       Expanded(
@@ -166,18 +163,29 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
   Widget _buildSearchButton() {
     bool isSelected = _selectedIndex == 2;
     return Transform.translate(
-      offset: const Offset(0, -20),
+      offset: Offset(0, -28.h),
       child: GestureDetector(
         onTap: () => _onItemTapped(2),
         child: Container(
-          width: 58,
-          height: 58,
+          width: 56.w,
+          height: 56.w,
           decoration: BoxDecoration(
             color: const Color(0xFF1A1A1A),
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white, width: 4),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          child: const Icon(Icons.search, color: Colors.grey, size: 28),
+          child: Icon(
+            Icons.search,
+            color: isSelected ? Colors.white : Colors.white.withOpacity(0.8),
+            size: 26.sp,
+          ),
         ),
       ),
     );
@@ -193,29 +201,31 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
 
     return GestureDetector(
       onTap: () => _onItemTapped(index),
+      behavior: HitTestBehavior.opaque,
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (iconAsset != null)
             Image.asset(
               iconAsset,
-              width: 22.sp.clamp(20, 24),
-              height: 22.sp.clamp(20, 24),
-              color: isSelected ? Colors.black : Colors.grey,
+              width: 24.w,
+              height: 24.w,
+              color: isSelected ? Colors.black : Colors.grey[400],
             )
-          else if (icon != null)
+          else
             Icon(
               icon,
-              color: isSelected ? Colors.black : Colors.grey,
-              size: 22.sp.clamp(20, 24),
+              size: 24.sp,
+              color: isSelected ? Colors.black : Colors.grey[400],
             ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4.h),
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.black : Colors.grey,
-              fontSize: 11.sp.clamp(10, 12),
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              fontSize: 11.sp,
+              color: isSelected ? Colors.black : Colors.grey[400],
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
           ),
         ],
