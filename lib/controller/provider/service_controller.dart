@@ -120,7 +120,7 @@ class ServiceController extends ChangeNotifier {
         );
 
         // gallery images (up to 5)
-        for (int i = 1; i < images.length && i <= 5; i++) {
+        for (int i = 0; i < images.length && i <= 5; i++) {
           final file = images[i];
           final String? mime = lookupMimeType(file.path);
 
@@ -290,22 +290,26 @@ class ServiceController extends ChangeNotifier {
 
       // Add new images if provided
       if (newImages != null && newImages.isNotEmpty) {
-        // coverPhoto
-        final coverFile = newImages[0];
-        final String? coverMime = lookupMimeType(coverFile.path);
+        // Check if we need to replace coverMedia
+        bool shouldAddCoverPhoto = serviceData.coverMedia == null || serviceData.coverMedia!.isEmpty;
 
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'coverPhoto',
-            coverFile.path,
-            contentType: coverMime != null
-                ? MediaType.parse(coverMime)
-                : MediaType('image', 'jpeg'),
-          ),
-        );
+        if (shouldAddCoverPhoto) {
+          final coverFile = newImages[0];
+          final String? coverMime = lookupMimeType(coverFile.path);
 
-        // gallery images
-        for (int i = 1; i < newImages.length; i++) {
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'coverPhoto',
+              coverFile.path,
+              contentType: coverMime != null
+                  ? MediaType.parse(coverMime)
+                  : MediaType('image', 'jpeg'),
+            ),
+          );
+        }
+
+        // Add all to gallery images
+        for (int i = 0; i < newImages.length; i++) {
           final file = newImages[i];
           final String? mime = lookupMimeType(file.path);
 

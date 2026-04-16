@@ -135,35 +135,37 @@ class Data {
   });
 
   Data.fromJson(Map<String, dynamic> json) {
-    providerId = json['providerId'] != null
+    providerId = json['providerId'] != null && json['providerId'] is Map
         ? new ProviderId.fromJson(json['providerId'])
         : null;
-    title = json['title'];
-    description = json['description'];
-    category = json['category'] != null
+    title = json['title']?.toString();
+    description = json['description']?.toString();
+    category = json['category'] != null && json['category'] is Map
         ? CategoryModel.fromJson(json['category'])
         : null;
-    subCategory = json['subCategory'];
-    serviceType = json['serviceType'];
+    subCategory = json['subCategory'] is Map 
+        ? (json['subCategory']['_id'] ?? json['subCategory']['id'] ?? json['subCategory']['name'])?.toString() 
+        : json['subCategory']?.toString();
+    serviceType = json['serviceType']?.toString();
     tags = json['tags'] != null ? List<String>.from(json['tags']) : null;
     equipment = json['equipment'] != null
         ? List<String>.from(json['equipment'])
         : null;
-    price = json['price'];
-    currency = json['currency'];
-    pricingType = json['pricingType'];
-    travelFeePerKm = json['travelFeePerKm']?.toDouble();
+    price = (json['price'] as num?)?.toInt();
+    currency = json['currency']?.toString();
+    pricingType = json['pricingType']?.toString();
+    travelFeePerKm = (json['travelFeePerKm'] as num?)?.toDouble();
     allowOutsideRadius = json['allowOutsideRadius'];
-    maxTravelFee = json['maxTravelFee'];
-    depositPercentage = json['depositPercentage']?.toDouble();
-    cancellationPolicy = json['cancellationPolicy'] != null
+    maxTravelFee = (json['maxTravelFee'] as num?)?.toInt();
+    depositPercentage = (json['depositPercentage'] as num?)?.toDouble();
+    cancellationPolicy = json['cancellationPolicy'] != null && json['cancellationPolicy'] is Map
         ? new CancellationPolicy.fromJson(json['cancellationPolicy'])
         : null;
-    pricingModel = json['pricingModel'] != null
+    pricingModel = json['pricingModel'] != null && json['pricingModel'] is Map
         ? new PricingModel.fromJson(json['pricingModel'])
         : null;
-    duration = json['duration'];
-    location = json['location'] != null
+    duration = json['duration']?.toString();
+    location = json['location'] != null && json['location'] is Map
         ? new Location.fromJson(json['location'])
         : null;
     gallery = json['gallery'] != null
@@ -254,15 +256,17 @@ class PricingModel {
   });
 
   PricingModel.fromJson(Map<String, dynamic> json) {
-    type = json['type'];
+    type = json['type']?.toString();
     dailyRate = (json['dailyRate'] as num?)?.toDouble();
-    dailyHours = json['dailyHours'];
+    dailyHours = (json['dailyHours'] as num?)?.toInt();
     weekdayHourlyRate = (json['weekdayHourlyRate'] as num?)?.toDouble();
     weekendHourlyRate = (json['weekendHourlyRate'] as num?)?.toDouble();
-    if (json['packages'] != null) {
+    if (json['packages'] != null && json['packages'] is List) {
       packages = <Packages>[];
       json['packages'].forEach((v) {
-        packages!.add(new Packages.fromJson(v));
+        if (v is Map<String, dynamic>) {
+           packages!.add(new Packages.fromJson(v));
+        }
       });
     }
   }
@@ -297,10 +301,10 @@ class Packages {
   });
 
   Packages.fromJson(Map<String, dynamic> json) {
-    name = json['name'];
-    price = json['price'];
-    duration = json['duration'];
-    description = json['description'];
+    name = json['name']?.toString();
+    price = (json['price'] as num?)?.toInt();
+    duration = (json['duration'] as num?)?.toInt();
+    description = json['description']?.toString();
     includes = json['includes'] != null
         ? List<String>.from(json['includes'])
         : null;
@@ -421,15 +425,15 @@ class Location {
   });
 
   Location.fromJson(Map<String, dynamic> json) {
-    type = json['type'];
-    country = json['country'];
-    city = json['city'];
-    address = json['address'];
-    coordinates = json['coordinates'] != null
+    type = json['type']?.toString();
+    country = json['country']?.toString();
+    city = json['city']?.toString();
+    address = json['address']?.toString();
+    coordinates = json['coordinates'] != null && json['coordinates'] is Map
         ? new Coordinates.fromJson(json['coordinates'])
         : null;
-    serviceRadiusKm = json['serviceRadiusKm'];
-    sId = json['_id'];
+    serviceRadiusKm = (json['serviceRadiusKm'] as num?)?.toInt();
+    sId = json['_id']?.toString();
   }
 
   Map<String, dynamic> toJson() {
