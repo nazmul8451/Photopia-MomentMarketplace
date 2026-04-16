@@ -109,6 +109,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   children: [
                     IntrinsicWidth(
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: 4.w),
@@ -119,12 +120,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 fontSize: 14.sp.clamp(14, 16),
                                 fontWeight: FontWeight.bold,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                           ),
                           SizedBox(height: 12.h),
                           Container(
                             height: 2.h,
-                            width: double.infinity,
                             color: Colors.black,
                           ),
                         ],

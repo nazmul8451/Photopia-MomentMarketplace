@@ -10,6 +10,7 @@ import 'package:photopia/core/widgets/custom_snacbar.dart';
 import 'package:photopia/core/network/Api_service/network_caller.dart';
 import 'package:photopia/core/network/urls.dart';
 import 'package:photopia/core/notification/notification_service.dart';
+import 'package:photopia/core/routes/app_routes.dart';
 
 class LogInScreen extends StatefulWidget {
   static const String name = '/log_in';
@@ -173,6 +174,8 @@ class _LogInScreenState extends State<LogInScreen> {
                                }
                             } catch (_) {}
 
+                            if (!mounted || !AuthController.isLoggedIn) return;
+
                             // Route explicitly based on the dynamic activeRole returned directly by the server API
                             final activeRole = resolvedRole ?? (widget.userRole == 'provider' ? 'professional' : 'user');
                             
@@ -188,13 +191,13 @@ class _LogInScreenState extends State<LogInScreen> {
                             if (activeRole == 'professional') {
                               Navigator.pushNamedAndRemoveUntil(
                                 context,
-                                '/provider-bottom-navigation',
+                                AppRoutes.provider_bottom_navigation,
                                 (route) => false,
                               );
                             } else {
                               Navigator.pushNamedAndRemoveUntil(
                                 context,
-                                '/bottom-navigation',
+                                AppRoutes.bottom_navigation,
                                 (route) => false,
                               );
                             }

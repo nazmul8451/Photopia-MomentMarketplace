@@ -14,21 +14,20 @@ class ProviderCustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -5), // Match client side offset
+          ),
+        ],
+      ),
       child: SafeArea(
         bottom: true,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: Padding(
+        top: false,
+        child: Padding(
             padding: EdgeInsets.symmetric(
               horizontal: 8.w,
               vertical: 8.h.clamp(6, 10),
@@ -65,7 +64,6 @@ class ProviderCustomBottomNavBar extends StatelessWidget {
             ),
           ),
         ),
-      ),
     );
   }
 
