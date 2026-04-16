@@ -157,7 +157,9 @@ class Data {
     travelFeePerKm = (json['travelFeePerKm'] as num?)?.toDouble();
     allowOutsideRadius = json['allowOutsideRadius'];
     maxTravelFee = (json['maxTravelFee'] as num?)?.toInt();
-    depositPercentage = (json['depositPercentage'] as num?)?.toDouble();
+    depositPercentage = json['depositPercentage'] != null 
+        ? (json['depositPercentage'] as num).toDouble() * 100 
+        : null;
     cancellationPolicy = json['cancellationPolicy'] != null && json['cancellationPolicy'] is Map
         ? new CancellationPolicy.fromJson(json['cancellationPolicy'])
         : null;

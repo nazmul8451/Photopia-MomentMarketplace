@@ -97,6 +97,35 @@ class MyListingController extends ChangeNotifier {
     }
   }
 
+  Future<bool> deleteListing(String id) async {
+    _isProgress = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await NetworkCaller.deleteRequest(
+        url: Urls.deleteService(id),
+      );
+
+      if (response.isSuccess) {
+        removeListingLocal(id);
+        _isProgress = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = response.errorMessage ?? "Failed to delete listing";
+        _isProgress = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = "An unexpected error occurred while deleting the listing";
+      _isProgress = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   void removeListingLocal(String id) {
     if (_myListingModel?.data?.data != null) {
       _myListingModel!.data!.data!.removeWhere((listing) => listing.sId == id);

@@ -82,6 +82,10 @@ class ServiceController extends ChangeNotifier {
             dataMap['location']['serviceRadiusKm'] ?? 50;
       }
 
+      // Travel Fees & Deposit - Backend expects 0.0 to 1.0 for percentage
+      dataMap['travelFeePerKm'] = serviceData.travelFeePerKm ?? 0.0;
+      dataMap['depositPercentage'] = (serviceData.depositPercentage ?? 50) / 100;
+
       // Ensure pricingModel fields satisfy Zod constraints if not already set
       if (dataMap['pricingModel'] != null) {
         dataMap['pricingModel']['dailyRate'] =
@@ -100,8 +104,11 @@ class ServiceController extends ChangeNotifier {
       dataMap.remove('gallery'); // Images handled via multipart files
       dataMap.remove('coverMedia'); // Handled via multipart file
 
+      // Deep clean null values to satisfy Zod
+      final cleanedData = _deepClean(dataMap);
+
       // Add fields
-      request.fields['data'] = jsonEncode(dataMap);
+      request.fields['data'] = jsonEncode(cleanedData);
 
       // Add images (First one as coverPhoto, others as images)
       if (images.isNotEmpty) {
@@ -238,44 +245,26 @@ class ServiceController extends ChangeNotifier {
         dataMap['location']['address'] = dataMap['location']['address'] ?? "";
       }
 
-      // Travel Fees & Deposit
+      // Travel Fees & Deposit - Backend expects 0.0 to 1.0 for percentage
       dataMap['travelFeePerKm'] = serviceData.travelFeePerKm ?? 0.0;
       dataMap['allowOutsideRadius'] = serviceData.allowOutsideRadius ?? false;
       dataMap['maxTravelFee'] = serviceData.maxTravelFee;
-      dataMap['depositPercentage'] = serviceData.depositPercentage ?? 50;
+      dataMap['depositPercentage'] = (serviceData.depositPercentage ?? 50) / 100;
 
-      // Ensure pricingModel fields satisfy Zod constraints
+      // Ensure pricingModel fields satisfy Zod constraints - only for respective types
       if (dataMap['pricingModel'] != null) {
-        dataMap['pricingModel']['dailyRate'] =
-            dataMap['pricingModel']['dailyRate'] ?? 1;
-        dataMap['pricingModel']['dailyHours'] =
-            dataMap['pricingModel']['dailyHours'] ?? 8;
-      }
-
-      // Format coverMedia as full URL if needed (Zod requires full URL)
-      if (dataMap['coverMedia'] != null && dataMap['coverMedia'] is String) {
-        String cover = dataMap['coverMedia'];
-        if (cover.isNotEmpty && !cover.startsWith('http')) {
-          final String base = Urls.baseUrl.endsWith('/')
-              ? Urls.baseUrl.substring(0, Urls.baseUrl.length - 1)
-              : Urls.baseUrl;
-          final String path = cover.startsWith('/') ? cover : '/$cover';
-          dataMap['coverMedia'] = "$base$path";
+        if (dataMap['pricingModel']['type'] == "DAILY") {
+          dataMap['pricingModel']['dailyRate'] =
+              dataMap['pricingModel']['dailyRate'] ?? 0;
+          dataMap['pricingModel']['dailyHours'] =
+              dataMap['pricingModel']['dailyHours'] ?? 8;
         }
       }
 
-      // Format gallery as full URLs if needed (Zod requires full URLs)
+      // Send raw gallery and coverMedia as string paths to satisfy Zod URL constraints if relative
+      dataMap['coverMedia'] = serviceData.coverMedia;
       if (serviceData.gallery != null) {
-        dataMap['gallery'] = serviceData.gallery!.map((img) {
-          if (img is String && !img.startsWith('http')) {
-            final String base = Urls.baseUrl.endsWith('/')
-                ? Urls.baseUrl.substring(0, Urls.baseUrl.length - 1)
-                : Urls.baseUrl;
-            final String path = img.startsWith('/') ? img : '/$img';
-            return "$base$path";
-          }
-          return img;
-        }).toList();
+        dataMap['gallery'] = serviceData.gallery;
       }
 
       // Remove fields that should not be sent for update
@@ -286,7 +275,16 @@ class ServiceController extends ChangeNotifier {
       dataMap.remove('__v');
       dataMap.remove('providerId');
 
-      request.fields['data'] = jsonEncode(dataMap);
+      // Deep clean null values to satisfy Zod
+      final cleanedData = _deepClean(dataMap);
+      debugPrint('🧹 Data cleaned. subCategory is: ${cleanedData['subCategory']}');
+
+      // Verify gallery items for logging
+      if (cleanedData['gallery'] != null) {
+        debugPrint('🖼️ Gallery items: ${cleanedData['gallery'].length}');
+      }
+
+      request.fields['data'] = jsonEncode(cleanedData);
 
       // Add new images if provided
       if (newImages != null && newImages.isNotEmpty) {
@@ -331,7 +329,7 @@ class ServiceController extends ChangeNotifier {
       }
 
       debugPrint('🚀 Sending Service Update Request to ${uri.toString()}');
-      debugPrint('📦 Data: $dataStr');
+      debugPrint('📦 Full Cleaned Data: ${jsonEncode(cleanedData)}');
       debugPrint('🖼️ New Images: ${newImages?.length ?? 0}');
 
       final streamedResponse = await request.send().timeout(
@@ -398,24 +396,16 @@ class ServiceController extends ChangeNotifier {
 
       if (response.isSuccess && response.body != null) {
         final dynamic rawData = response.body?['data'];
-        List<dynamic> listData = [];
-
-        if (rawData is Map && rawData.containsKey('data')) {
-          listData = rawData['data'] as List<dynamic>;
+        if (rawData is Map && rawData['data'] is List) {
+          _categories = (rawData['data'] as List)
+              .map((e) => CategoryModel.fromJson(e))
+              .toList();
         } else if (rawData is List) {
-          listData = rawData;
+          _categories = rawData.map((e) => CategoryModel.fromJson(e)).toList();
         }
-
-        if (listData.isNotEmpty) {
-          debugPrint('✅ Fetched ${listData.length} categories from API');
-        }
-        _categories = listData
-            .map((json) => CategoryModel.fromJson(json))
-            .toList();
         notifyListeners();
         return _categories;
       }
-
       debugPrint(
         '⚠️ API Response for categories: ${response.statusCode} - ${response.body}',
       );
@@ -576,5 +566,31 @@ class ServiceController extends ChangeNotifier {
     _errorMessage = null;
     _inProgress = false;
     notifyListeners();
+  }
+
+  Map<String, dynamic> _deepClean(Map<String, dynamic> map) {
+    try {
+      final cleaned = Map<String, dynamic>.from(map);
+      cleaned.removeWhere((key, value) => value == null);
+
+      final keys = cleaned.keys.toList();
+      for (var key in keys) {
+        var value = cleaned[key];
+        if (value is Map) {
+          cleaned[key] = _deepClean(Map<String, dynamic>.from(value));
+        } else if (value is List) {
+          cleaned[key] = value.map((item) {
+            if (item is Map) {
+              return _deepClean(Map<String, dynamic>.from(item));
+            }
+            return item;
+          }).toList();
+        }
+      }
+      return cleaned;
+    } catch (e) {
+      debugPrint('Cleaning Error: $e');
+      return map;
+    }
   }
 }

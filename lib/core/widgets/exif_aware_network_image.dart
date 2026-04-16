@@ -26,10 +26,13 @@ class ExifAwareNetworkImage extends StatefulWidget {
   State<ExifAwareNetworkImage> createState() => _ExifAwareNetworkImageState();
 }
 
-class _ExifAwareNetworkImageState extends State<ExifAwareNetworkImage> {
+class _ExifAwareNetworkImageState extends State<ExifAwareNetworkImage> with AutomaticKeepAliveClientMixin {
   Uint8List? _imageBytes;
   bool _loading = true;
   bool _error = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -47,6 +50,10 @@ class _ExifAwareNetworkImageState extends State<ExifAwareNetworkImage> {
 
   Future<void> _loadImage() async {
     if (!mounted) return;
+    
+    // Check if we already have bytes for this URL (local simple cache)
+    // Actually, AutomaticKeepAlive is enough for the current screen context.
+    
     setState(() {
       _loading = true;
       _error = false;
@@ -102,6 +109,8 @@ class _ExifAwareNetworkImageState extends State<ExifAwareNetworkImage> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Required for AutomaticKeepAliveClientMixin
+    
     if (_loading) {
       return Shimmer.fromColors(
         baseColor: Colors.grey[300]!,

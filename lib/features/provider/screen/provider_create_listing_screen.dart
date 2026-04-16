@@ -56,6 +56,8 @@ class _ProviderCreateListingScreenState
   final List<String> _existingNetworkImages = []; // Track original images URL
   final ImagePicker _picker = ImagePicker();
 
+  final Map<String, String> _localFieldErrors = {};
+
   final List<String> _locationTypes = ['On-site', 'Remote', 'Studio'];
 
   @override
@@ -253,159 +255,106 @@ class _ProviderCreateListingScreenState
   }
 
   bool _isFormValid({bool showErrors = false}) {
+    if (showErrors) {
+      setState(() {
+        _localFieldErrors.clear();
+      });
+    }
+
+    bool isValid = true;
+    final Map<String, String> errors = {};
+
     // 1. Basic Fields
     if (_titleController.text.trim().isEmpty) {
-      if (showErrors)
-        CustomSnackBar.show(
-          context: context,
-          message: "Title is required",
-          isError: true,
-        );
-      return false;
+      errors['title'] = "Title is required";
+      isValid = false;
     }
     if (_selectedCategory == null) {
-      if (showErrors)
-        CustomSnackBar.show(
-          context: context,
-          message: "Category is required",
-          isError: true,
-        );
-      return false;
+      errors['category'] = "Category is required";
+      isValid = false;
     }
     if (_selectedServiceTypes.isEmpty) {
-      if (showErrors)
-        CustomSnackBar.show(
-          context: context,
-          message: "At least one Service Type is required",
-          isError: true,
-        );
-      return false;
+      errors['serviceType'] = "At least one Service Type is required";
+      isValid = false;
     }
     if (_descriptionController.text.trim().length < 10) {
-      if (showErrors)
-        CustomSnackBar.show(
-          context: context,
-          message: "Description must be at least 10 characters",
-          isError: true,
-        );
-      return false;
+      errors['description'] = "Description must be at least 10 characters";
+      isValid = false;
     }
 
     // 2. Pricing & Duration Specifics
     if (_selectedPricingModel == 'By Hour') {
       if (_weekdayHourlyRateController.text.trim().isEmpty) {
-        if (showErrors)
-          CustomSnackBar.show(
-            context: context,
-            message: "Weekday hourly rate is required",
-            isError: true,
-          );
-        return false;
+        errors['weekdayHourlyRate'] = "Weekday hourly rate is required";
+        isValid = false;
       }
       if (_weekendHourlyRateController.text.trim().isEmpty) {
-        if (showErrors)
-          CustomSnackBar.show(
-            context: context,
-            message: "Weekend hourly rate is required",
-            isError: true,
-          );
-        return false;
+        errors['weekendHourlyRate'] = "Weekend hourly rate is required";
+        isValid = false;
       }
       if (_durationController.text.trim().isEmpty) {
-        if (showErrors)
-          CustomSnackBar.show(
-            context: context,
-            message: "Duration is required",
-            isError: true,
-          );
-        return false;
+        errors['duration'] = "Duration is required";
+        isValid = false;
       }
     } else if (_selectedPricingModel == 'By Day') {
       if (_dailyRateController.text.trim().isEmpty) {
-        if (showErrors)
-          CustomSnackBar.show(
-            context: context,
-            message: "Daily rate is required",
-            isError: true,
-          );
-        return false;
+        errors['dailyRate'] = "Daily rate is required";
+        isValid = false;
       }
       if (_dailyHoursController.text.trim().isEmpty) {
-        if (showErrors)
-          CustomSnackBar.show(
-            context: context,
-            message: "Daily hours is required",
-            isError: true,
-          );
-        return false;
+        errors['dailyHours'] = "Daily hours is required";
+        isValid = false;
       }
       if (_durationController.text.trim().isEmpty) {
-        if (showErrors)
-          CustomSnackBar.show(
-            context: context,
-            message: "Duration is required",
-            isError: true,
-          );
-        return false;
+        errors['duration'] = "Duration is required";
+        isValid = false;
       }
     } else if (_selectedPricingModel == 'By Service') {
       if (_packageControllers.isEmpty) {
-        if (showErrors)
-          CustomSnackBar.show(
-            context: context,
-            message: "At least one package is required",
-            isError: true,
-          );
-        return false;
+        errors['pricing'] = "At least one package is required";
+        isValid = false;
       }
       for (int i = 0; i < _packageControllers.length; i++) {
         final pkg = _packageControllers[i];
         if (pkg.name.text.trim().isEmpty ||
             pkg.price.text.trim().isEmpty ||
             pkg.duration.text.trim().isEmpty) {
-          if (showErrors)
-            CustomSnackBar.show(
-              context: context,
-              message: "Package ${i + 1} must have name, price, and duration",
-              isError: true,
-            );
-          return false;
+          errors['package_$i'] = "Package requires name, price, and duration";
+          isValid = false;
         }
       }
     }
 
     // 3. Location Fields
     if (_countryController.text.trim().isEmpty) {
-      if (showErrors)
-        CustomSnackBar.show(
-          context: context,
-          message: "Country is required",
-          isError: true,
-        );
-      return false;
+      errors['country'] = "Country is required";
+      isValid = false;
     }
     if (_locationController.text.trim().isEmpty) {
-      if (showErrors)
-        CustomSnackBar.show(
-          context: context,
-          message: "City is required",
-          isError: true,
-        );
-      return false;
+      errors['city'] = "City is required";
+      isValid = false;
     }
 
     // Photos (mandatory)
     if (_selectedImages.isEmpty && _existingNetworkImages.isEmpty) {
-      if (showErrors)
-        CustomSnackBar.show(
-          context: context,
-          message: "At least one portfolio photo is required",
-          isError: true,
-        );
-      return false;
+      errors['photos'] = "At least one portfolio photo is required";
+      isValid = false;
     }
 
-    return true;
+    if (showErrors) {
+      setState(() {
+        _localFieldErrors.addAll(errors);
+      });
+      if (!isValid) {
+        CustomSnackBar.show(
+          context: context,
+          message: "Please fix the errors shown in red",
+          isError: true,
+        );
+      }
+    }
+
+    return isValid;
   }
 
   Future<void> _publishListing() async {
@@ -434,15 +383,15 @@ class _ProviderCreateListingScreenState
                 : _selectedPricingModel == 'By Day'
                 ? _dailyRateController.text
                 : (_packageControllers.isNotEmpty
-                      ? _packageControllers.first.price.text
+                      ? (_packageControllers.first.price.text.isEmpty ? '0' : _packageControllers.first.price.text)
                       : '0'),
           ) ??
           0,
       currency: "EUR",
       duration: (int.tryParse(_durationController.text) ?? 1).toString(),
-      serviceType: _selectedServiceTypes.isNotEmpty
-          ? _selectedServiceTypes.first.toLowerCase().replaceAll(' ', '_')
-          : "",
+      serviceType: _normalizeServiceType(_selectedServiceTypes.isNotEmpty
+          ? _selectedServiceTypes.first
+          : ""),
       location: Location(
         type: _selectedLocationType == 'Remote'
             ? 'REMOTE'
@@ -572,32 +521,40 @@ class _ProviderCreateListingScreenState
                     _buildTextField(
                       _titleController,
                       'e.g. Professional Portrait Shoot',
-                      errorText: context
-                          .watch<ServiceController>()
-                          .fieldErrors['title'],
+                      errorText: _localFieldErrors['title'] ??
+                          context.watch<ServiceController>().fieldErrors['title'],
                     ),
                     SizedBox(height: 15.h),
                     _buildLabel('Category'),
-                    _buildCategoryDropdown(),
+                    _buildCategoryDropdown(
+                      errorText: _localFieldErrors['category'] ??
+                          context.watch<ServiceController>().fieldErrors['category'],
+                    ),
                     SizedBox(height: 15.h),
                     _buildLabel('Sub-Category'),
-                    _buildSubCategoryDropdown(),
+                    _buildSubCategoryDropdown(
+                      errorText: _localFieldErrors['subCategory'] ??
+                          context.watch<ServiceController>().fieldErrors['subCategory'],
+                    ),
                     SizedBox(height: 15.h),
                     _buildLabel('Service Type'),
-                    _buildServiceTypeDropdown(),
+                    _buildServiceTypeDropdown(
+                      errorText: _localFieldErrors['serviceType'] ??
+                          context.watch<ServiceController>().fieldErrors['serviceType'],
+                    ),
                     SizedBox(height: 15.h),
                     _buildLabel('Description'),
                     _buildTextField(
                       _descriptionController,
                       'Tell clients about your service (min 10 characters)...',
                       maxLines: 4,
-                      errorText:
-                          _descriptionController.text.isNotEmpty &&
-                              _descriptionController.text.length < 10
-                          ? 'Description must be at least 10 characters'
-                          : context
-                                .watch<ServiceController>()
-                                .fieldErrors['description'],
+                      errorText: _localFieldErrors['description'] ??
+                          (_descriptionController.text.isNotEmpty &&
+                                  _descriptionController.text.length < 10
+                              ? 'Description must be at least 10 characters'
+                              : context
+                                  .watch<ServiceController>()
+                                  .fieldErrors['description']),
                     ),
 
                     SizedBox(height: 30.h),
@@ -612,18 +569,27 @@ class _ProviderCreateListingScreenState
                     _buildLocationTypeDropdown(),
                     SizedBox(height: 15.h),
                     _buildLabel('Country'),
-                    _buildTextField(_countryController, 'e.g. Germany'),
+                    _buildTextField(
+                      _countryController,
+                      'e.g. Germany',
+                      errorText: _localFieldErrors['country'] ??
+                          context.watch<ServiceController>().fieldErrors['location.country'],
+                    ),
                     SizedBox(height: 15.h),
                     _buildLabel('City'),
-                    _buildTextField(_locationController, 'e.g. Berlin'),
+                    _buildTextField(
+                      _locationController,
+                      'e.g. Berlin',
+                      errorText: _localFieldErrors['city'] ??
+                          context.watch<ServiceController>().fieldErrors['location.city'],
+                    ),
                     SizedBox(height: 15.h),
                     _buildLabel('Address'),
                     _buildTextField(
                       _addressController,
                       'e.g. Street name, Number',
-                      errorText: context
-                          .watch<ServiceController>()
-                          .fieldErrors['location.address'],
+                      errorText: _localFieldErrors['address'] ??
+                          context.watch<ServiceController>().fieldErrors['location.address'],
                     ),
                     SizedBox(height: 15.h),
                     _buildLabel('Service Radius: ${_serviceRadius.toInt()} km'),
@@ -634,25 +600,11 @@ class _ProviderCreateListingScreenState
                     _buildSectionTitle('More Details'),
                     if (_selectedPricingModel != 'By Service') ...[
                       _buildLabel('Duration (Hours)'),
-                      _buildDurationDropdown(
-                        _durationController,
-                        hint: 'Select duration',
-                      ),
-                      if (context
-                              .watch<ServiceController>()
-                              .fieldErrors['duration'] !=
-                          null)
-                        Padding(
-                          padding: EdgeInsets.only(top: 4.h, left: 4.w),
-                          child: Text(
-                            context
-                                .watch<ServiceController>()
-                                .fieldErrors['duration']!,
-                            style: TextStyle(
-                              color: Colors.red,
-                              fontSize: 12.sp,
-                            ),
-                          ),
+                        _buildDurationDropdown(
+                          _durationController,
+                          hint: 'Select duration',
+                          errorText: _localFieldErrors['duration'] ??
+                              context.watch<ServiceController>().fieldErrors['duration'],
                         ),
                       SizedBox(height: 15.h),
                     ],
@@ -662,7 +614,10 @@ class _ProviderCreateListingScreenState
 
                     SizedBox(height: 30.h),
                     _buildSectionTitle('Portfolio Photos'),
-                    _buildPhotoUploadArea(),
+                    _buildPhotoUploadArea(
+                      errorText: _localFieldErrors['photos'] ??
+                          context.watch<ServiceController>().fieldErrors['images'],
+                    ),
                     _buildSelectedImagesGrid(),
 
                     SizedBox(height: 40.h),
@@ -751,85 +706,119 @@ class _ProviderCreateListingScreenState
     );
   }
 
-  Widget _buildCategoryDropdown() {
+  Widget _buildCategoryDropdown({String? errorText}) {
     final categoryController = context.watch<CategoryController>();
     final rootCategories = categoryController.rootCategories;
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<CategoryModel>(
-          value: _selectedCategory,
-          dropdownColor: Colors.white,
-          isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[400]),
-          onChanged: (CategoryModel? newValue) {
-            setState(() {
-              _selectedCategory = newValue;
-              _selectedSubCategory = null;
-            });
-            if (newValue != null) {
-              categoryController.selectCategory(newValue.id);
-            }
-          },
-          items: rootCategories.map<DropdownMenuItem<CategoryModel>>((
-            CategoryModel value,
-          ) {
-            return DropdownMenuItem<CategoryModel>(
-              value: value,
-              child: Text(value.name),
-            );
-          }).toList(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10.r),
+            border: Border.all(
+              color: errorText != null ? Colors.red : const Color(0xFFE0E0E0),
+            ),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<CategoryModel>(
+              value: _selectedCategory,
+              dropdownColor: Colors.white,
+              isExpanded: true,
+              icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[400]),
+              onChanged: (CategoryModel? newValue) {
+                setState(() {
+                  _selectedCategory = newValue;
+                  _selectedSubCategory = null;
+                  if (newValue != null) _localFieldErrors.remove('category');
+                });
+                if (newValue != null) {
+                  categoryController.selectCategory(newValue.id);
+                }
+              },
+              items: rootCategories.map<DropdownMenuItem<CategoryModel>>((
+                CategoryModel value,
+              ) {
+                return DropdownMenuItem<CategoryModel>(
+                  value: value,
+                  child: Text(value.name),
+                );
+              }).toList(),
+            ),
+          ),
         ),
-      ),
+        if (errorText != null)
+          Padding(
+            padding: EdgeInsets.only(left: 4.w, top: 4.h),
+            child: Text(
+              errorText,
+              style: TextStyle(color: Colors.red, fontSize: 12.sp),
+            ),
+          ),
+      ],
     );
   }
 
-  Widget _buildSubCategoryDropdown() {
+  Widget _buildSubCategoryDropdown({String? errorText}) {
     final categoryController = context.watch<CategoryController>();
     final subcategories = categoryController.subCategories;
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
-      decoration: BoxDecoration(
-        color: _selectedCategory == null ? Colors.grey[50] : Colors.white,
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<CategoryModel>(
-          value: _selectedSubCategory,
-          dropdownColor: Colors.white,
-          isExpanded: true,
-          disabledHint: const Text('Select a category first'),
-          hint: const Text('Select Sub-Category (Optional)'),
-          icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[400]),
-          onChanged: _selectedCategory == null
-              ? null
-              : (CategoryModel? newValue) {
-                  setState(() {
-                    _selectedSubCategory = newValue;
-                  });
-                },
-          items: subcategories.map<DropdownMenuItem<CategoryModel>>((
-            CategoryModel value,
-          ) {
-            return DropdownMenuItem<CategoryModel>(
-              value: value,
-              child: Text(value.name),
-            );
-          }).toList(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          decoration: BoxDecoration(
+            color: _selectedCategory == null ? Colors.grey[50] : Colors.white,
+            borderRadius: BorderRadius.circular(10.r),
+            border: Border.all(
+              color: errorText != null ? Colors.red : const Color(0xFFE0E0E0),
+            ),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<CategoryModel>(
+              value: _selectedSubCategory,
+              dropdownColor: Colors.white,
+              isExpanded: true,
+              disabledHint: const Text('Select a category first'),
+              hint: const Text('Select Sub-Category (Optional)'),
+              icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[400]),
+              onChanged: _selectedCategory == null
+                  ? null
+                  : (CategoryModel? newValue) {
+                      setState(() {
+                        _selectedSubCategory = newValue;
+                        if (newValue != null) {
+                          _localFieldErrors.remove('subCategory');
+                        }
+                      });
+                    },
+              items: subcategories.map<DropdownMenuItem<CategoryModel>>((
+                CategoryModel value,
+              ) {
+                return DropdownMenuItem<CategoryModel>(
+                  value: value,
+                  child: Text(value.name),
+                );
+              }).toList(),
+            ),
+          ),
         ),
-      ),
+        if (errorText != null)
+          Padding(
+            padding: EdgeInsets.only(left: 4.w, top: 4.h),
+            child: Text(
+              errorText,
+              style: TextStyle(color: Colors.red, fontSize: 12.sp),
+            ),
+          ),
+      ],
     );
   }
 
-  Widget _buildServiceTypeDropdown() {
+  Widget _buildServiceTypeDropdown({String? errorText}) {
     final List<String> serviceTypes = [
       'photography',
       'videography',
@@ -849,7 +838,9 @@ class _ProviderCreateListingScreenState
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10.r),
-            border: Border.all(color: const Color(0xFFE0E0E0)),
+            border: Border.all(
+              color: errorText != null ? Colors.red : const Color(0xFFE0E0E0),
+            ),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<String>(
@@ -862,6 +853,7 @@ class _ProviderCreateListingScreenState
                     !_selectedServiceTypes.contains(newValue)) {
                   setState(() {
                     _selectedServiceTypes.add(newValue);
+                    _localFieldErrors.remove('serviceType');
                   });
                 }
               },
@@ -884,6 +876,14 @@ class _ProviderCreateListingScreenState
             ),
           ),
         ),
+        if (errorText != null)
+          Padding(
+            padding: EdgeInsets.only(left: 4.w, top: 4.h),
+            child: Text(
+              errorText,
+              style: TextStyle(color: Colors.red, fontSize: 12.sp),
+            ),
+          ),
         if (_selectedServiceTypes.isNotEmpty) ...[
           SizedBox(height: 10.h),
           Wrap(
@@ -906,6 +906,9 @@ class _ProviderCreateListingScreenState
                 onDeleted: () {
                   setState(() {
                     _selectedServiceTypes.remove(type);
+                    if (_selectedServiceTypes.isEmpty) {
+                      _localFieldErrors['serviceType'] = "At least one Service Type is required";
+                    }
                   });
                 },
                 backgroundColor: const Color(0xFFF5F5F7),
@@ -1003,18 +1006,16 @@ class _ProviderCreateListingScreenState
           _buildTextField(
             _weekdayHourlyRateController,
             'e.g. 50',
-            errorText: context
-                .watch<ServiceController>()
-                .fieldErrors['weekdayHourlyRate'],
+            errorText: _localFieldErrors['weekdayHourlyRate'] ?? 
+                context.watch<ServiceController>().fieldErrors['weekdayHourlyRate'],
           ),
           SizedBox(height: 15.h),
           _buildLabel('Weekend Hourly Rate (EUR)'),
           _buildTextField(
             _weekendHourlyRateController,
             'e.g. 75',
-            errorText: context
-                .watch<ServiceController>()
-                .fieldErrors['weekendHourlyRate'],
+            errorText: _localFieldErrors['weekendHourlyRate'] ?? 
+                context.watch<ServiceController>().fieldErrors['weekendHourlyRate'],
           ),
         ],
       );
@@ -1026,18 +1027,16 @@ class _ProviderCreateListingScreenState
           _buildTextField(
             _dailyRateController,
             'e.g. 350',
-            errorText: context
-                .watch<ServiceController>()
-                .fieldErrors['dailyRate'],
+            errorText: _localFieldErrors['dailyRate'] ?? 
+                context.watch<ServiceController>().fieldErrors['dailyRate'],
           ),
           SizedBox(height: 15.h),
           _buildLabel('Hours per Day'),
           _buildTextField(
             _dailyHoursController,
             'e.g. 8',
-            errorText: context
-                .watch<ServiceController>()
-                .fieldErrors['dailyHours'],
+            errorText: _localFieldErrors['dailyHours'] ?? 
+                context.watch<ServiceController>().fieldErrors['dailyHours'],
           ),
         ],
       );
@@ -1082,6 +1081,7 @@ class _ProviderCreateListingScreenState
                   _buildPackageField(
                     controllers.name,
                     'Package Name (e.g. Basic)',
+                    errorText: _localFieldErrors['package_$index'],
                   ),
                   SizedBox(height: 10.h),
                   Row(
@@ -1135,38 +1135,55 @@ class _ProviderCreateListingScreenState
     String hint, {
     bool isNumber = false,
     int maxLines = 1,
+    String? errorText,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-      ),
-      child: TextField(
-        controller: controller,
-        maxLines: maxLines,
-        onChanged: (value) =>
-            setState(() {}), // Trigger rebuild for button validation
-        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(
-            color: Colors.grey[400],
-            fontSize: AppTypography.bodyMedium,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8.r),
+            border: Border.all(
+              color: errorText != null ? Colors.red : const Color(0xFFE0E0E0),
+            ),
           ),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: 12.w,
-            vertical: 10.h,
+          child: TextField(
+            controller: controller,
+            maxLines: maxLines,
+            onChanged: (value) =>
+                setState(() {}), // Trigger rebuild for button validation
+            keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(
+                color: Colors.grey[400],
+                fontSize: AppTypography.bodyMedium,
+              ),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12.w,
+                vertical: 10.h,
+              ),
+            ),
           ),
         ),
-      ),
+        if (errorText != null)
+          Padding(
+            padding: EdgeInsets.only(left: 4.w, top: 2.h),
+            child: Text(
+              errorText,
+              style: TextStyle(color: Colors.red, fontSize: 11.sp),
+            ),
+          ),
+      ],
     );
   }
 
   Widget _buildDurationDropdown(
     TextEditingController controller, {
     required String hint,
+    String? errorText,
   }) {
     final options = [
       '1',
@@ -1188,7 +1205,7 @@ class _ProviderCreateListingScreenState
         ? controller.text
         : null;
 
-    return Container(
+    final dropdown = Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8.r),
@@ -1224,6 +1241,21 @@ class _ProviderCreateListingScreenState
           }).toList(),
         ),
       ),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        dropdown,
+        if (errorText != null)
+          Padding(
+            padding: EdgeInsets.only(left: 4.w, top: 4.h),
+            child: Text(
+              errorText,
+              style: TextStyle(color: Colors.red, fontSize: 12.sp),
+            ),
+          ),
+      ],
     );
   }
 
@@ -1396,47 +1428,60 @@ class _ProviderCreateListingScreenState
     );
   }
 
-  Widget _buildPhotoUploadArea() {
-    return GestureDetector(
-      onTap: _pickImages,
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: 40.h),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(15.r),
-          border: Border.all(
-            color: const Color(0xFFE0E0E0),
-            style: BorderStyle.solid,
+  Widget _buildPhotoUploadArea({String? errorText}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: _pickImages,
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(vertical: 40.h),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15.r),
+              border: Border.all(
+                color: errorText != null ? Colors.red : const Color(0xFFE0E0E0),
+                style: BorderStyle.solid,
+              ),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  Icons.cloud_upload_outlined,
+                  size: 40.sp,
+                  color: errorText != null ? Colors.red[300] : Colors.grey[400],
+                ),
+                SizedBox(height: 12.h),
+                Text(
+                  'Click to upload photos',
+                  style: TextStyle(
+                    fontSize: AppTypography.bodyLarge,
+                    color: errorText != null ? Colors.red : Colors.black87,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  'Select up to 5 high-quality images',
+                  style: TextStyle(
+                    fontSize: AppTypography.bodySmall,
+                    color: errorText != null ? Colors.red[300] : Colors.grey[400],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.cloud_upload_outlined,
-              size: 40.sp,
-              color: Colors.grey[400],
+        if (errorText != null)
+          Padding(
+            padding: EdgeInsets.only(left: 4.w, top: 4.h),
+            child: Text(
+              errorText,
+              style: TextStyle(color: Colors.red, fontSize: 12.sp),
             ),
-            SizedBox(height: 12.h),
-            Text(
-              'Click to upload photos',
-              style: TextStyle(
-                fontSize: AppTypography.bodyLarge,
-                color: Colors.black87,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: 4.h),
-            Text(
-              'Select up to 5 high-quality images',
-              style: TextStyle(
-                fontSize: AppTypography.bodySmall,
-                color: Colors.grey[400],
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 
@@ -1584,6 +1629,33 @@ class _ProviderCreateListingScreenState
         ],
       ],
     );
+  }
+
+  String _normalizeServiceType(String type) {
+    String normalized = type.toLowerCase().trim();
+    if (normalized == 'photo') return 'photography';
+    if (normalized == 'video') return 'videography';
+
+    // Check if it's already one of the valid enums
+    const validEnums = [
+      'photography',
+      'videography',
+      'video_editing',
+      'photo_editing',
+      'graphic_design',
+      'drone_photography',
+      'event_coverage',
+      'studio_rental'
+    ];
+
+    if (validEnums.contains(normalized)) return normalized;
+
+    // Try underscore replacement for others
+    normalized = normalized.replaceAll(' ', '_');
+    if (validEnums.contains(normalized)) return normalized;
+
+    // Default to photography if we can't match it (safest fallback for this app)
+    return 'photography';
   }
 }
 

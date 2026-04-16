@@ -377,7 +377,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _buildPopularLocations(List<PopularLocation>? locs) {
+  Widget _buildPopularLocations(BuildContext context, List<PopularLocation>? locs) {
     if (locs == null || locs.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -393,49 +393,61 @@ class _MyHomePageState extends State<MyHomePage> {
             itemCount: locs.length,
             itemBuilder: (context, index) {
               final loc = locs[index];
-              return Container(
-                width: 140.w,
-                margin: EdgeInsets.only(right: 12.w),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16.r),
-                  color: Colors.grey.shade200,
-                  image: loc.image != null ? DecorationImage(
-                    image: CachedNetworkImageProvider(loc.image!),
-                    fit: BoxFit.cover,
-                  ) : null,
-                ),
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => SearchResultScreen(
+                        // Backend usually filters exact city matches via 'city'
+                        filters: {'city': loc.id},
+                      ),
+                    ),
+                  );
+                },
                 child: Container(
+                  width: 140.w,
+                  margin: EdgeInsets.only(right: 12.w),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16.r),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
-                    ),
+                    color: Colors.grey.shade200,
+                    image: loc.image != null ? DecorationImage(
+                      image: CachedNetworkImageProvider(loc.image!),
+                      fit: BoxFit.cover,
+                    ) : null,
                   ),
-                  padding: EdgeInsets.all(12.w),
-                  alignment: Alignment.bottomLeft,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        loc.id ?? 'City',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16.r),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
                       ),
-                      Text(
-                        '${loc.count ?? 0} Pros',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 11.sp,
+                    ),
+                    padding: EdgeInsets.all(12.w),
+                    alignment: Alignment.bottomLeft,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          loc.id ?? 'City',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
                         ),
-                      ),
-                    ],
+                        Text(
+                          '${loc.count ?? 0} Pros',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 11.sp,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -612,7 +624,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           if (data.popularLocations != null && data.popularLocations!.isNotEmpty)
                              Column(
                                children: [
-                                 _buildPopularLocations(data.popularLocations),
+                                 _buildPopularLocations(context, data.popularLocations),
                                  SizedBox(height: 10.h),
                                ],
                              ),
