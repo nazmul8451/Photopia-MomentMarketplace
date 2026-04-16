@@ -73,6 +73,7 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                         );
                       },
                     ),
+
                     SizedBox(height: 12.h.clamp(8, 16)),
 
                     _buildMenuItem(
@@ -92,6 +93,11 @@ class _ProviderMenuScreenState extends State<ProviderMenuScreen> {
                     ),
                     SizedBox(height: 12.h.clamp(8, 16)),
 
+                    // TODO: Extra Feature - Professional Site
+                    // 1/ Custom Dates and Exceptions
+                    // 2/ Auto Block Duration
+                    // 3/ Advanced Booking Rules
+                    // 4/ Price and Rates
                     _buildMenuItem(
                       icon: Icons.notifications_outlined,
                       title: 'Notifications',

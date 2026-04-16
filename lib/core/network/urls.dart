@@ -70,6 +70,7 @@ class Urls {
   static const String getFavorites = "$baseUrl/api/v1/favourite/my-favourites";
   //** category api */
   static const String categories = '$baseUrl/api/v1/category';
+  static const String popularCategories = '$baseUrl/api/v1/category/popular-categories';
 
   //** review api */
   static String getReviewsByProvider(String providerId) => '$baseUrl/api/v1/review/provider/$providerId';

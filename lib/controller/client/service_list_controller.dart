@@ -148,10 +148,16 @@ class ServiceListController extends ChangeNotifier {
     }
   }
 
-  // Filter services by category if needed (local filtering for now)
-  List<ServiceItem> getServicesByCategory(String? categoryName) {
-    if (categoryName == null || categoryName.isEmpty) return _services;
-    return _services.where((s) => s.category?.name == categoryName).toList();
+  // Filter services by category ID
+  List<ServiceItem> getServicesByCategoryId(String? categoryId) {
+    if (categoryId == null || categoryId.isEmpty) return _services;
+    return _services.where((s) => s.category?.id == categoryId).toList();
+  }
+
+  // Filter services by subcategory ID
+  List<ServiceItem> getServicesBySubCategoryId(String? subCategoryId) {
+    if (subCategoryId == null || subCategoryId.isEmpty) return _services;
+    return _services.where((s) => s.subCategory == subCategoryId).toList();
   }
 
   void applyFavoritesFilter(bool showOnlyFavorites, List<String> favoriteIds) {

@@ -10,6 +10,9 @@ import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:provider/provider.dart';
 import 'package:photopia/controller/client/service_list_controller.dart';
 
+import 'package:photopia/controller/category_controller.dart';
+import 'package:photopia/data/models/category_model.dart';
+
 class SearchScreen extends StatefulWidget {
   static const String name = '/search';
   const SearchScreen({super.key});
@@ -19,11 +22,17 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  int _selectedCategoryIndex = 0;
+  String? _selectedCategoryId;
   bool _isSearching = false;
   Map<String, dynamic> _currentFilters = {};
 
-  final List<String> _categoryTabs = ['Photo', 'Video', 'Video Editing'];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CategoryController>().getAllCategories();
+    });
+  }
 
   void _onSearch(Map<String, dynamic> filters) {
     final searchTerm = filters['searchTerm']?.toString() ?? '';
@@ -50,43 +59,11 @@ class _SearchScreenState extends State<SearchScreen> {
     // Usually, we just toggle back to categories.
   }
 
-  // Categories organized by type
-  final Map<String, List<Map<String, dynamic>>> _categoriesByType = {
-    'Photo': [
-      {'name': 'Interior Photography', 'image': 'assets/images/img1.png'},
-      {'name': 'Portrait Photography', 'image': 'assets/images/img2.png'},
-      {'name': 'Home Decor Shoots', 'image': 'assets/images/img3.png'},
-      {'name': 'Product Photography', 'image': 'assets/images/img4.png'},
-      {'name': 'Outdoor Photography', 'image': 'assets/images/img5.png'},
-      {'name': 'Fashion Photography', 'image': 'assets/images/img6.png'},
-      {'name': 'Wedding Photography', 'image': 'assets/images/img4.png'},
-      {'name': 'Studio Photography', 'image': 'assets/images/img2.png'},
-    ],
-    'Video': [
-      {'name': 'Music Video', 'image': 'assets/images/img3.png'},
-      {'name': 'Documentary', 'image': 'assets/images/img5.png'},
-      {'name': 'Commercial', 'image': 'assets/images/img1.png'},
-      {'name': 'Event Coverage', 'image': 'assets/images/img6.png'},
-      {'name': 'Travel Vlog', 'image': 'assets/images/img2.png'},
-      {'name': 'Interview', 'image': 'assets/images/img4.png'},
-    ],
-    'Video Editing': [
-      {'name': 'Color Grading', 'image': 'assets/images/img5.png'},
-      {'name': 'Motion Graphics', 'image': 'assets/images/img3.png'},
-      {'name': 'VFX', 'image': 'assets/images/img1.png'},
-      {'name': 'Sound Design', 'image': 'assets/images/img4.png'},
-    ],
-  };
-
   void _navigateToCategoryDetails() {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const CategoryDetailsScreen()),
     );
-  }
-
-  List<Map<String, dynamic>> get _currentCategories {
-    return _categoriesByType[_categoryTabs[_selectedCategoryIndex]] ?? [];
   }
 
   @override
@@ -116,14 +93,16 @@ class _SearchScreenState extends State<SearchScreen> {
               children: [
                 SearchHeader(onFilterApplied: _onSearch),
                 CategoryBar(
-                  selectedIndex: _selectedCategoryIndex,
-                  onCategorySelected: (index) {
-                    setState(() {
-                      _selectedCategoryIndex = index;
-                      // When a category is selected, we can either search for it
-                      // or just clear the search view.
-                      _clearSearch();
-                    });
+                  selectedCategoryId: context
+                      .watch<CategoryController>()
+                      .selectedCategoryId,
+                  onCategorySelected: (categoryId) {
+                    context.read<CategoryController>().selectCategory(
+                      categoryId,
+                    );
+                    // When a category is selected, we can either search for it
+                    // or just clear the search view.
+                    _clearSearch();
                   },
                 ),
                 SizedBox(height: 15.h),
@@ -153,46 +132,84 @@ class _SearchScreenState extends State<SearchScreen> {
 
             // Categories Grid
             Expanded(
-              child: GridView.builder(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16.w,
-                  mainAxisSpacing: 20.h,
-                  childAspectRatio: 0.85,
-                ),
-                itemCount: _currentCategories.length,
-                itemBuilder: (context, index) {
-                  final category = _currentCategories[index];
-                  return GestureDetector(
-                    onTap: _navigateToCategoryDetails,
-                    child: Column(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16.r),
-                              image: DecorationImage(
-                                image: AssetImage(category['image']),
-                                fit: BoxFit.cover,
+              child: Consumer<CategoryController>(
+                builder: (context, controller, child) {
+                  if (controller.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final List<CategoryModel> categoriesToDisplay =
+                      controller.selectedCategoryId == null
+                      ? controller.rootCategories
+                      : controller.subCategories;
+
+                  if (categoriesToDisplay.isEmpty) {
+                    return Center(
+                      child: Text(
+                        controller.selectedCategoryId == null
+                            ? 'No categories found'
+                            : 'No subcategories found for this category',
+                        style: TextStyle(color: Colors.grey, fontSize: 14.sp),
+                      ),
+                    );
+                  }
+
+                  return GridView.builder(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16.w,
+                      mainAxisSpacing: 20.h,
+                      childAspectRatio: 0.85,
+                    ),
+                    itemCount: categoriesToDisplay.length,
+                    itemBuilder: (context, index) {
+                      final category = categoriesToDisplay[index];
+                      final imageUrl =
+                          category.image ?? 'assets/images/img1.png';
+                      final bool isNetworkImage = imageUrl.startsWith('http');
+
+                      return GestureDetector(
+                        onTap: () {
+                          // If it's a root category, select it
+                          if (controller.selectedCategoryId == null) {
+                            controller.selectCategory(category.id);
+                          } else {
+                            // If it's a subcategory, navigate to details
+                            _navigateToCategoryDetails();
+                          }
+                        },
+                        child: Column(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16.r),
+                                  image: DecorationImage(
+                                    image: isNetworkImage
+                                        ? NetworkImage(imageUrl)
+                                        : AssetImage(imageUrl) as ImageProvider,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
+                            SizedBox(height: 8.h),
+                            Text(
+                              category.name,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: AppTypography.bodySmall,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
-                        SizedBox(height: 8.h),
-                        Text(
-                          category['name'],
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: AppTypography.bodySmall,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   );
                 },
               ),

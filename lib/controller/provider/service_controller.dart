@@ -8,6 +8,9 @@ import 'package:photopia/data/models/provider_service_model.dart';
 import 'package:photopia/controller/auth_controller.dart';
 import 'package:photopia/core/network/Api_service/network_caller.dart';
 
+import 'package:photopia/data/models/category_model.dart';
+import 'package:mime/mime.dart';
+
 class ServiceController extends ChangeNotifier {
   bool _inProgress = false;
   String? _errorMessage;
@@ -19,7 +22,7 @@ class ServiceController extends ChangeNotifier {
   List<Data> get myServices => _myServices;
   Data? _currentService;
   Data? get currentService => _currentService;
-  
+
   Map<String, String> _fieldErrors = {};
   Map<String, String> get fieldErrors => _fieldErrors;
 
@@ -53,25 +56,38 @@ class ServiceController extends ChangeNotifier {
       final Map<String, dynamic> dataMap = serviceData.toJson();
 
       // Ensure required fields from Zod schema are present
-      dataMap['status'] = dataMap['status']?.toString().toUpperCase() == 'INACTIVE' 
-          ? "INACTIVE" 
+      dataMap['status'] =
+          dataMap['status']?.toString().toUpperCase() == 'INACTIVE'
+          ? "INACTIVE"
           : "ACTIVE";
       dataMap['isActive'] = dataMap['isActive'] ?? true;
       dataMap['currency'] = dataMap['currency'] ?? "EUR";
-      dataMap['pricingType'] = dataMap['pricingType']?.toString().toUpperCase() ?? "HOURLY";
+      dataMap['pricingType'] =
+          dataMap['pricingType']?.toString().toUpperCase() ?? "HOURLY";
+
+      // Status management as per guide (DRAFT, ACTIVE, INACTIVE)
+      if (serviceData.status != null) {
+        dataMap['status'] = serviceData.status;
+      }
 
       if (serviceData.category != null) {
-        dataMap['category'] = serviceData.category?.sId ?? serviceData.category?.name ?? "";
+        dataMap['category'] =
+            serviceData.category?.id ?? serviceData.category?.name ?? "";
       }
 
       if (dataMap['location'] != null) {
         dataMap['location']['address'] = dataMap['location']['address'] ?? "";
+        // Default serviceRadiusKm if not provided
+        dataMap['location']['serviceRadiusKm'] =
+            dataMap['location']['serviceRadiusKm'] ?? 50;
       }
 
       // Ensure pricingModel fields satisfy Zod constraints if not already set
       if (dataMap['pricingModel'] != null) {
-        dataMap['pricingModel']['dailyRate'] = dataMap['pricingModel']['dailyRate'] ?? 1;
-        dataMap['pricingModel']['dailyHours'] = dataMap['pricingModel']['dailyHours'] ?? 8;
+        dataMap['pricingModel']['dailyRate'] =
+            dataMap['pricingModel']['dailyRate'] ?? 1;
+        dataMap['pricingModel']['dailyHours'] =
+            dataMap['pricingModel']['dailyHours'] ?? 8;
       }
 
       // Remove fields that should not be sent for creation
@@ -87,23 +103,37 @@ class ServiceController extends ChangeNotifier {
       // Add fields
       request.fields['data'] = jsonEncode(dataMap);
 
-      // Add images
-      for (int i = 0; i < images.length; i++) {
-        final file = images[i];
-        final stream = http.ByteStream(file.openRead());
-        final length = await file.length();
+      // Add images (First one as coverPhoto, others as images)
+      if (images.isNotEmpty) {
+        // coverPhoto
+        final coverFile = images[0];
+        final String? coverMime = lookupMimeType(coverFile.path);
 
-        // Use 'images' for all images as an array if the backend expects it
-        final String fieldName = 'images';
-
-        final multipartFile = http.MultipartFile(
-          fieldName,
-          stream,
-          length,
-          filename: file.path.split(Platform.pathSeparator).last,
-          contentType: MediaType('image', 'jpeg'),
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'coverPhoto',
+            coverFile.path,
+            contentType: coverMime != null
+                ? MediaType.parse(coverMime)
+                : MediaType('image', 'jpeg'),
+          ),
         );
-        request.files.add(multipartFile);
+
+        // gallery images (up to 5)
+        for (int i = 1; i < images.length && i <= 5; i++) {
+          final file = images[i];
+          final String? mime = lookupMimeType(file.path);
+
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'images',
+              file.path,
+              contentType: mime != null
+                  ? MediaType.parse(mime)
+                  : MediaType('image', 'jpeg'),
+            ),
+          );
+        }
       }
 
       String dataStr = request.fields['data'].toString();
@@ -134,17 +164,18 @@ class ServiceController extends ChangeNotifier {
       } else {
         final Map<String, dynamic> responseBody = jsonDecode(response.body);
         _fieldErrors = {};
-        
+
         // Handle Zod or field-specific errors for better UX
-        if (responseBody['errorMessages'] != null && (responseBody['errorMessages'] as List).isNotEmpty) {
+        if (responseBody['errorMessages'] != null &&
+            (responseBody['errorMessages'] as List).isNotEmpty) {
           for (var error in responseBody['errorMessages']) {
-             final path = error['path']?.toString() ?? 'unknown';
-             final msg = error['message']?.toString() ?? 'Error';
-             _fieldErrors[path] = msg;
+            final path = error['path']?.toString() ?? 'unknown';
+            final msg = error['message']?.toString() ?? 'Error';
+            _fieldErrors[path] = msg;
           }
-           _errorMessage = "Please fix the errors below";
+          _errorMessage = "Please fix the errors below";
         } else {
-           _errorMessage = responseBody['message'] ?? 'Failed to create service';
+          _errorMessage = responseBody['message'] ?? 'Failed to create service';
         }
 
         _inProgress = false;
@@ -155,7 +186,8 @@ class ServiceController extends ChangeNotifier {
       debugPrint('❌ Create Service Error: $e');
       _inProgress = false;
       if (e.toString().contains('TimeoutException')) {
-        _errorMessage = 'Connection timed out. Please check your internet or try again.';
+        _errorMessage =
+            'Connection timed out. Please check your internet or try again.';
       } else {
         _errorMessage = 'An unexpected error occurred';
       }
@@ -188,35 +220,45 @@ class ServiceController extends ChangeNotifier {
       final Map<String, dynamic> dataMap = serviceData.toJson();
 
       // Ensure required update fields are present according to Zod
-      dataMap['status'] = serviceData.status?.toUpperCase() == 'INACTIVE' 
-          ? "INACTIVE" 
+      dataMap['status'] = serviceData.status?.toUpperCase() == 'INACTIVE'
+          ? "INACTIVE"
           : "ACTIVE";
       dataMap['isActive'] = serviceData.isActive ?? true;
       dataMap['isVerified'] = serviceData.isVerified ?? false;
       dataMap['currency'] = dataMap['currency'] ?? "EUR";
-      dataMap['pricingType'] = dataMap['pricingType']?.toString().toUpperCase() ?? "HOURLY";
-      
-      dataMap['pricingType'] = dataMap['pricingType'] ?? "HOURLY";
+      dataMap['pricingType'] =
+          dataMap['pricingType']?.toString().toUpperCase() ?? "HOURLY";
 
       if (serviceData.category != null) {
-        dataMap['category'] = serviceData.category?.sId ?? serviceData.category?.name ?? "";
+        dataMap['category'] =
+            serviceData.category?.id ?? serviceData.category?.name ?? "";
       }
 
       if (dataMap['location'] != null) {
         dataMap['location']['address'] = dataMap['location']['address'] ?? "";
       }
 
+      // Travel Fees & Deposit
+      dataMap['travelFeePerKm'] = serviceData.travelFeePerKm ?? 0.0;
+      dataMap['allowOutsideRadius'] = serviceData.allowOutsideRadius ?? false;
+      dataMap['maxTravelFee'] = serviceData.maxTravelFee;
+      dataMap['depositPercentage'] = serviceData.depositPercentage ?? 50;
+
       // Ensure pricingModel fields satisfy Zod constraints
       if (dataMap['pricingModel'] != null) {
-        dataMap['pricingModel']['dailyRate'] = dataMap['pricingModel']['dailyRate'] ?? 1;
-        dataMap['pricingModel']['dailyHours'] = dataMap['pricingModel']['dailyHours'] ?? 8;
+        dataMap['pricingModel']['dailyRate'] =
+            dataMap['pricingModel']['dailyRate'] ?? 1;
+        dataMap['pricingModel']['dailyHours'] =
+            dataMap['pricingModel']['dailyHours'] ?? 8;
       }
 
       // Format coverMedia as full URL if needed (Zod requires full URL)
       if (dataMap['coverMedia'] != null && dataMap['coverMedia'] is String) {
         String cover = dataMap['coverMedia'];
         if (cover.isNotEmpty && !cover.startsWith('http')) {
-          final String base = Urls.baseUrl.endsWith('/') ? Urls.baseUrl.substring(0, Urls.baseUrl.length - 1) : Urls.baseUrl;
+          final String base = Urls.baseUrl.endsWith('/')
+              ? Urls.baseUrl.substring(0, Urls.baseUrl.length - 1)
+              : Urls.baseUrl;
           final String path = cover.startsWith('/') ? cover : '/$cover';
           dataMap['coverMedia'] = "$base$path";
         }
@@ -226,7 +268,9 @@ class ServiceController extends ChangeNotifier {
       if (serviceData.gallery != null) {
         dataMap['gallery'] = serviceData.gallery!.map((img) {
           if (img is String && !img.startsWith('http')) {
-            final String base = Urls.baseUrl.endsWith('/') ? Urls.baseUrl.substring(0, Urls.baseUrl.length - 1) : Urls.baseUrl;
+            final String base = Urls.baseUrl.endsWith('/')
+                ? Urls.baseUrl.substring(0, Urls.baseUrl.length - 1)
+                : Urls.baseUrl;
             final String path = img.startsWith('/') ? img : '/$img';
             return "$base$path";
           }
@@ -246,21 +290,34 @@ class ServiceController extends ChangeNotifier {
 
       // Add new images if provided
       if (newImages != null && newImages.isNotEmpty) {
-        for (var file in newImages) {
-          final stream = http.ByteStream(file.openRead());
-          final length = await file.length();
+        // coverPhoto
+        final coverFile = newImages[0];
+        final String? coverMime = lookupMimeType(coverFile.path);
 
-          // Reverted to 'images' based on Multer 500 Unexpected field error
-          final String fieldName = 'images';
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'coverPhoto',
+            coverFile.path,
+            contentType: coverMime != null
+                ? MediaType.parse(coverMime)
+                : MediaType('image', 'jpeg'),
+          ),
+        );
 
-          final multipartFile = http.MultipartFile(
-            fieldName,
-            stream,
-            length,
-            filename: file.path.split('/').last,
-            contentType: MediaType('image', 'jpeg'),
+        // gallery images
+        for (int i = 1; i < newImages.length; i++) {
+          final file = newImages[i];
+          final String? mime = lookupMimeType(file.path);
+
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'images',
+              file.path,
+              contentType: mime != null
+                  ? MediaType.parse(mime)
+                  : MediaType('image', 'jpeg'),
+            ),
           );
-          request.files.add(multipartFile);
         }
       }
 
@@ -294,15 +351,16 @@ class ServiceController extends ChangeNotifier {
         _fieldErrors = {};
 
         // Handle Zod or field-specific errors for better UX
-        if (responseBody['errorMessages'] != null && (responseBody['errorMessages'] as List).isNotEmpty) {
+        if (responseBody['errorMessages'] != null &&
+            (responseBody['errorMessages'] as List).isNotEmpty) {
           for (var error in responseBody['errorMessages']) {
-             final path = error['path']?.toString() ?? 'unknown';
-             final msg = error['message']?.toString() ?? 'Error';
-             _fieldErrors[path] = msg;
+            final path = error['path']?.toString() ?? 'unknown';
+            final msg = error['message']?.toString() ?? 'Error';
+            _fieldErrors[path] = msg;
           }
           _errorMessage = "Please fix the errors below";
         } else {
-           _errorMessage = responseBody['message'] ?? 'Failed to update service';
+          _errorMessage = responseBody['message'] ?? 'Failed to update service';
         }
 
         _inProgress = false;
@@ -313,7 +371,8 @@ class ServiceController extends ChangeNotifier {
       debugPrint('❌ Update Service Error: $e');
       _inProgress = false;
       if (e.toString().contains('TimeoutException')) {
-        _errorMessage = 'Connection timed out. Please check your internet or try again.';
+        _errorMessage =
+            'Connection timed out. Please check your internet or try again.';
       } else {
         _errorMessage = 'An unexpected error occurred';
       }
@@ -322,10 +381,10 @@ class ServiceController extends ChangeNotifier {
     }
   }
 
-  List<Category> _categories = [];
-  List<Category> get categories => _categories;
+  List<CategoryModel> _categories = [];
+  List<CategoryModel> get categories => _categories;
 
-  Future<List<Category>> getCategories() async {
+  Future<List<CategoryModel>> getCategories() async {
     if (_categories.isNotEmpty) return _categories;
     try {
       final NetworkResponse response = await NetworkCaller.getRequest(
@@ -346,7 +405,9 @@ class ServiceController extends ChangeNotifier {
         if (listData.isNotEmpty) {
           debugPrint('✅ Fetched ${listData.length} categories from API');
         }
-        _categories = listData.map((json) => Category.fromJson(json)).toList();
+        _categories = listData
+            .map((json) => CategoryModel.fromJson(json))
+            .toList();
         notifyListeners();
         return _categories;
       }
@@ -361,12 +422,21 @@ class ServiceController extends ChangeNotifier {
 
     // Fallback categories with the working ID provided by the user
     _categories = [
-      Category(
-        sId: "6967f8313c7a3a49e02c1fde",
+      CategoryModel(
+        id: "6967f8313c7a3a49e02c1fde",
         name: "Photography",
+        type: 'category',
       ), // User's working Postman ID
-      Category(sId: "65e8a5b4f1a2b3c4d5e6f702", name: "Videography"),
-      Category(sId: "65e8a5b4f1a2b3c4d5e6f703", name: "Video Editing"),
+      CategoryModel(
+        id: "65e8a5b4f1a2b3c4d5e6f702",
+        name: "Videography",
+        type: 'category',
+      ),
+      CategoryModel(
+        id: "65e8a5b4f1a2b3c4d5e6f703",
+        name: "Video Editing",
+        type: 'category',
+      ),
     ];
     notifyListeners();
     return _categories;

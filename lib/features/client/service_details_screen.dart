@@ -205,8 +205,6 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
                       );
                     },
                   ),
-                  SizedBox(width: 12.w),
-                  Container(padding: EdgeInsets.all(8.w), decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle), child: Icon(Icons.flag_outlined, size: 20.sp, color: Colors.red)),
                 ],
               ),
             ],

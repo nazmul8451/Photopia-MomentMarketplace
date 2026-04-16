@@ -36,6 +36,8 @@ import 'package:photopia/features/provider/screen/BottomNavigationBar/bottom_nav
 
 import 'package:photopia/core/notification/notification_service.dart';
 
+import 'package:photopia/controller/category_controller.dart';
+
 class Photopia extends StatefulWidget {
   const Photopia({super.key});
 
@@ -77,6 +79,7 @@ class _PhotopiaState extends State<Photopia> {
             ChangeNotifierProvider(create: (_) => ServiceController()),
             ChangeNotifierProvider(create: (_) => ServiceListController()),
             ChangeNotifierProvider(create: (_) => BottomNavController()),
+            ChangeNotifierProvider(create: (_) => CategoryController()),
             ChangeNotifierProvider(
               create: (_) => CalenderAvailibilityController(),
             ),

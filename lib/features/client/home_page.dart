@@ -14,6 +14,8 @@ import 'package:flutter/services.dart';
 import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:provider/provider.dart';
 
+import 'package:photopia/controller/category_controller.dart';
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
@@ -24,7 +26,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _selectedCategoryIndex = 0;
+  String? _selectedCategoryId;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -36,6 +38,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (controller.services.isEmpty) {
         controller.getAllServices();
       }
+      context.read<CategoryController>().getAllCategories();
       context.read<LocationController>().determinePosition();
       context.read<NotificationController>().fetchNotificationStats();
     });
@@ -148,11 +151,16 @@ class _MyHomePageState extends State<MyHomePage> {
                       const HomeHeader(),
                       CategoryBar(
                         isLoading: serviceListController.isLoading,
-                        selectedIndex: _selectedCategoryIndex,
-                        onCategorySelected: (index) {
-                          setState(() {
-                            _selectedCategoryIndex = index;
-                          });
+                        selectedCategoryId: context
+                            .watch<CategoryController>()
+                            .selectedCategoryId,
+                        onCategorySelected: (categoryId) {
+                          context.read<CategoryController>().selectCategory(
+                            categoryId,
+                          );
+                          serviceListController.getAllServices(
+                            filters: {'category': categoryId},
+                          );
                         },
                       ),
                       SizedBox(height: 15.h),
@@ -281,7 +289,15 @@ class _MyHomePageState extends State<MyHomePage> {
                     color: Colors.black,
                     backgroundColor: Colors.white,
                     onRefresh: () async {
-                      await serviceListController.getAllServices();
+                      final categoryCtrl = context.read<CategoryController>();
+                      await Future.wait([
+                        serviceListController.getAllServices(
+                          filters: {
+                            'category': categoryCtrl.selectedCategoryId,
+                          },
+                        ),
+                        categoryCtrl.getAllCategories(),
+                      ]);
                     },
                     child: SingleChildScrollView(
                       controller: _scrollController,

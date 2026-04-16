@@ -5,7 +5,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:photopia/core/constants/app_typography.dart';
 import 'package:photopia/core/widgets/custom_snacbar.dart';
 import 'package:photopia/core/network/urls.dart';
+import 'package:photopia/controller/category_controller.dart';
 import 'package:photopia/controller/provider/service_controller.dart';
+import 'package:photopia/data/models/category_model.dart';
 import 'package:photopia/data/models/provider_service_model.dart';
 import 'package:provider/provider.dart';
 
@@ -26,24 +28,22 @@ class _ProviderCreateListingScreenState
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _countryController = TextEditingController();
-  final TextEditingController _subCategoryController = TextEditingController();
   final TextEditingController _durationController = TextEditingController();
   final TextEditingController _equipmentController = TextEditingController();
 
   // Pricing controllers
-  final TextEditingController _hourlyRateController = TextEditingController();
-  final TextEditingController _weekdayRateController = TextEditingController();
-  final TextEditingController _weekendRateController = TextEditingController();
-  final TextEditingController _dailyRateController = TextEditingController();
-  final TextEditingController _weekendDailyRateController =
+  final TextEditingController _weekdayHourlyRateController =
       TextEditingController();
+  final TextEditingController _weekendHourlyRateController =
+      TextEditingController();
+  final TextEditingController _dailyRateController = TextEditingController();
   final TextEditingController _dailyHoursController = TextEditingController();
 
   // Dynamic Package controllers
   final List<PackageControllers> _packageControllers = [];
 
-  Category? _selectedCategory;
-  List<Category> _categories = [];
+  CategoryModel? _selectedCategory;
+  CategoryModel? _selectedSubCategory;
   bool _isLoadingCategories = true;
 
   final List<String> _selectedServiceTypes = [];
@@ -73,7 +73,6 @@ class _ProviderCreateListingScreenState
       _locationController.text = listing.location?.city ?? '';
       _addressController.text = listing.location?.address ?? '';
       _countryController.text = listing.location?.country ?? '';
-      _subCategoryController.text = listing.subCategory ?? '';
       _durationController.text = listing.duration ?? '';
 
       if (listing.tags != null && listing.tags!.isNotEmpty) {
@@ -87,7 +86,14 @@ class _ProviderCreateListingScreenState
       if (listing.pricingType != null) {
         if (listing.pricingType == "HOURLY") {
           _selectedPricingModel = 'By Hour';
-          _hourlyRateController.text = listing.price?.toString() ?? '';
+          _weekdayHourlyRateController.text =
+              listing.pricingModel?.weekdayHourlyRate?.toString() ??
+              listing.price?.toString() ??
+              '';
+          _weekendHourlyRateController.text =
+              listing.pricingModel?.weekendHourlyRate?.toString() ??
+              listing.price?.toString() ??
+              '';
         } else if (listing.pricingType == "DAILY") {
           _selectedPricingModel = 'By Day';
           _dailyRateController.text = listing.price?.toString() ?? '';
@@ -145,21 +151,50 @@ class _ProviderCreateListingScreenState
 
   Future<void> _fetchCategories() async {
     try {
-      final controller = Provider.of<ServiceController>(context, listen: false);
-      final response = await controller.getCategories();
+      final categoryController = Provider.of<CategoryController>(
+        context,
+        listen: false,
+      );
+      await categoryController.getAllCategories();
+      final rootCategories = categoryController.rootCategories;
+
       if (mounted) {
         setState(() {
-          _categories = response;
           _isLoadingCategories = false;
-          if (_categories.isNotEmpty) {
+          if (rootCategories.isNotEmpty) {
             if (widget.existingListing != null &&
                 widget.existingListing!.category != null) {
-              _selectedCategory = _categories.firstWhere(
-                (c) => c.sId == widget.existingListing!.category!.sId,
-                orElse: () => _categories.first,
+              // Extract the ID safely
+              final String? categoryId = widget.existingListing!.category!.id;
+
+              _selectedCategory = rootCategories.firstWhere(
+                (c) => c.id == categoryId,
+                orElse: () => rootCategories.first,
               );
-            } else {
-              _selectedCategory = _categories.first;
+
+              // Use the new selectCategory logic to fetch subcategories
+              categoryController.selectCategory(_selectedCategory?.id).then((
+                _,
+              ) {
+                if (mounted && widget.existingListing!.subCategory != null) {
+                  final subId = widget.existingListing!.subCategory!;
+                  final subcategories = categoryController.subCategories;
+                  if (subcategories.isNotEmpty) {
+                    try {
+                      setState(() {
+                        _selectedSubCategory = subcategories.firstWhere(
+                          (s) => s.id == subId,
+                        );
+                      });
+                    } catch (_) {
+                      _selectedSubCategory = null;
+                    }
+                  }
+                }
+              });
+            } else if (_selectedCategory == null) {
+              _selectedCategory = rootCategories.first;
+              categoryController.selectCategory(_selectedCategory?.id);
             }
           }
         });
@@ -181,14 +216,11 @@ class _ProviderCreateListingScreenState
     _locationController.dispose();
     _addressController.dispose();
     _countryController.dispose();
-    _subCategoryController.dispose();
     _durationController.dispose();
     _equipmentController.dispose();
-    _hourlyRateController.dispose();
-    _weekdayRateController.dispose();
-    _weekendRateController.dispose();
+    _weekdayHourlyRateController.dispose();
+    _weekendHourlyRateController.dispose();
     _dailyRateController.dispose();
-    _weekendDailyRateController.dispose();
     _dailyHoursController.dispose();
     for (var controller in _packageControllers) {
       controller.dispose();
@@ -261,11 +293,20 @@ class _ProviderCreateListingScreenState
 
     // 2. Pricing & Duration Specifics
     if (_selectedPricingModel == 'By Hour') {
-      if (_hourlyRateController.text.trim().isEmpty) {
+      if (_weekdayHourlyRateController.text.trim().isEmpty) {
         if (showErrors)
           CustomSnackBar.show(
             context: context,
-            message: "Hourly rate is required",
+            message: "Weekday hourly rate is required",
+            isError: true,
+          );
+        return false;
+      }
+      if (_weekendHourlyRateController.text.trim().isEmpty) {
+        if (showErrors)
+          CustomSnackBar.show(
+            context: context,
+            message: "Weekend hourly rate is required",
             isError: true,
           );
         return false;
@@ -285,6 +326,15 @@ class _ProviderCreateListingScreenState
           CustomSnackBar.show(
             context: context,
             message: "Daily rate is required",
+            isError: true,
+          );
+        return false;
+      }
+      if (_dailyHoursController.text.trim().isEmpty) {
+        if (showErrors)
+          CustomSnackBar.show(
+            context: context,
+            message: "Daily hours is required",
             isError: true,
           );
         return false;
@@ -369,7 +419,7 @@ class _ProviderCreateListingScreenState
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
       category: _selectedCategory,
-      subCategory: _subCategoryController.text.trim(),
+      subCategory: _selectedSubCategory?.id,
       tags: _selectedServiceTypes,
       equipment: _equipment,
       pricingType: _selectedPricingModel == 'By Hour'
@@ -380,7 +430,7 @@ class _ProviderCreateListingScreenState
       price:
           int.tryParse(
             _selectedPricingModel == 'By Hour'
-                ? _hourlyRateController.text
+                ? _weekdayHourlyRateController.text
                 : _selectedPricingModel == 'By Day'
                 ? _dailyRateController.text
                 : (_packageControllers.isNotEmpty
@@ -411,8 +461,16 @@ class _ProviderCreateListingScreenState
       isVerified: widget.existingListing?.isVerified ?? false,
     );
 
-    // Setup pricing model for DAILY or PACKAGE
-    if (_selectedPricingModel == 'By Day') {
+    // Setup pricing model for HOURLY, DAILY or PACKAGE
+    if (_selectedPricingModel == 'By Hour') {
+      serviceData.pricingModel = PricingModel(
+        type: "HOURLY",
+        weekdayHourlyRate:
+            double.tryParse(_weekdayHourlyRateController.text) ?? 0,
+        weekendHourlyRate:
+            double.tryParse(_weekendHourlyRateController.text) ?? 0,
+      );
+    } else if (_selectedPricingModel == 'By Day') {
       serviceData.pricingModel = PricingModel(
         type: "DAILY",
         dailyRate: double.tryParse(_dailyRateController.text),
@@ -495,116 +553,123 @@ class _ProviderCreateListingScreenState
       ),
       body: _isLoadingCategories
           ? const Center(child: CircularProgressIndicator())
-          : Form(
-              key: _formKey,
-              child: ListView(
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-                children: [
-                  _buildSectionTitle('Basic Information'),
-                  _buildLabel('Listing Title'),
-                  _buildTextField(
-                    _titleController,
-                    'e.g. Professional Portrait Shoot',
-                    errorText: context
-                        .watch<ServiceController>()
-                        .fieldErrors['title'],
+          : RefreshIndicator(
+              onRefresh: () async {
+                await _fetchCategories();
+              },
+              color: Colors.black,
+              child: Form(
+                key: _formKey,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 10.h,
                   ),
-                  SizedBox(height: 15.h),
-                  _buildLabel('Category'),
-                  _buildCategoryDropdown(),
-                  SizedBox(height: 15.h),
-                  _buildLabel('Sub-Category'),
-                  _buildTextField(
-                    _subCategoryController,
-                    'e.g. Wedding, Event, Portrait',
-                    errorText: context
-                        .watch<ServiceController>()
-                        .fieldErrors['subCategory'],
-                  ),
-                  SizedBox(height: 15.h),
-                  _buildLabel('Service Type'),
-                  _buildServiceTypeDropdown(),
-                  SizedBox(height: 15.h),
-                  _buildLabel('Description'),
-                  _buildTextField(
-                    _descriptionController,
-                    'Tell clients about your service (min 10 characters)...',
-                    maxLines: 4,
-                    errorText:
-                        _descriptionController.text.isNotEmpty &&
-                            _descriptionController.text.length < 10
-                        ? 'Description must be at least 10 characters'
-                        : context
-                              .watch<ServiceController>()
-                              .fieldErrors['description'],
-                  ),
-
-                  SizedBox(height: 30.h),
-                  _buildSectionTitle('Pricing & Duration'),
-                  _buildPricingToggle(),
-                  SizedBox(height: 20.h),
-                  _buildPricingFields(),
-
-                  SizedBox(height: 30.h),
-                  _buildSectionTitle('Location & Radius'),
-                  _buildLabel('Location Type'),
-                  _buildLocationTypeDropdown(),
-                  SizedBox(height: 15.h),
-                  _buildLabel('Country'),
-                  _buildTextField(_countryController, 'e.g. Germany'),
-                  SizedBox(height: 15.h),
-                  _buildLabel('City'),
-                  _buildTextField(_locationController, 'e.g. Berlin'),
-                  SizedBox(height: 15.h),
-                  _buildLabel('Address'),
-                  _buildTextField(
-                    _addressController,
-                    'e.g. Street name, Number',
-                    errorText: context
-                        .watch<ServiceController>()
-                        .fieldErrors['location.address'],
-                  ),
-                  SizedBox(height: 15.h),
-                  _buildLabel('Service Radius: ${_serviceRadius.toInt()} km'),
-                  _buildRadiusSlider(),
-                  _buildAcceptOutsideRadiusToggle(),
-
-                  SizedBox(height: 30.h),
-                  _buildSectionTitle('More Details'),
-                  if (_selectedPricingModel != 'By Service') ...[
-                    _buildLabel('Duration (Hours)'),
-                    _buildDurationDropdown(
-                      _durationController,
-                      hint: 'Select duration',
+                  children: [
+                    _buildSectionTitle('Basic Information'),
+                    _buildLabel('Listing Title'),
+                    _buildTextField(
+                      _titleController,
+                      'e.g. Professional Portrait Shoot',
+                      errorText: context
+                          .watch<ServiceController>()
+                          .fieldErrors['title'],
                     ),
-                    if (context
-                            .watch<ServiceController>()
-                            .fieldErrors['duration'] !=
-                        null)
-                      Padding(
-                        padding: EdgeInsets.only(top: 4.h, left: 4.w),
-                        child: Text(
-                          context
-                              .watch<ServiceController>()
-                              .fieldErrors['duration']!,
-                          style: TextStyle(color: Colors.red, fontSize: 12.sp),
-                        ),
-                      ),
                     SizedBox(height: 15.h),
+                    _buildLabel('Category'),
+                    _buildCategoryDropdown(),
+                    SizedBox(height: 15.h),
+                    _buildLabel('Sub-Category'),
+                    _buildSubCategoryDropdown(),
+                    SizedBox(height: 15.h),
+                    _buildLabel('Service Type'),
+                    _buildServiceTypeDropdown(),
+                    SizedBox(height: 15.h),
+                    _buildLabel('Description'),
+                    _buildTextField(
+                      _descriptionController,
+                      'Tell clients about your service (min 10 characters)...',
+                      maxLines: 4,
+                      errorText:
+                          _descriptionController.text.isNotEmpty &&
+                              _descriptionController.text.length < 10
+                          ? 'Description must be at least 10 characters'
+                          : context
+                                .watch<ServiceController>()
+                                .fieldErrors['description'],
+                    ),
+
+                    SizedBox(height: 30.h),
+                    _buildSectionTitle('Pricing & Duration'),
+                    _buildPricingToggle(),
+                    SizedBox(height: 20.h),
+                    _buildPricingFields(),
+
+                    SizedBox(height: 30.h),
+                    _buildSectionTitle('Location & Radius'),
+                    _buildLabel('Location Type'),
+                    _buildLocationTypeDropdown(),
+                    SizedBox(height: 15.h),
+                    _buildLabel('Country'),
+                    _buildTextField(_countryController, 'e.g. Germany'),
+                    SizedBox(height: 15.h),
+                    _buildLabel('City'),
+                    _buildTextField(_locationController, 'e.g. Berlin'),
+                    SizedBox(height: 15.h),
+                    _buildLabel('Address'),
+                    _buildTextField(
+                      _addressController,
+                      'e.g. Street name, Number',
+                      errorText: context
+                          .watch<ServiceController>()
+                          .fieldErrors['location.address'],
+                    ),
+                    SizedBox(height: 15.h),
+                    _buildLabel('Service Radius: ${_serviceRadius.toInt()} km'),
+                    _buildRadiusSlider(),
+                    _buildAcceptOutsideRadiusToggle(),
+
+                    SizedBox(height: 30.h),
+                    _buildSectionTitle('More Details'),
+                    if (_selectedPricingModel != 'By Service') ...[
+                      _buildLabel('Duration (Hours)'),
+                      _buildDurationDropdown(
+                        _durationController,
+                        hint: 'Select duration',
+                      ),
+                      if (context
+                              .watch<ServiceController>()
+                              .fieldErrors['duration'] !=
+                          null)
+                        Padding(
+                          padding: EdgeInsets.only(top: 4.h, left: 4.w),
+                          child: Text(
+                            context
+                                .watch<ServiceController>()
+                                .fieldErrors['duration']!,
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 12.sp,
+                            ),
+                          ),
+                        ),
+                      SizedBox(height: 15.h),
+                    ],
+                    _buildLabel('Equipment (Optional)'),
+                    _buildEquipmentInput(),
+                    _buildEquipmentList(),
+
+                    SizedBox(height: 30.h),
+                    _buildSectionTitle('Portfolio Photos'),
+                    _buildPhotoUploadArea(),
+                    _buildSelectedImagesGrid(),
+
+                    SizedBox(height: 40.h),
+                    _buildFooterButtons(inProgress),
+                    SizedBox(height: 30.h),
                   ],
-                  _buildLabel('Equipment (Optional)'),
-                  _buildEquipmentInput(),
-                  _buildEquipmentList(),
-
-                  SizedBox(height: 30.h),
-                  _buildSectionTitle('Portfolio Photos'),
-                  _buildPhotoUploadArea(),
-                  _buildSelectedImagesGrid(),
-
-                  SizedBox(height: 40.h),
-                  _buildFooterButtons(inProgress),
-                  SizedBox(height: 30.h),
-                ],
+                ),
               ),
             ),
     );
@@ -687,6 +752,9 @@ class _ProviderCreateListingScreenState
   }
 
   Widget _buildCategoryDropdown() {
+    final categoryController = context.watch<CategoryController>();
+    final rootCategories = categoryController.rootCategories;
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       decoration: BoxDecoration(
@@ -695,20 +763,65 @@ class _ProviderCreateListingScreenState
         border: Border.all(color: const Color(0xFFE0E0E0)),
       ),
       child: DropdownButtonHideUnderline(
-        child: DropdownButton<Category>(
+        child: DropdownButton<CategoryModel>(
           value: _selectedCategory,
           dropdownColor: Colors.white,
           isExpanded: true,
           icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[400]),
-          onChanged: (Category? newValue) {
+          onChanged: (CategoryModel? newValue) {
             setState(() {
               _selectedCategory = newValue;
+              _selectedSubCategory = null;
             });
+            if (newValue != null) {
+              categoryController.selectCategory(newValue.id);
+            }
           },
-          items: _categories.map<DropdownMenuItem<Category>>((Category value) {
-            return DropdownMenuItem<Category>(
+          items: rootCategories.map<DropdownMenuItem<CategoryModel>>((
+            CategoryModel value,
+          ) {
+            return DropdownMenuItem<CategoryModel>(
               value: value,
-              child: Text(value.name ?? ''),
+              child: Text(value.name),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubCategoryDropdown() {
+    final categoryController = context.watch<CategoryController>();
+    final subcategories = categoryController.subCategories;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      decoration: BoxDecoration(
+        color: _selectedCategory == null ? Colors.grey[50] : Colors.white,
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: const Color(0xFFE0E0E0)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<CategoryModel>(
+          value: _selectedSubCategory,
+          dropdownColor: Colors.white,
+          isExpanded: true,
+          disabledHint: const Text('Select a category first'),
+          hint: const Text('Select Sub-Category (Optional)'),
+          icon: Icon(Icons.keyboard_arrow_down, color: Colors.grey[400]),
+          onChanged: _selectedCategory == null
+              ? null
+              : (CategoryModel? newValue) {
+                  setState(() {
+                    _selectedSubCategory = newValue;
+                  });
+                },
+          items: subcategories.map<DropdownMenuItem<CategoryModel>>((
+            CategoryModel value,
+          ) {
+            return DropdownMenuItem<CategoryModel>(
+              value: value,
+              child: Text(value.name),
             );
           }).toList(),
         ),
@@ -886,11 +999,22 @@ class _ProviderCreateListingScreenState
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildLabel('Hourly Rate (EUR)'),
+          _buildLabel('Weekday Hourly Rate (EUR)'),
           _buildTextField(
-            _hourlyRateController,
+            _weekdayHourlyRateController,
             'e.g. 50',
-            errorText: context.watch<ServiceController>().fieldErrors['price'],
+            errorText: context
+                .watch<ServiceController>()
+                .fieldErrors['weekdayHourlyRate'],
+          ),
+          SizedBox(height: 15.h),
+          _buildLabel('Weekend Hourly Rate (EUR)'),
+          _buildTextField(
+            _weekendHourlyRateController,
+            'e.g. 75',
+            errorText: context
+                .watch<ServiceController>()
+                .fieldErrors['weekendHourlyRate'],
           ),
         ],
       );

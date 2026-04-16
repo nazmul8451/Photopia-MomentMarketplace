@@ -126,11 +126,14 @@ class Listing {
     location = json['location'] != null
         ? new Location.fromJson(json['location'])
         : null;
-    coverMedia = json['coverMedia'] ?? 
-                 json['cover_media'] ?? 
-                 json['image'] ?? 
-                 (json['gallery'] != null && (json['gallery'] as List).isNotEmpty ? (json['gallery'] as List).first : null);
-    
+    coverMedia =
+        json['coverMedia'] ??
+        json['cover_media'] ??
+        json['image'] ??
+        (json['gallery'] != null && (json['gallery'] as List).isNotEmpty
+            ? (json['gallery'] as List).first
+            : null);
+
     status = json['status'];
     isActive = json['isActive'];
     pricingType = json['pricingType'];
@@ -170,14 +173,25 @@ class ListingPricingModel {
   String? type;
   double? dailyRate;
   int? dailyHours;
+  double? weekdayHourlyRate;
+  double? weekendHourlyRate;
   List<ListingPackage>? packages;
 
-  ListingPricingModel({this.type, this.dailyRate, this.dailyHours, this.packages});
+  ListingPricingModel({
+    this.type,
+    this.dailyRate,
+    this.dailyHours,
+    this.weekdayHourlyRate,
+    this.weekendHourlyRate,
+    this.packages,
+  });
 
   ListingPricingModel.fromJson(Map<String, dynamic> json) {
     type = json['type'];
     dailyRate = (json['dailyRate'] as num?)?.toDouble();
     dailyHours = json['dailyHours'];
+    weekdayHourlyRate = (json['weekdayHourlyRate'] as num?)?.toDouble();
+    weekendHourlyRate = (json['weekendHourlyRate'] as num?)?.toDouble();
     if (json['packages'] != null) {
       packages = <ListingPackage>[];
       json['packages'].forEach((v) {
@@ -191,6 +205,8 @@ class ListingPricingModel {
     data['type'] = this.type;
     data['dailyRate'] = this.dailyRate;
     data['dailyHours'] = this.dailyHours;
+    data['weekdayHourlyRate'] = this.weekdayHourlyRate;
+    data['weekendHourlyRate'] = this.weekendHourlyRate;
     if (this.packages != null) {
       data['packages'] = this.packages!.map((v) => v.toJson()).toList();
     }
@@ -200,7 +216,7 @@ class ListingPricingModel {
 
 class ListingPackage {
   String? name;
-  int? price;
+  double? price;
   int? duration;
   String? description;
   List<String>? includes;
@@ -215,10 +231,12 @@ class ListingPackage {
 
   ListingPackage.fromJson(Map<String, dynamic> json) {
     name = json['name'];
-    price = json['price'];
+    price = (json['price'] as num?)?.toDouble();
     duration = json['duration'];
     description = json['description'];
-    includes = json['includes'] != null ? List<String>.from(json['includes']) : null;
+    includes = json['includes'] != null
+        ? List<String>.from(json['includes'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {

@@ -1,3 +1,5 @@
+import 'package:photopia/data/models/category_model.dart';
+
 class ProviderServiceListModel {
   int? statusCode;
   bool? success;
@@ -71,7 +73,7 @@ class Data {
   ProviderId? providerId;
   String? title;
   String? description;
-  Category? category;
+  CategoryModel? category;
   String? subCategory;
   String? serviceType;
   List<String>? tags;
@@ -139,7 +141,7 @@ class Data {
     title = json['title'];
     description = json['description'];
     category = json['category'] != null
-        ? new Category.fromJson(json['category'])
+        ? CategoryModel.fromJson(json['category'])
         : null;
     subCategory = json['subCategory'];
     serviceType = json['serviceType'];
@@ -238,14 +240,25 @@ class PricingModel {
   String? type;
   double? dailyRate;
   int? dailyHours;
+  double? weekdayHourlyRate;
+  double? weekendHourlyRate;
   List<Packages>? packages;
 
-  PricingModel({this.type, this.dailyRate, this.dailyHours, this.packages});
+  PricingModel({
+    this.type,
+    this.dailyRate,
+    this.dailyHours,
+    this.weekdayHourlyRate,
+    this.weekendHourlyRate,
+    this.packages,
+  });
 
   PricingModel.fromJson(Map<String, dynamic> json) {
     type = json['type'];
     dailyRate = (json['dailyRate'] as num?)?.toDouble();
     dailyHours = json['dailyHours'];
+    weekdayHourlyRate = (json['weekdayHourlyRate'] as num?)?.toDouble();
+    weekendHourlyRate = (json['weekendHourlyRate'] as num?)?.toDouble();
     if (json['packages'] != null) {
       packages = <Packages>[];
       json['packages'].forEach((v) {
@@ -259,6 +272,8 @@ class PricingModel {
     data['type'] = this.type;
     data['dailyRate'] = this.dailyRate;
     data['dailyHours'] = this.dailyHours;
+    data['weekdayHourlyRate'] = this.weekdayHourlyRate;
+    data['weekendHourlyRate'] = this.weekendHourlyRate;
     if (this.packages != null) {
       data['packages'] = this.packages!.map((v) => v.toJson()).toList();
     }
@@ -355,37 +370,6 @@ class ProviderId {
     data['name'] = this.name;
     data['email'] = this.email;
     data['profile'] = this.profile;
-    data['id'] = this.id;
-    return data;
-  }
-}
-
-class Category {
-  String? sId;
-  String? name;
-  String? description;
-  String? image;
-  String? serviceType;
-  String? id;
-
-  Category({this.sId, this.name, this.description, this.image, this.serviceType, this.id});
-
-  Category.fromJson(Map<String, dynamic> json) {
-    sId = json['_id'];
-    name = json['name'];
-    description = json['description'];
-    image = json['image'];
-    serviceType = json['serviceType'];
-    id = json['id'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.sId;
-    data['name'] = this.name;
-    data['description'] = this.description;
-    data['image'] = this.image;
-    data['serviceType'] = this.serviceType;
     data['id'] = this.id;
     return data;
   }
