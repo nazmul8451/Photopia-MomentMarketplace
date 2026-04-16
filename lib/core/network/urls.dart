@@ -57,6 +57,8 @@ class Urls {
 
   //** user service */
   static const String userService = '';
+  static const String home = '$baseUrl/api/v1/home';
+  static const String inspiration = '$baseUrl/api/v1/inspiration';
 
   static const String getMyNotification = '$baseUrl/api/v1/notifications/my';
   static const String getNotificationStats = '$baseUrl/api/v1/notifications/stats';

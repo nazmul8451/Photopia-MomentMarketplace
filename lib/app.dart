@@ -20,6 +20,7 @@ import 'package:photopia/controller/provider/my_listing_controller.dart';
 import 'package:photopia/controller/client/service_list_controller.dart';
 import 'package:photopia/controller/provider/provider_orders_controller.dart';
 import 'package:photopia/controller/client/provider_details_controller.dart';
+import 'package:photopia/controller/client/home_controller.dart';
 import 'package:photopia/controller/common/bottom_nav_controller.dart';
 import 'package:photopia/controller/client/review_controller.dart';
 import 'package:photopia/controller/provider/wallet_controller.dart';
@@ -78,6 +79,7 @@ class _PhotopiaState extends State<Photopia> {
             ChangeNotifierProvider(create: (_) => MyListingController()),
             ChangeNotifierProvider(create: (_) => ServiceController()),
             ChangeNotifierProvider(create: (_) => ServiceListController()),
+            ChangeNotifierProvider(create: (_) => HomeController()),
             ChangeNotifierProvider(create: (_) => BottomNavController()),
             ChangeNotifierProvider(create: (_) => CategoryController()),
             ChangeNotifierProvider(

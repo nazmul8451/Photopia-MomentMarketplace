@@ -9,6 +9,7 @@ import 'package:photopia/core/utils/guest_dialog_helper.dart';
 import 'package:photopia/core/widgets/custom_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:photopia/features/client/widgets/service_card.dart';
+import 'package:photopia/features/client/search_result_screen.dart';
 import 'dart:ui';
 
 class HorizontalProjectCard extends StatefulWidget {
@@ -20,6 +21,7 @@ class HorizontalProjectCard extends StatefulWidget {
   final bool isAvailable;
   final dynamic id;
   final dynamic providerId;
+  final List<String>? tags;
   final VoidCallback? onTap;
 
   const HorizontalProjectCard({
@@ -32,6 +34,7 @@ class HorizontalProjectCard extends StatefulWidget {
     this.isAvailable = false,
     this.id,
     this.providerId,
+    this.tags,
     this.onTap,
   });
 
@@ -284,6 +287,39 @@ class _HorizontalProjectCardState extends State<HorizontalProjectCard> {
                             ),
                           ),
                       ],
+                    ),
+                  ],
+                  if (widget.tags != null && widget.tags!.isNotEmpty) ...[
+                    SizedBox(height: 6.h),
+                    Wrap(
+                      spacing: 4.w,
+                      runSpacing: 4.h,
+                      children: widget.tags!.take(3).map((tag) {
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => SearchResultScreen(
+                                  filters: {'tags': tag},
+                                ),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(6.r),
+                            ),
+                            child: Text(
+                              '#$tag',
+                              style: TextStyle(fontSize: 9.sp, color: Colors.black54),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ],
                 ],

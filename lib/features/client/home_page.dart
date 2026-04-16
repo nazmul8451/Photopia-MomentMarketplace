@@ -3,16 +3,20 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:photopia/controller/client/service_list_controller.dart';
 import 'package:photopia/controller/client/notification_controller.dart';
 import 'package:photopia/controller/location_controller.dart';
+import 'package:photopia/controller/client/home_controller.dart';
 import 'package:photopia/data/models/service_list_model.dart';
+import 'package:photopia/data/models/home_data_model.dart';
 import 'package:photopia/features/client/widgets/home_header.dart';
 import 'package:photopia/features/client/widgets/category_bar.dart';
 import 'package:photopia/features/client/widgets/section_header.dart';
 import 'package:photopia/features/client/widgets/horizontal_project_card.dart';
 import 'package:photopia/features/client/category_details_screen.dart';
 import 'package:photopia/features/client/service_details_screen.dart';
+import 'package:photopia/features/client/search_result_screen.dart';
 import 'package:flutter/services.dart';
 import 'package:photopia/features/client/widgets/shimmer_skeletons.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:photopia/controller/category_controller.dart';
 
@@ -26,37 +30,29 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String? _selectedCategoryId;
   final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    // Load services from API
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final controller = context.read<ServiceListController>();
-      if (controller.services.isEmpty) {
-        controller.getAllServices();
+      final homeController = context.read<HomeController>();
+      if (homeController.homeData == null) {
+        homeController.fetchHomeData();
       }
       context.read<CategoryController>().getAllCategories();
       context.read<LocationController>().determinePosition();
       context.read<NotificationController>().fetchNotificationStats();
+      
+      // Also fetch ServiceList in background to allow standard list tabs if needed
+      context.read<ServiceListController>().getAllServices(refresh: false);
     });
-
-    _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200) {
-      // Load more content here
-    }
   }
 
   void _navigateToCategoryDetails(BuildContext context) {
@@ -73,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _buildHorizontalSection({
+  Widget _buildHorizontalServiceSection({
     required String title,
     required List<ServiceItem> items,
     bool showAvailability = false,
@@ -85,10 +81,10 @@ class _MyHomePageState extends State<MyHomePage> {
       children: [
         SectionHeader(
           title: title,
-          onSeeAllTap: () => _navigateToCategoryDetails(context),
+          onSeeAllTap: () {},
         ),
         SizedBox(
-          height: 230.h,
+          height: 260.h,
           child: ListView.builder(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 5.h),
             scrollDirection: Axis.horizontal,
@@ -104,6 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 providerName: item.providerId?.name ?? 'Unknown Provider',
                 rating: item.rating,
                 price: item.price,
+                tags: item.tags,
                 isAvailable: showAvailability && (item.isActive ?? false),
                 onTap: () => _navigateToServiceDetails(context, item),
               );
@@ -113,6 +110,342 @@ class _MyHomePageState extends State<MyHomePage> {
       ],
     );
   }
+
+  Widget _buildRecentlyViewed(List<RecentlyViewedItem>? items) {
+    if (items == null || items.isEmpty) return const SizedBox.shrink();
+    
+    // Extract services
+    final validServices = items
+        .where((i) => i.serviceId != null)
+        .map((i) => i.serviceId!)
+        .toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(title: 'Recently Viewed', onSeeAllTap: (){}),
+        SizedBox(
+          height: 260.h,
+          child: ListView.builder(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 5.h),
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: validServices.length,
+            itemBuilder: (context, index) {
+              final item = validServices[index];
+              return HorizontalProjectCard(
+                id: item.sId,
+                providerId: item.providerId?.sId,
+                imageUrl: item.coverMedia ?? '',
+                title: item.title ?? 'No Title',
+                providerName: item.providerId?.name ?? 'Provider',
+                rating: item.rating,
+                price: item.price,
+                tags: item.tags,
+                isAvailable: false,
+                onTap: () => _navigateToServiceDetails(context, item),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInspirations(List<Inspiration>? items) {
+    if (items == null || items.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(title: 'Get Inspired', onSeeAllTap: (){}),
+        SizedBox(
+          height: 120.h,
+          child: ListView.builder(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final item = items[index];
+              return Container(
+                width: 200.w,
+                margin: EdgeInsets.only(right: 12.w),
+                padding: EdgeInsets.all(16.w),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.black87, Colors.black54],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.icon ?? '💡',
+                      style: TextStyle(fontSize: 24.sp),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      item.title ?? 'Idea',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4.h),
+                    Text(
+                      item.description ?? '',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12.sp,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSuperPros(List<SuperPro>? items) {
+    if (items == null || items.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(title: 'Super Pros', onSeeAllTap: (){}),
+        SizedBox(
+          height: 140.h,
+          child: ListView.builder(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final pro = items[index];
+              return Container(
+                width: 110.w,
+                margin: EdgeInsets.only(right: 12.w),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                padding: EdgeInsets.all(12.w),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Stack(
+                      alignment: Alignment.bottomRight,
+                      children: [
+                        CircleAvatar(
+                          radius: 30.r,
+                          backgroundColor: Colors.grey.shade200,
+                          backgroundImage: pro.user?.profile != null 
+                              ? CachedNetworkImageProvider(pro.user!.profile!)
+                              : null,
+                          child: pro.user?.profile == null
+                              ? Icon(Icons.person, color: Colors.grey)
+                              : null,
+                        ),
+                        if (pro.isSuperPro == true)
+                          Container(
+                            padding: EdgeInsets.all(4.w),
+                            decoration: BoxDecoration(
+                              color: Colors.orange,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
+                            child: Icon(Icons.star, color: Colors.white, size: 10.sp),
+                          ),
+                      ],
+                    ),
+                    SizedBox(height: 10.h),
+                    Text(
+                      pro.user?.name ?? 'Pro',
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4.h),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.star_rounded, color: Colors.orange, size: 14.sp),
+                        SizedBox(width: 4.w),
+                        Text(
+                          pro.rating?.toStringAsFixed(1) ?? '5.0',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStylesTags(BuildContext context, List<String>? styles) {
+    if (styles == null || styles.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Explore Styles',
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 10.h),
+          Wrap(
+            spacing: 8.w,
+            runSpacing: 8.h,
+            children: styles.map((style) {
+              return Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20.r),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => SearchResultScreen(
+                          filters: {'theme': style},
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Text(
+                      style,
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPopularLocations(List<PopularLocation>? locs) {
+    if (locs == null || locs.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(title: 'Top Cities', onSeeAllTap: (){}),
+        SizedBox(
+          height: 140.h,
+          child: ListView.builder(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: locs.length,
+            itemBuilder: (context, index) {
+              final loc = locs[index];
+              return Container(
+                width: 140.w,
+                margin: EdgeInsets.only(right: 12.w),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16.r),
+                  color: Colors.grey.shade200,
+                  image: loc.image != null ? DecorationImage(
+                    image: CachedNetworkImageProvider(loc.image!),
+                    fit: BoxFit.cover,
+                  ) : null,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16.r),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Colors.black.withOpacity(0.7)],
+                    ),
+                  ),
+                  padding: EdgeInsets.all(12.w),
+                  alignment: Alignment.bottomLeft,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        loc.id ?? 'City',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                      ),
+                      Text(
+                        '${loc.count ?? 0} Pros',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 11.sp,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -149,15 +482,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const HomeHeader(),
+                      // Category Bar relies on ServiceListController for filtering
                       CategoryBar(
                         isLoading: serviceListController.isLoading,
                         selectedCategoryId: context
                             .watch<CategoryController>()
                             .selectedCategoryId,
                         onCategorySelected: (categoryId) {
-                          context.read<CategoryController>().selectCategory(
-                            categoryId,
-                          );
+                          context.read<CategoryController>().selectCategory(categoryId);
                           serviceListController.getAllServices(
                             filters: {'category': categoryId},
                           );
@@ -169,135 +501,49 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
               ),
             ),
-            // Scrollable Content with Horizontal Sections
+            // Scrollable Dynamic Home Content
             Expanded(
-              child: Consumer<ServiceListController>(
-                builder: (context, serviceListController, child) {
-                  if (serviceListController.isLoading &&
-                      serviceListController.services.isEmpty) {
+              child: Consumer<HomeController>(
+                builder: (context, homeController, child) {
+                  if (homeController.isLoading && homeController.homeData == null) {
                     return const HomeShimmer();
                   }
 
-                  // ─── Error State ────────────────────────────────────────────
-                  if (serviceListController.errorMessage != null &&
-                      serviceListController.services.isEmpty) {
-                    return Center(
+                  if (homeController.errorMessage != null && homeController.homeData == null) {
+                     return Center(
                       child: Padding(
                         padding: EdgeInsets.all(32.w),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.wifi_off_rounded,
-                              size: 60.sp,
-                              color: Colors.grey.shade300,
-                            ),
+                            Icon(Icons.wifi_off_rounded, size: 60.sp, color: Colors.grey.shade300),
                             SizedBox(height: 16.h),
                             Text(
-                              'Unable to load services',
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            SizedBox(height: 8.h),
-                            Text(
-                              'Please check your internet connection and try again.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13.sp,
-                                color: Colors.grey,
-                              ),
+                              'Unable to load home',
+                              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                             ),
                             SizedBox(height: 24.h),
-                            GestureDetector(
-                              onTap: () =>
-                                  serviceListController.getAllServices(),
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 28.w,
-                                  vertical: 12.h,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.black,
-                                  borderRadius: BorderRadius.circular(10.r),
-                                ),
-                                child: Text(
-                                  'Try Again',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
+                            ElevatedButton(
+                              onPressed: () => homeController.fetchHomeData(),
+                              child: Text('Try Again'),
+                            )
                           ],
                         ),
                       ),
                     );
                   }
 
-                  final services = serviceListController.services;
-
-                  // ─── Empty State ─────────────────────────────────────────────
-                  if (services.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(32.w),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.search_off_rounded,
-                              size: 60.sp,
-                              color: Colors.grey.shade300,
-                            ),
-                            SizedBox(height: 16.h),
-                            Text(
-                              'No services available',
-                              style: TextStyle(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 8.h),
-                            Text(
-                              'No services found at the moment. Pull down to refresh.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 13.sp,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
+                  final data = homeController.homeData;
+                  if (data == null) {
+                    return const Center(child: Text('No Data'));
                   }
-
-                  // Distribute data
-                  final originalProjects = services.take(6).toList();
-                  final availableNow = services
-                      .where((s) => s.isActive == true)
-                      .toList();
-                  final trendingProjects = [...services]
-                    ..sort((a, b) => (b.rating ?? 0).compareTo(a.rating ?? 0));
 
                   return RefreshIndicator(
                     color: Colors.black,
                     backgroundColor: Colors.white,
                     onRefresh: () async {
-                      final categoryCtrl = context.read<CategoryController>();
-                      await Future.wait([
-                        serviceListController.getAllServices(
-                          filters: {
-                            'category': categoryCtrl.selectedCategoryId,
-                          },
-                        ),
-                        categoryCtrl.getAllCategories(),
-                      ]);
+                      await homeController.fetchHomeData();
+                      context.read<CategoryController>().getAllCategories();
                     },
                     child: SingleChildScrollView(
                       controller: _scrollController,
@@ -305,29 +551,73 @@ class _MyHomePageState extends State<MyHomePage> {
                         parent: BouncingScrollPhysics(),
                       ),
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: 10.h),
-                          // Original Projects Section
-                          _buildHorizontalSection(
-                            title: 'Original Projects',
-                            items: originalProjects,
-                          ),
+                          
+                          // Inspirations
+                          if (data.inspirations != null && data.inspirations!.isNotEmpty)
+                            Column(
+                              children: [
+                                _buildInspirations(data.inspirations),
+                                SizedBox(height: 20.h),
+                              ],
+                            ),
+
+                          // Original Projects
+                          if (data.originalProjects != null)
+                             _buildHorizontalServiceSection(
+                              title: 'Original Projects',
+                              items: data.originalProjects!,
+                            ),
+
                           SizedBox(height: 10.h),
-                          // Available Right Now Section
-                          _buildHorizontalSection(
-                            title: 'Available Right Now',
-                            items: availableNow,
-                            showAvailability: true,
-                          ),
+
+                          // Recently Viewed
+                          if (data.recentlyViewed != null && data.recentlyViewed!.isNotEmpty)
+                             Column(
+                               children: [
+                                 _buildRecentlyViewed(data.recentlyViewed),
+                                 SizedBox(height: 10.h),
+                               ],
+                             ),
+
+                          // Available Right Now
+                          if (data.availableNow != null)
+                            _buildHorizontalServiceSection(
+                              title: 'Available Right Now',
+                              items: data.availableNow!,
+                              showAvailability: true,
+                            ),
+
                           SizedBox(height: 10.h),
-                          // Trending Projects Section
-                          _buildHorizontalSection(
-                            title: 'Trending Projects',
-                            items: trendingProjects,
-                          ),
-                          SizedBox(
-                            height: 100.h,
-                          ), // Bottom padding for navigation bar
+                          
+                          // Super Pros
+                          if (data.superPros != null && data.superPros!.isNotEmpty)
+                             Column(
+                               children: [
+                                 _buildSuperPros(data.superPros),
+                                 SizedBox(height: 10.h),
+                               ],
+                             ),
+
+                          // Trending Projects / Subcategories
+                          // Assuming we map subcategories textually or map them to visual blocks
+                          // Or we fallback to styles
+                          _buildStylesTags(context, data.styles),
+
+                          SizedBox(height: 10.h),
+
+                          // Popular Locations
+                          if (data.popularLocations != null && data.popularLocations!.isNotEmpty)
+                             Column(
+                               children: [
+                                 _buildPopularLocations(data.popularLocations),
+                                 SizedBox(height: 10.h),
+                               ],
+                             ),
+
+                          SizedBox(height: 100.h), // Bottom padding for navigation bar
                         ],
                       ),
                     ),

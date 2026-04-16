@@ -194,18 +194,18 @@ class ServiceItem {
   factory ServiceItem.fromJson(Map<String, dynamic> json) {
     return ServiceItem(
       sId: json['_id'],
-      providerId: json['providerId'] != null
+      providerId: json['providerId'] is Map
           ? ProviderInfo.fromJson(json['providerId'])
           : null,
       title: json['title'],
-      category: json['category'] != null
+      category: json['category'] is Map
           ? CategoryModel.fromJson(json['category'])
           : null,
       subCategory: json['subCategory']?.toString(),
-      price: json['price'],
+      price: (json['price'] as num?)?.toInt(),
       currency: json['currency'],
-      duration: json['duration'],
-      location: json['location'] != null
+      duration: json['duration']?.toString(),
+      location: json['location'] is Map
           ? LocationInfo.fromJson(json['location'])
           : null,
       coverMedia: _formatUrl(
@@ -239,7 +239,7 @@ class ServiceItem {
       serviceType: json['serviceType']?.toString(),
       theme: json['theme']?.toString(),
       pricingType: json['pricingType']?.toString(),
-      pricingModel: json['pricingModel'] != null
+      pricingModel: json['pricingModel'] is Map
           ? ServicePricingModel.fromJson(json['pricingModel'])
           : null,
       pricingRules: json['pricingRules'] != null
@@ -247,13 +247,13 @@ class ServiceItem {
                 .map((r) => PricingRule.fromJson(r))
                 .toList()
           : null,
-      cancellationPolicy: json['cancellationPolicy'] != null
+      cancellationPolicy: json['cancellationPolicy'] is Map
           ? CancellationPolicy.fromJson(json['cancellationPolicy'])
           : null,
       travelFeePerKm: (json['travelFeePerKm'] as num?)?.toDouble(),
       allowOutsideRadius: json['allowOutsideRadius'] ?? false,
       maxTravelFee: (json['maxTravelFee'] as num?)?.toDouble(),
-      depositPercentage: json['depositPercentage'] ?? 50,
+      depositPercentage: (json['depositPercentage'] as num?)?.toInt() ?? 50,
     );
   }
 
@@ -327,7 +327,7 @@ class ServicePricingModel {
     return ServicePricingModel(
       type: json['type'],
       dailyRate: (json['dailyRate'] as num?)?.toDouble(),
-      dailyHours: json['dailyHours'],
+      dailyHours: (json['dailyHours'] as num?)?.toInt(),
       weekdayHourlyRate: (json['weekdayHourlyRate'] as num?)?.toDouble(),
       weekendHourlyRate: (json['weekendHourlyRate'] as num?)?.toDouble(),
       packages: json['packages'] != null
@@ -367,7 +367,7 @@ class ServicePackage {
     return ServicePackage(
       name: json['name'],
       price: (json['price'] as num?)?.toDouble(),
-      duration: json['duration'],
+      duration: (json['duration'] as num?)?.toInt(),
       description: json['description'],
       includes: json['includes'] != null
           ? List<String>.from(json['includes'])
@@ -511,7 +511,7 @@ class LocationInfo {
       country: json['country'],
       city: json['city'],
       address: json['address'],
-      serviceRadiusKm: json['serviceRadiusKm'],
+      serviceRadiusKm: (json['serviceRadiusKm'] as num?)?.toInt(),
     );
   }
 
