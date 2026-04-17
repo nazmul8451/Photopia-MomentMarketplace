@@ -75,7 +75,6 @@ class _HorizontalProjectCardState extends State<HorizontalProjectCard> {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
           children: [
             // Image Section
             Stack(
@@ -228,101 +227,105 @@ class _HorizontalProjectCardState extends State<HorizontalProjectCard> {
               ],
             ),
             // Content Section
-            Padding(
-              padding: EdgeInsets.all(8.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.title,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(8.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.title,
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 4.h),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.person_outline,
-                        size: 12.sp,
-                        color: Colors.grey[600],
-                      ),
-                      SizedBox(width: 4.w),
-                      Expanded(
-                        child: Text(
-                          widget.providerName,
-                          style: TextStyle(
-                            fontSize: 11.sp,
-                            color: Colors.grey[600],
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (widget.rating != null || widget.price != null) ...[
                     SizedBox(height: 4.h),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        RatingInfoWidget(
-                          providerId: widget.providerId?.toString(),
-                          initialRating: widget.rating ?? 0.0,
-                          initialReviews: 0,
-                          starSize: 12.sp,
-                          fontSize: 11.sp,
+                        Icon(
+                          Icons.person_outline,
+                          size: 12.sp,
+                          color: Colors.grey[600],
                         ),
-                        if (widget.price != null)
-                          Text(
-                            '€${widget.price}',
+                        SizedBox(width: 4.w),
+                        Expanded(
+                          child: Text(
+                            widget.providerName,
                             style: TextStyle(
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
+                              fontSize: 11.sp,
+                              color: Colors.grey[600],
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
+                        ),
                       ],
                     ),
-                  ],
-                  if (widget.tags != null && widget.tags!.isNotEmpty) ...[
-                    SizedBox(height: 6.h),
-                    Wrap(
-                      spacing: 4.w,
-                      runSpacing: 4.h,
-                      children: widget.tags!.take(3).map((tag) {
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => SearchResultScreen(
-                                  filters: {'tags': tag},
+                    // Tags in the middle as requested
+                    if (widget.tags != null && widget.tags!.isNotEmpty) ...[
+                      SizedBox(height: 6.h),
+                      Wrap(
+                        spacing: 4.w,
+                        runSpacing: 4.h,
+                        children: widget.tags!.take(3).map((tag) {
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => SearchResultScreen(
+                                    filters: {'tags': tag},
+                                  ),
                                 ),
+                              );
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(6.r),
                               ),
-                            );
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(6.r),
+                              child: Text(
+                                '#$tag',
+                                style: TextStyle(fontSize: 9.sp, color: Colors.black54),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                            child: Text(
-                              '#$tag',
-                              style: TextStyle(fontSize: 9.sp, color: Colors.black54),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                    // Spacer to push price and ratings to the bottom
+                    const Spacer(),
+                    if (widget.rating != null || widget.price != null) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          RatingInfoWidget(
+                            providerId: widget.providerId?.toString(),
+                            initialRating: widget.rating ?? 0.0,
+                            initialReviews: 0,
+                            starSize: 12.sp,
+                            fontSize: 11.sp,
                           ),
-                        );
-                      }).toList(),
-                    ),
+                          if (widget.price != null)
+                            Text(
+                              '€${widget.price}',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ],
