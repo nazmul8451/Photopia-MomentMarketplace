@@ -383,15 +383,17 @@ class _ProviderCreateListingScreenState
                 : _selectedPricingModel == 'By Day'
                 ? _dailyRateController.text
                 : (_packageControllers.isNotEmpty
-                      ? (_packageControllers.first.price.text.isEmpty ? '0' : _packageControllers.first.price.text)
+                      ? (_packageControllers.first.price.text.isEmpty
+                            ? '0'
+                            : _packageControllers.first.price.text)
                       : '0'),
           ) ??
           0,
       currency: "EUR",
       duration: (int.tryParse(_durationController.text) ?? 1).toString(),
-      serviceType: _normalizeServiceType(_selectedServiceTypes.isNotEmpty
-          ? _selectedServiceTypes.first
-          : ""),
+      serviceType: _normalizeServiceType(
+        _selectedServiceTypes.isNotEmpty ? _selectedServiceTypes.first : "",
+      ),
       location: Location(
         type: _selectedLocationType == 'Remote'
             ? 'REMOTE'
@@ -521,26 +523,38 @@ class _ProviderCreateListingScreenState
                     _buildTextField(
                       _titleController,
                       'e.g. Professional Portrait Shoot',
-                      errorText: _localFieldErrors['title'] ??
-                          context.watch<ServiceController>().fieldErrors['title'],
+                      errorText:
+                          _localFieldErrors['title'] ??
+                          context
+                              .watch<ServiceController>()
+                              .fieldErrors['title'],
                     ),
                     SizedBox(height: 15.h),
                     _buildLabel('Category'),
                     _buildCategoryDropdown(
-                      errorText: _localFieldErrors['category'] ??
-                          context.watch<ServiceController>().fieldErrors['category'],
+                      errorText:
+                          _localFieldErrors['category'] ??
+                          context
+                              .watch<ServiceController>()
+                              .fieldErrors['category'],
                     ),
                     SizedBox(height: 15.h),
                     _buildLabel('Sub-Category'),
                     _buildSubCategoryDropdown(
-                      errorText: _localFieldErrors['subCategory'] ??
-                          context.watch<ServiceController>().fieldErrors['subCategory'],
+                      errorText:
+                          _localFieldErrors['subCategory'] ??
+                          context
+                              .watch<ServiceController>()
+                              .fieldErrors['subCategory'],
                     ),
                     SizedBox(height: 15.h),
                     _buildLabel('Service Type'),
                     _buildServiceTypeDropdown(
-                      errorText: _localFieldErrors['serviceType'] ??
-                          context.watch<ServiceController>().fieldErrors['serviceType'],
+                      errorText:
+                          _localFieldErrors['serviceType'] ??
+                          context
+                              .watch<ServiceController>()
+                              .fieldErrors['serviceType'],
                     ),
                     SizedBox(height: 15.h),
                     _buildLabel('Description'),
@@ -548,13 +562,14 @@ class _ProviderCreateListingScreenState
                       _descriptionController,
                       'Tell clients about your service (min 10 characters)...',
                       maxLines: 4,
-                      errorText: _localFieldErrors['description'] ??
+                      errorText:
+                          _localFieldErrors['description'] ??
                           (_descriptionController.text.isNotEmpty &&
                                   _descriptionController.text.length < 10
                               ? 'Description must be at least 10 characters'
                               : context
-                                  .watch<ServiceController>()
-                                  .fieldErrors['description']),
+                                    .watch<ServiceController>()
+                                    .fieldErrors['description']),
                     ),
 
                     SizedBox(height: 30.h),
@@ -572,24 +587,33 @@ class _ProviderCreateListingScreenState
                     _buildTextField(
                       _countryController,
                       'e.g. Germany',
-                      errorText: _localFieldErrors['country'] ??
-                          context.watch<ServiceController>().fieldErrors['location.country'],
+                      errorText:
+                          _localFieldErrors['country'] ??
+                          context
+                              .watch<ServiceController>()
+                              .fieldErrors['location.country'],
                     ),
                     SizedBox(height: 15.h),
                     _buildLabel('City'),
                     _buildTextField(
                       _locationController,
                       'e.g. Berlin',
-                      errorText: _localFieldErrors['city'] ??
-                          context.watch<ServiceController>().fieldErrors['location.city'],
+                      errorText:
+                          _localFieldErrors['city'] ??
+                          context
+                              .watch<ServiceController>()
+                              .fieldErrors['location.city'],
                     ),
                     SizedBox(height: 15.h),
                     _buildLabel('Address'),
                     _buildTextField(
                       _addressController,
                       'e.g. Street name, Number',
-                      errorText: _localFieldErrors['address'] ??
-                          context.watch<ServiceController>().fieldErrors['location.address'],
+                      errorText:
+                          _localFieldErrors['address'] ??
+                          context
+                              .watch<ServiceController>()
+                              .fieldErrors['location.address'],
                     ),
                     SizedBox(height: 15.h),
                     _buildLabel('Service Radius: ${_serviceRadius.toInt()} km'),
@@ -600,12 +624,15 @@ class _ProviderCreateListingScreenState
                     _buildSectionTitle('More Details'),
                     if (_selectedPricingModel != 'By Service') ...[
                       _buildLabel('Duration (Hours)'),
-                        _buildDurationDropdown(
-                          _durationController,
-                          hint: 'Select duration',
-                          errorText: _localFieldErrors['duration'] ??
-                              context.watch<ServiceController>().fieldErrors['duration'],
-                        ),
+                      _buildDurationDropdown(
+                        _durationController,
+                        hint: 'Select duration',
+                        errorText:
+                            _localFieldErrors['duration'] ??
+                            context
+                                .watch<ServiceController>()
+                                .fieldErrors['duration'],
+                      ),
                       SizedBox(height: 15.h),
                     ],
                     _buildLabel('Equipment (Optional)'),
@@ -615,8 +642,11 @@ class _ProviderCreateListingScreenState
                     SizedBox(height: 30.h),
                     _buildSectionTitle('Portfolio Photos'),
                     _buildPhotoUploadArea(
-                      errorText: _localFieldErrors['photos'] ??
-                          context.watch<ServiceController>().fieldErrors['images'],
+                      errorText:
+                          _localFieldErrors['photos'] ??
+                          context
+                              .watch<ServiceController>()
+                              .fieldErrors['images'],
                     ),
                     _buildSelectedImagesGrid(),
 
@@ -907,7 +937,8 @@ class _ProviderCreateListingScreenState
                   setState(() {
                     _selectedServiceTypes.remove(type);
                     if (_selectedServiceTypes.isEmpty) {
-                      _localFieldErrors['serviceType'] = "At least one Service Type is required";
+                      _localFieldErrors['serviceType'] =
+                          "At least one Service Type is required";
                     }
                   });
                 },
@@ -1006,16 +1037,22 @@ class _ProviderCreateListingScreenState
           _buildTextField(
             _weekdayHourlyRateController,
             'e.g. 50',
-            errorText: _localFieldErrors['weekdayHourlyRate'] ?? 
-                context.watch<ServiceController>().fieldErrors['weekdayHourlyRate'],
+            errorText:
+                _localFieldErrors['weekdayHourlyRate'] ??
+                context
+                    .watch<ServiceController>()
+                    .fieldErrors['weekdayHourlyRate'],
           ),
           SizedBox(height: 15.h),
           _buildLabel('Weekend Hourly Rate (EUR)'),
           _buildTextField(
             _weekendHourlyRateController,
             'e.g. 75',
-            errorText: _localFieldErrors['weekendHourlyRate'] ?? 
-                context.watch<ServiceController>().fieldErrors['weekendHourlyRate'],
+            errorText:
+                _localFieldErrors['weekendHourlyRate'] ??
+                context
+                    .watch<ServiceController>()
+                    .fieldErrors['weekendHourlyRate'],
           ),
         ],
       );
@@ -1027,7 +1064,8 @@ class _ProviderCreateListingScreenState
           _buildTextField(
             _dailyRateController,
             'e.g. 350',
-            errorText: _localFieldErrors['dailyRate'] ?? 
+            errorText:
+                _localFieldErrors['dailyRate'] ??
                 context.watch<ServiceController>().fieldErrors['dailyRate'],
           ),
           SizedBox(height: 15.h),
@@ -1035,7 +1073,8 @@ class _ProviderCreateListingScreenState
           _buildTextField(
             _dailyHoursController,
             'e.g. 8',
-            errorText: _localFieldErrors['dailyHours'] ?? 
+            errorText:
+                _localFieldErrors['dailyHours'] ??
                 context.watch<ServiceController>().fieldErrors['dailyHours'],
           ),
         ],
@@ -1466,7 +1505,9 @@ class _ProviderCreateListingScreenState
                   'Select up to 5 high-quality images',
                   style: TextStyle(
                     fontSize: AppTypography.bodySmall,
-                    color: errorText != null ? Colors.red[300] : Colors.grey[400],
+                    color: errorText != null
+                        ? Colors.red[300]
+                        : Colors.grey[400],
                   ),
                 ),
               ],
@@ -1645,7 +1686,7 @@ class _ProviderCreateListingScreenState
       'graphic_design',
       'drone_photography',
       'event_coverage',
-      'studio_rental'
+      'studio_rental',
     ];
 
     if (validEnums.contains(normalized)) return normalized;

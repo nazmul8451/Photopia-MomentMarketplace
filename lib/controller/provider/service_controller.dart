@@ -84,7 +84,8 @@ class ServiceController extends ChangeNotifier {
 
       // Travel Fees & Deposit - Backend expects 0.0 to 1.0 for percentage
       dataMap['travelFeePerKm'] = serviceData.travelFeePerKm ?? 0.0;
-      dataMap['depositPercentage'] = (serviceData.depositPercentage ?? 50) / 100;
+      dataMap['depositPercentage'] =
+          (serviceData.depositPercentage ?? 50) / 100;
 
       // Ensure pricingModel fields satisfy Zod constraints if not already set
       if (dataMap['pricingModel'] != null) {
@@ -249,7 +250,8 @@ class ServiceController extends ChangeNotifier {
       dataMap['travelFeePerKm'] = serviceData.travelFeePerKm ?? 0.0;
       dataMap['allowOutsideRadius'] = serviceData.allowOutsideRadius ?? false;
       dataMap['maxTravelFee'] = serviceData.maxTravelFee;
-      dataMap['depositPercentage'] = (serviceData.depositPercentage ?? 50) / 100;
+      dataMap['depositPercentage'] =
+          (serviceData.depositPercentage ?? 50) / 100;
 
       // Ensure pricingModel fields satisfy Zod constraints - only for respective types
       if (dataMap['pricingModel'] != null) {
@@ -277,7 +279,9 @@ class ServiceController extends ChangeNotifier {
 
       // Deep clean null values to satisfy Zod
       final cleanedData = _deepClean(dataMap);
-      debugPrint('🧹 Data cleaned. subCategory is: ${cleanedData['subCategory']}');
+      debugPrint(
+        '🧹 Data cleaned. subCategory is: ${cleanedData['subCategory']}',
+      );
 
       // Verify gallery items for logging
       if (cleanedData['gallery'] != null) {
@@ -289,7 +293,8 @@ class ServiceController extends ChangeNotifier {
       // Add new images if provided
       if (newImages != null && newImages.isNotEmpty) {
         // Check if we need to replace coverMedia
-        bool shouldAddCoverPhoto = serviceData.coverMedia == null || serviceData.coverMedia!.isEmpty;
+        bool shouldAddCoverPhoto =
+            serviceData.coverMedia == null || serviceData.coverMedia!.isEmpty;
 
         if (shouldAddCoverPhoto) {
           final coverFile = newImages[0];

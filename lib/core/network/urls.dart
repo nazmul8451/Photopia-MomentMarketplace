@@ -107,4 +107,8 @@ class Urls {
   // Stripe Connect api
   static const String stripeConnectStatus = '$baseUrl/api/v1/users/stripe-connect-status';
   static const String stripeOnboarding = '$baseUrl/api/v1/users/stripe-connect-onboarding';
+
+  // Location API (Backend)
+  static const String locationSearch = '$baseUrl/api/v1/locations/search';
+  static const String locationGeocode = '$baseUrl/api/v1/locations/geocode';
 }

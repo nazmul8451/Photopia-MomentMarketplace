@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:http/http.dart' as http;
+import 'package:photopia/core/network/urls.dart';
+import 'package:photopia/controller/auth_controller.dart';
 
 class LocationController extends ChangeNotifier {
   String _currentAddress = "Detecting location...";
@@ -18,6 +22,12 @@ class LocationController extends ChangeNotifier {
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
+
+  bool _isSearching = false;
+  bool get isSearching => _isSearching;
+
+  List<dynamic> _searchSuggestions = [];
+  List<dynamic> get searchSuggestions => _searchSuggestions;
 
   Future<void> determinePosition() async {
     _isLoading = true;
@@ -92,6 +102,88 @@ class LocationController extends ChangeNotifier {
     } catch (e) {
       _currentAddress = "Unknown Location";
       debugPrint("Geocoding Error: $e");
+    }
+  }
+
+  // --- Backend API Integration ---
+
+  Future<List<dynamic>> searchLocations(String query) async {
+    if (query.isEmpty) {
+      _searchSuggestions = [];
+      notifyListeners();
+      return [];
+    }
+
+    _isSearching = true;
+    notifyListeners();
+
+    try {
+      final String? token = AuthController.accessToken;
+      final Uri uri = Uri.parse("${Urls.locationSearch}?q=${Uri.encodeComponent(query)}");
+      
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': token != null ? (token.startsWith('Bearer ') ? token : 'Bearer $token') : '',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          _searchSuggestions = data['data'] ?? [];
+          return _searchSuggestions;
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint("Location Search Error: $e");
+      return [];
+    } finally {
+      _isSearching = false;
+      notifyListeners();
+    }
+  }
+
+  Future<Map<String, dynamic>?> geocodeAddress(String address) async {
+    if (address.isEmpty) return null;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final String? token = AuthController.accessToken;
+      final Uri uri = Uri.parse("${Urls.locationGeocode}?address=${Uri.encodeComponent(address)}");
+      
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': token != null ? (token.startsWith('Bearer ') ? token : 'Bearer $token') : '',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          final geocodedData = data['data'];
+          if (geocodedData != null) {
+            _latitude = double.tryParse(geocodedData['lat']?.toString() ?? '');
+            _longitude = double.tryParse(geocodedData['lng']?.toString() ?? '');
+            // You can also update city/country here if the backend returns them
+            // The current documentation only shows lat, lng, formattedAddress, placeId
+            return geocodedData;
+          }
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint("Geocode Error: $e");
+      return null;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }
