@@ -43,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
       context.read<CategoryController>().getAllCategories();
       context.read<LocationController>().determinePosition();
       context.read<NotificationController>().fetchNotificationStats();
-      
+
       // Also fetch ServiceList in background to allow standard list tabs if needed
       context.read<ServiceListController>().getAllServices(refresh: false);
     });
@@ -79,10 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(
-          title: title,
-          onSeeAllTap: () {},
-        ),
+        SectionHeader(title: title, onSeeAllTap: () {}),
         SizedBox(
           height: 280.h,
           child: ListView.builder(
@@ -113,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Widget _buildRecentlyViewed(List<RecentlyViewedItem>? items) {
     if (items == null || items.isEmpty) return const SizedBox.shrink();
-    
+
     // Extract services
     final validServices = items
         .where((i) => i.serviceId != null)
@@ -123,7 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(title: 'Recently Viewed', onSeeAllTap: (){}),
+        SectionHeader(title: 'Recently Viewed', onSeeAllTap: () {}),
         SizedBox(
           height: 280.h,
           child: ListView.builder(
@@ -158,7 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(title: 'Get Inspired', onSeeAllTap: (){}),
+        SectionHeader(title: 'Get Inspired', onSeeAllTap: () {}),
         SizedBox(
           height: 120.h,
           child: ListView.builder(
@@ -191,10 +188,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      item.icon ?? '💡',
-                      style: TextStyle(fontSize: 24.sp),
-                    ),
+                    Text(item.icon ?? '💡', style: TextStyle(fontSize: 24.sp)),
                     SizedBox(height: 8.h),
                     Text(
                       item.title ?? 'Idea',
@@ -209,10 +203,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     SizedBox(height: 4.h),
                     Text(
                       item.description ?? '',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 12.sp,
-                      ),
+                      style: TextStyle(color: Colors.white70, fontSize: 12.sp),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -232,7 +223,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SectionHeader(title: 'Super Pros', onSeeAllTap: (){}),
+        SectionHeader(title: 'Super Pros', onSeeAllTap: () {}),
         SizedBox(
           height: 140.h,
           child: ListView.builder(
@@ -266,7 +257,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         CircleAvatar(
                           radius: 30.r,
                           backgroundColor: Colors.grey.shade200,
-                          backgroundImage: pro.user?.profile != null 
+                          backgroundImage: pro.user?.profile != null
                               ? CachedNetworkImageProvider(pro.user!.profile!)
                               : null,
                           child: pro.user?.profile == null
@@ -281,7 +272,11 @@ class _MyHomePageState extends State<MyHomePage> {
                               shape: BoxShape.circle,
                               border: Border.all(color: Colors.white, width: 2),
                             ),
-                            child: Icon(Icons.star, color: Colors.white, size: 10.sp),
+                            child: Icon(
+                              Icons.star,
+                              color: Colors.white,
+                              size: 10.sp,
+                            ),
                           ),
                       ],
                     ),
@@ -299,7 +294,11 @@ class _MyHomePageState extends State<MyHomePage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.star_rounded, color: Colors.orange, size: 14.sp),
+                        Icon(
+                          Icons.star_rounded,
+                          color: Colors.orange,
+                          size: 14.sp,
+                        ),
                         SizedBox(width: 4.w),
                         Text(
                           pro.rating?.toStringAsFixed(1) ?? '5.0',
@@ -458,7 +457,6 @@ class _MyHomePageState extends State<MyHomePage> {
   //   );
   // }
 
-
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -501,7 +499,9 @@ class _MyHomePageState extends State<MyHomePage> {
                             .watch<CategoryController>()
                             .selectedCategoryId,
                         onCategorySelected: (categoryId) {
-                          context.read<CategoryController>().selectCategory(categoryId);
+                          context.read<CategoryController>().selectCategory(
+                            categoryId,
+                          );
                           serviceListController.getAllServices(
                             filters: {'category': categoryId},
                           );
@@ -517,28 +517,37 @@ class _MyHomePageState extends State<MyHomePage> {
             Expanded(
               child: Consumer<HomeController>(
                 builder: (context, homeController, child) {
-                  if (homeController.isLoading && homeController.homeData == null) {
+                  if (homeController.isLoading &&
+                      homeController.homeData == null) {
                     return const HomeShimmer();
                   }
 
-                  if (homeController.errorMessage != null && homeController.homeData == null) {
-                     return Center(
+                  if (homeController.errorMessage != null &&
+                      homeController.homeData == null) {
+                    return Center(
                       child: Padding(
                         padding: EdgeInsets.all(32.w),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.wifi_off_rounded, size: 60.sp, color: Colors.grey.shade300),
+                            Icon(
+                              Icons.wifi_off_rounded,
+                              size: 60.sp,
+                              color: Colors.grey.shade300,
+                            ),
                             SizedBox(height: 16.h),
                             Text(
                               'Unable to load home',
-                              style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             SizedBox(height: 24.h),
                             ElevatedButton(
                               onPressed: () => homeController.fetchHomeData(),
                               child: Text('Try Again'),
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -566,9 +575,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: 10.h),
-                          
+
                           // Inspirations
-                          if (data.inspirations != null && data.inspirations!.isNotEmpty)
+                          if (data.inspirations != null &&
+                              data.inspirations!.isNotEmpty)
                             Column(
                               children: [
                                 _buildInspirations(data.inspirations),
@@ -578,7 +588,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
                           // Original Projects
                           if (data.originalProjects != null)
-                             _buildHorizontalServiceSection(
+                            _buildHorizontalServiceSection(
                               title: 'Original Projects',
                               items: data.originalProjects!,
                             ),
@@ -586,13 +596,14 @@ class _MyHomePageState extends State<MyHomePage> {
                           SizedBox(height: 10.h),
 
                           // Recently Viewed
-                          if (data.recentlyViewed != null && data.recentlyViewed!.isNotEmpty)
-                             Column(
-                               children: [
-                                 _buildRecentlyViewed(data.recentlyViewed),
-                                 SizedBox(height: 10.h),
-                               ],
-                             ),
+                          if (data.recentlyViewed != null &&
+                              data.recentlyViewed!.isNotEmpty)
+                            Column(
+                              children: [
+                                _buildRecentlyViewed(data.recentlyViewed),
+                                SizedBox(height: 10.h),
+                              ],
+                            ),
 
                           // Available Right Now
                           if (data.availableNow != null)
@@ -603,33 +614,36 @@ class _MyHomePageState extends State<MyHomePage> {
                             ),
 
                           SizedBox(height: 10.h),
-                          
+
                           // Super Pros
-                          if (data.superPros != null && data.superPros!.isNotEmpty)
-                             Column(
-                               children: [
-                                 _buildSuperPros(data.superPros),
-                                 SizedBox(height: 10.h),
-                               ],
-                             ),
+                          if (data.superPros != null &&
+                              data.superPros!.isNotEmpty)
+                            Column(
+                              children: [
+                                _buildSuperPros(data.superPros),
+                                SizedBox(height: 10.h),
+                              ],
+                            ),
 
                           // Trending Projects / Subcategories
                           // Assuming we map subcategories textually or map them to visual blocks
                           // Or we fallback to styles
                           // _buildStylesTags(context, data.styles),
-
                           SizedBox(height: 10.h),
 
                           // Popular Locations
-                          if (data.popularLocations != null && data.popularLocations!.isNotEmpty)
-                             Column(
-                               children: [
+                          if (data.popularLocations != null &&
+                              data.popularLocations!.isNotEmpty)
+                            Column(
+                              children: [
                                 //  _buildPopularLocations(context, data.popularLocations),
-                                 SizedBox(height: 10.h),
-                               ],
-                             ),
+                                SizedBox(height: 10.h),
+                              ],
+                            ),
 
-                          SizedBox(height: 100.h), // Bottom padding for navigation bar
+                          SizedBox(
+                            height: 100.h,
+                          ), // Bottom padding for navigation bar
                         ],
                       ),
                     ),

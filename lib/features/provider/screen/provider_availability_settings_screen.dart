@@ -234,7 +234,7 @@ class _ProviderAvailabilitySettingsScreenState extends State<ProviderAvailabilit
             child: Text(
               'Save',
               style: TextStyle(
-                color: Colors.blue,
+                color: Colors.black,
                 fontWeight: FontWeight.bold,
                 fontSize: 14.sp,
               ),
@@ -249,7 +249,7 @@ class _ProviderAvailabilitySettingsScreenState extends State<ProviderAvailabilit
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
               child: Column(
                 children: [
-                   // Pricing & Rates Card
+                  /* // Pricing & Rates Card
                   _buildSectionCard(
                     title: 'Pricing & Rates',
                     icon: Icons.payments_outlined,
@@ -292,7 +292,7 @@ class _ProviderAvailabilitySettingsScreenState extends State<ProviderAvailabilit
                       ],
                     ),
                   ),
-                  SizedBox(height: 25.h),
+                  SizedBox(height: 25.h), */
 
                   // Weekly Schedule Card
                   _buildSectionCard(
@@ -313,16 +313,16 @@ class _ProviderAvailabilitySettingsScreenState extends State<ProviderAvailabilit
                   ),
                   SizedBox(height: 25.h),
 
-                  // Booking Rules Card
+                  /* // Booking Rules Card
                   _buildSectionCard(
                     title: 'Advanced Booking Rules',
                     icon: Icons.tune_rounded,
                     color: const Color(0xFF10B981),
                     child: _buildAdvancedSettings(),
                   ),
-                  SizedBox(height: 25.h),
+                  SizedBox(height: 25.h), */
 
-                  // Exceptions Card
+                  /* // Exceptions Card
                   _buildSectionCard(
                     title: 'Custom Dates & Exceptions',
                     icon: Icons.event_busy_outlined,
@@ -365,7 +365,7 @@ class _ProviderAvailabilitySettingsScreenState extends State<ProviderAvailabilit
                         ),
                       ],
                     ),
-                  ),
+                  ), */
                   SizedBox(height: 40.h),
                   
                   // Save Button at bottom
