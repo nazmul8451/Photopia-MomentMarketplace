@@ -179,9 +179,15 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
                   return TabBarView(
                     controller: _tabController,
                     children: [
-                      controller.inProgress ? _buildShimmerLoading() : _buildTodayTab(controller),
-                      controller.inProgress ? _buildShimmerLoading() : _buildUpcomingTab(controller),
-                      controller.inProgress ? _buildShimmerLoading() : _buildPendingTab(controller),
+                      controller.todayLoading && controller.todayOrders.isEmpty
+                          ? _buildShimmerLoading()
+                          : _buildTodayTab(controller),
+                      controller.upcomingLoading && controller.upcomingOrders.isEmpty
+                          ? _buildShimmerLoading()
+                          : _buildUpcomingTab(controller),
+                      controller.pendingLoading && controller.pendingOrders.isEmpty
+                          ? _buildShimmerLoading()
+                          : _buildPendingTab(controller),
                     ],
                   );
                 },
@@ -194,7 +200,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
   }
 
   Widget _buildTodayTab(ProviderOrdersController controller) {
-    final todayOrders = controller.orders;
+    final todayOrders = controller.todayOrders;
     
     return RefreshIndicator(
       color: Colors.black,
@@ -288,7 +294,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
 }
 
   Widget _buildUpcomingTab(ProviderOrdersController controller) {
-    final upcomingOrders = controller.orders;
+    final upcomingOrders = controller.upcomingOrders;
     
     return RefreshIndicator(
       color: Colors.black,
@@ -380,7 +386,7 @@ class _ProviderOrdersScreenState extends State<ProviderOrdersScreen>
 }
 
   Widget _buildPendingTab(ProviderOrdersController controller) {
-    final pendingOrders = controller.orders;
+    final pendingOrders = controller.pendingOrders;
     
     return RefreshIndicator(
       color: Colors.black,

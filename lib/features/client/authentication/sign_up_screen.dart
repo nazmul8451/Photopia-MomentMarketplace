@@ -153,13 +153,33 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           }
                         } else {
                           if (mounted) {
-                            CustomSnackBar.show(
-                              context: context,
-                              message:
-                                  signUpController.errorMessage ??
-                                  'Registration failed',
-                              isError: true,
-                            );
+                            final errorMessage =
+                                signUpController.errorMessage ?? '';
+                            if (errorMessage
+                                .toLowerCase()
+                                .contains('already exist')) {
+                              CustomSnackBar.show(
+                                context: context,
+                                message:
+                                    'Account already exists. Redirecting to verification...',
+                              );
+                              Navigator.pushNamed(
+                                context,
+                                '/otp_verification',
+                                arguments: {
+                                  'email': _emailController.text.trim(),
+                                  'isForgotPassword': false,
+                                },
+                              );
+                            } else {
+                              CustomSnackBar.show(
+                                context: context,
+                                message:
+                                    signUpController.errorMessage ??
+                                    'Registration failed',
+                                isError: true,
+                              );
+                            }
                           }
                         }
                       },

@@ -7,29 +7,68 @@ class ProviderOrdersController extends ChangeNotifier {
   String _errorMessage = '';
   List<dynamic> _orders = [];
 
+  // Categorized lists for stable state management
+  List<dynamic> _todayOrders = [];
+  List<dynamic> _upcomingOrders = [];
+  List<dynamic> _pendingOrders = [];
+
+  // Categorized loading states
+  bool _todayLoading = false;
+  bool _upcomingLoading = false;
+  bool _pendingLoading = false;
+
   bool get inProgress => _inProgress;
   String get errorMessage => _errorMessage;
   List<dynamic> get orders => _orders;
 
+  // Granular Getters
+  List<dynamic> get todayOrders => _todayOrders;
+  List<dynamic> get upcomingOrders => _upcomingOrders;
+  List<dynamic> get pendingOrders => _pendingOrders;
+
+  bool get todayLoading => _todayLoading;
+  bool get upcomingLoading => _upcomingLoading;
+  bool get pendingLoading => _pendingLoading;
+
   Future<bool> getMyOrders({String? filterType, String? status}) async {
-    _inProgress = true;
+    // Determine which category is loading
+    if (filterType == 'today') {
+      _todayLoading = true;
+    } else if (filterType == 'upcoming') {
+      _upcomingLoading = true;
+    } else if (status == 'pending') {
+      _pendingLoading = true;
+    } else {
+      _inProgress = true;
+    }
+    
     _errorMessage = '';
-    _orders = []; // Clear previous data so shimmering feels clean and accurate for the new tab focus
     notifyListeners();
 
     final response = await NetworkCaller.getRequest(
       url: Urls.getMyOrders(filterType: filterType, status: status)
     );
 
+    // Reset all loading states
+    _todayLoading = false;
+    _upcomingLoading = false;
+    _pendingLoading = false;
     _inProgress = false;
 
     if (response.isSuccess) {
       if (response.body != null && response.body!['data'] != null) {
-        _orders = response.body!['data'];
-        debugPrint("Fetched ${_orders.length} orders");
-        if (_orders.isNotEmpty) {
-          debugPrint("First order FULL JSON: $_orders");
+        final data = response.body!['data'];
+        
+        // Populate the correct category
+        if (filterType == 'today') {
+          _todayOrders = data;
+        } else if (filterType == 'upcoming') {
+          _upcomingOrders = data;
+        } else if (status == 'pending') {
+          _pendingOrders = data;
         }
+        
+        _orders = data; // Keep for backward compatibility
       }
       notifyListeners();
       return true;
@@ -56,7 +95,10 @@ class ProviderOrdersController extends ChangeNotifier {
     notifyListeners();
 
     if (response.isSuccess) {
-      await getMyOrders(); // Refresh the list
+      // Refresh all relevant categories in the background for a "real-time" feel
+      getMyOrders(filterType: 'today');
+      getMyOrders(filterType: 'upcoming');
+      getMyOrders(status: 'pending');
       return true;
     }
     return false;
@@ -67,6 +109,12 @@ class ProviderOrdersController extends ChangeNotifier {
     _isUpdating = false;
     _errorMessage = '';
     _orders = [];
+    _todayOrders = [];
+    _upcomingOrders = [];
+    _pendingOrders = [];
+    _todayLoading = false;
+    _upcomingLoading = false;
+    _pendingLoading = false;
     notifyListeners();
   }
 }
